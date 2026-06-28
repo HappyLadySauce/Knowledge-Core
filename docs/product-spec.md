@@ -196,6 +196,57 @@ DELETE /api/users/:id           # 删除用户（仅 admin）
 - 登录失败 5 次后锁定 15 分钟
 - JWT 黑名单机制支持强制登出
 
+## 评论系统
+
+### 数据模型
+
+```go
+type Comment struct {
+    ID        uint      `json:"id"`
+    ArticleID uint      `json:"article_id" gorm:"index"`
+    UserID    uint      `json:"user_id" gorm:"index"`
+    ParentID  uint      `json:"parent_id"`       // 0 = 顶级评论
+    Content   string    `json:"content"`          // Markdown 格式
+    Status    string    `json:"status"`           // "pending" | "approved" | "rejected"
+    CreatedAt time.Time `json:"created_at"`
+    UpdatedAt time.Time `json:"updated_at"`
+
+    User    User    `json:"user"    gorm:"preload"`
+    Article Article `json:"article" gorm:"preload"`
+}
+```
+
+### 评论规则
+
+| 规则 | 说明 |
+|---|---|
+| 发评论 | 需登录，Markdown 格式，限 2000 字 |
+| 评论状态 | 新评论默认 `pending`，管理员审核后变为 `approved` |
+| 审核机制 | 管理员可在后台批量审核/拒绝，前端只显示 `approved` 评论 |
+| 作者高亮 | 文章作者（管理员）的评论带特殊标识 |
+| 删除评论 | 管理员可删除任何评论，用户只能删除自己的评论 |
+| v2 扩展 | 嵌套回复（ParentID）、点赞、举报 |
+
+### API 路由
+
+```
+GET    /api/articles/:id/comments          # 获取文章评论（仅 approved，公开）
+POST   /api/articles/:id/comments          # 发表评论（需登录）
+DELETE /api/comments/:id                  # 删除评论（本人或 admin）
+
+GET    /api/admin/comments?status=pending  # 待审核评论列表（仅 admin）
+PUT    /api/admin/comments/:id/approve      # 审核通过（仅 admin）
+PUT    /api/admin/comments/:id/reject       # 审核拒绝（仅 admin）
+DELETE /api/admin/comments/:id             # 删除评论（仅 admin）
+```
+
+### 前端展示
+
+- 文章阅读页底部显示评论列表（按时间倒序）
+- 每条评论显示：头像、用户名、时间、内容、操作
+- 管理员评论显示"作者"标签
+- 未登录用户显示登录提示，隐藏输入框
+
 ## MVP 范围（第一阶段）
 
 ### 必做（最小闭环）
@@ -207,6 +258,7 @@ DELETE /api/users/:id           # 删除用户（仅 admin）
 5. 用户注册/登录（JWT 认证）
 6. 管理员后台权限控制
 7. 前台用户个人中心
+8. 文章评论系统（前台浏览 + 管理员审核）
 
 ### 暂不做（后续阶段）
 
@@ -217,7 +269,8 @@ DELETE /api/users/:id           # 删除用户（仅 admin）
 - 主动提醒/复盘
 - 知识图谱可视化
 - 邮箱验证
-- 用户评论系统
+- 嵌套回复（楼中楼）
+- 评论点赞/举报
 
 ## 设计原则
 

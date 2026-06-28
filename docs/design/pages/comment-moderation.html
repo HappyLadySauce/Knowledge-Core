@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Untitled</title>
+    <title>Knowledge Core - 评论审核</title>
     <style id="theme-vars">
 /**
  * TraeWork design library tokens
@@ -881,353 +881,368 @@
 </head>
 <body class="min-h-screen font-sans antialiased">
     <main>
-      <!-- ========== Top Navbar ========== -->
-      <nav style="position:sticky;top:0;z-index:50;background:var(--bg-base-default);border-bottom:1px solid var(--border-neutral-l1);">
-        <div style="max-width:1200px;margin:0 auto;padding:0 var(--spacer-24);display:flex;align-items:center;justify-content:space-between;height:56px;">
-          <div style="display:flex;align-items:center;gap:var(--spacer-32);">
-            <a href="#" style="font-family:var(--heading-sm-font-family);font-size:var(--heading-sm-font-size);font-weight:var(--heading-sm-font-weight);color:var(--text-brand);text-decoration:none;white-space:nowrap;">Knowledge Core</a>
-            <div style="display:flex;align-items:center;gap:var(--spacer-24);">
-              <a href="#" data-dom-id="nav-home" style="font-size:var(--body-base-font-size);color:var(--text-secondary);text-decoration:none;white-space:nowrap;">首页</a>
-              <a href="#" style="font-size:var(--body-base-font-size);color:var(--text-secondary);text-decoration:none;white-space:nowrap;">文库</a>
-              <a href="#" style="font-size:var(--body-base-font-size);color:var(--text-secondary);text-decoration:none;white-space:nowrap;">友链</a>
-              <a href="#" style="font-size:var(--body-base-font-size);color:var(--text-secondary);text-decoration:none;white-space:nowrap;">关于</a>
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;">
-            <div class="ds-input" style="width:200px;">
-              <span data-icon style="width:16px;height:16px;mask-image:url('../assets/icons/dl_builtin_trae_work/Search.svg');flex-shrink:0;"></span>
-              <input type="text" placeholder="搜索文章...">
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <!-- ========== Breadcrumb ========== -->
-      <div style="max-width:1200px;margin:0 auto;padding:var(--spacer-16) var(--spacer-24) 0;">
-        <div class="ds-breadcrumb">
-          <a href="#">首页</a>
-          <span class="ds-breadcrumb__sep">/</span>
-          <a href="#">文库</a>
-          <span class="ds-breadcrumb__sep">/</span>
-          <a href="#">tech/ai</a>
-          <span class="ds-breadcrumb__sep">/</span>
-          <span class="ds-breadcrumb__current">深度学习入门笔记</span>
-        </div>
-      </div>
-
-      <!-- ========== Main Content: Two Column ========== -->
-      <div class="flex flex-col lg:flex-row" style="max-width:1200px;margin:0 auto;padding:var(--spacer-24);gap:var(--spacer-40);">
-
-        <!-- ===== LEFT: Article + Comments ===== -->
-        <div class="w-full lg:flex-1 lg:max-w-[680px]" style="min-width:0;">
-
-          <!-- Article Cover Image -->
-          <img src="../assets/cover-deep-learning.jpg" alt="深度学习入门笔记封面" style="width:100%;height:300px;object-fit:cover;border-radius:var(--radius-8);">
-
-          <!-- Article Header -->
-          <div style="margin-top:var(--spacer-24);">
-            <span class="ds-tag ds-tag--brand" style="margin-bottom:var(--spacer-12);">tech/ai</span>
-            <h1 style="font-family:var(--heading-xl-font-family);font-size:var(--heading-xl-font-size);font-weight:var(--heading-xl-font-weight);line-height:var(--heading-xl-line-height);color:var(--text-default);margin:var(--spacer-8) 0;text-wrap:balance;word-break:keep-all;overflow-wrap:break-word;">深度学习入门笔记</h1>
-            <div style="display:flex;align-items:center;gap:var(--spacer-16);margin-top:var(--spacer-12);color:var(--text-tertiary);font-size:var(--body-base-font-size);line-height:var(--body-base-line-height);flex-wrap:wrap;">
-              <span style="display:inline-flex;align-items:center;gap:var(--spacer-6);">
-                <span data-icon style="width:16px;height:16px;mask-image:url('../assets/icons/dl_builtin_trae_work/user-small.svg');flex-shrink:0;"></span>
-                HappyLadySauce
-              </span>
-              <span style="display:inline-flex;align-items:center;gap:var(--spacer-6);">
-                <span data-icon style="width:16px;height:16px;mask-image:url('../assets/icons/dl_builtin_trae_work/calendar.svg');flex-shrink:0;"></span>
-                2026-06-15
-              </span>
-              <span>2,340 字</span>
-              <span style="display:inline-flex;align-items:center;gap:var(--spacer-6);">
-                <span data-icon style="width:16px;height:16px;mask-image:url('../assets/icons/dl_builtin_trae_work/clock_time.svg');flex-shrink:0;"></span>
-                阅读约 8 分钟
-              </span>
-            </div>
-            <div style="display:flex;flex-wrap:wrap;gap:var(--spacer-8);margin-top:var(--spacer-16);">
-              <span class="ds-tag">ai</span>
-              <span class="ds-tag">deep-learning</span>
-              <span class="ds-tag">学习笔记</span>
-              <span class="ds-tag">神经网络</span>
-            </div>
-          </div>
-
-          <hr style="margin:var(--spacer-24) 0;border:none;border-top:1px solid var(--border-neutral-l1);">
-
-          <!-- Article Body -->
-          <article style="font-size:var(--body-base-font-size);line-height:1.6;color:var(--text-default);">
-
-            <h2 style="font-family:var(--heading-md-font-family);font-size:var(--heading-md-font-size);font-weight:var(--heading-md-font-weight);line-height:var(--heading-md-line-height);color:var(--text-default);margin:var(--spacer-32) 0 var(--spacer-12);">什么是深度学习？</h2>
-            <p style="margin-bottom:var(--spacer-16);">深度学习（Deep Learning）是机器学习的一个分支，它试图使用包含复杂结构或由多重非线性变换构成的多个处理层对数据进行高层抽象的算法。深度学习的核心思想是通过模拟人脑神经网络的结构，让计算机自动从数据中学习特征和模式，而无需人工进行特征工程。近年来，深度学习在图像识别、自然语言处理、语音识别等领域取得了突破性进展。</p>
-
-            <h3 style="font-family:var(--heading-sm-font-family);font-size:var(--heading-sm-font-size);font-weight:var(--heading-sm-font-weight);line-height:var(--heading-sm-line-height);color:var(--text-default);margin:var(--spacer-24) 0 var(--spacer-12);">核心概念</h3>
-            <ul style="margin-bottom:var(--spacer-16);padding-left:var(--spacer-24);display:flex;flex-direction:column;gap:var(--spacer-8);">
-              <li>神经网络（Neural Network）：由大量人工神经元相互连接组成的计算模型</li>
-              <li>前向传播（Forward Propagation）：数据从输入层经过隐藏层到输出层的过程</li>
-              <li>反向传播（Backpropagation）：通过计算损失函数的梯度来更新网络权重</li>
-              <li>激活函数（Activation Function）：引入非线性变换，使网络能够学习复杂模式</li>
-              <li>损失函数（Loss Function）：衡量模型预测值与真实值之间的差距</li>
-              <li>优化器（Optimizer）：用于调整网络权重以最小化损失函数的算法</li>
-            </ul>
-
-            <h2 style="font-family:var(--heading-md-font-family);font-size:var(--heading-md-font-size);font-weight:var(--heading-md-font-weight);line-height:var(--heading-md-line-height);color:var(--text-default);margin:var(--spacer-32) 0 var(--spacer-12);">常用框架对比</h2>
-            <div style="overflow-x:auto;margin-bottom:var(--spacer-24);">
-              <table style="width:100%;border-collapse:collapse;font-size:var(--body-base-font-size);line-height:var(--body-base-line-height);">
-                <thead>
-                  <tr style="border-bottom:1px solid var(--border-neutral-l1);">
-                    <th style="text-align:left;padding:var(--spacer-8) var(--spacer-12);color:var(--text-tertiary);font-weight:var(--font-weight-medium);font-size:var(--body-md-font-size);">框架</th>
-                    <th style="text-align:left;padding:var(--spacer-8) var(--spacer-12);color:var(--text-tertiary);font-weight:var(--font-weight-medium);font-size:var(--body-md-font-size);">开发方</th>
-                    <th style="text-align:left;padding:var(--spacer-8) var(--spacer-12);color:var(--text-tertiary);font-weight:var(--font-weight-medium);font-size:var(--body-md-font-size);">特点</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr style="border-bottom:1px solid var(--border-neutral-l1);">
-                    <td style="padding:var(--spacer-8) var(--spacer-12);color:var(--text-default);font-weight:var(--font-weight-medium);">PyTorch</td>
-                    <td style="padding:var(--spacer-8) var(--spacer-12);color:var(--text-secondary);">Meta</td>
-                    <td style="padding:var(--spacer-8) var(--spacer-12);color:var(--text-secondary);">动态图，易于调试，科研领域主流</td>
-                  </tr>
-                  <tr style="border-bottom:1px solid var(--border-neutral-l1);">
-                    <td style="padding:var(--spacer-8) var(--spacer-12);color:var(--text-default);font-weight:var(--font-weight-medium);">TensorFlow</td>
-                    <td style="padding:var(--spacer-8) var(--spacer-12);color:var(--text-secondary);">Google</td>
-                    <td style="padding:var(--spacer-8) var(--spacer-12);color:var(--text-secondary);">生态完善，生产部署成熟</td>
-                  </tr>
-                  <tr>
-                    <td style="padding:var(--spacer-8) var(--spacer-12);color:var(--text-default);font-weight:var(--font-weight-medium);">Keras</td>
-                    <td style="padding:var(--spacer-8) var(--spacer-12);color:var(--text-secondary);">开源社区</td>
-                    <td style="padding:var(--spacer-8) var(--spacer-12);color:var(--text-secondary);">高层 API，快速原型开发</td>
-                  </tr>
-                </tbody>
-              </table>
+    <div class="flex h-screen overflow-hidden">
+        <!-- Left Sidebar -->
+        <aside class="flex flex-col w-[240px] shrink-0 border-r" style="border-color:var(--border-neutral-l1);background:var(--bg-base-default);">
+            <!-- Logo -->
+            <div class="flex items-center gap-[10px] px-[16px] py-[16px]">
+                <span data-icon style="width:22px;height:22px;mask-image:url('../assets/icons/dl_builtin_trae_work/design-library.svg');color:var(--bg-brand);"></span>
+                <span class="truncate" style="font-family:var(--font-family-heading);font-size:var(--heading-sm-font-size);font-weight:var(--heading-sm-font-weight);line-height:var(--heading-sm-line-height);color:var(--text-default);">Knowledge Core</span>
             </div>
 
-            <h2 style="font-family:var(--heading-md-font-family);font-size:var(--heading-md-font-size);font-weight:var(--heading-md-font-weight);line-height:var(--heading-md-line-height);color:var(--text-default);margin:var(--spacer-32) 0 var(--spacer-12);">学习路径建议</h2>
-            <ol style="margin-bottom:var(--spacer-16);padding-left:var(--spacer-24);display:flex;flex-direction:column;gap:var(--spacer-8);">
-              <li>打好数学基础：线性代数、概率论、微积分是深度学习的三大数学支柱</li>
-              <li>学习 Python 编程：掌握 NumPy、Pandas 等数据处理库的基本使用</li>
-              <li>理解经典机器学习：先从线性回归、决策树等传统算法入手</li>
-              <li>实践深度学习项目：从 MNIST 手写数字识别开始，逐步挑战更复杂的任务</li>
-            </ol>
+            <!-- Navigation -->
+            <nav class="flex flex-col gap-[2px] px-[8px]">
+                <a href="#" class="flex items-center gap-[10px] min-h-[32px] px-[8px] rounded-lg no-underline" style="color:var(--text-secondary);">
+                    <span data-icon style="width:16px;height:16px;mask-image:url('../assets/icons/dl_builtin_trae_work/explorer-file-workspace.svg');"></span>
+                    <span class="truncate" style="font-size:var(--body-base-font-size);line-height:var(--body-base-line-height);">笔记库</span>
+                </a>
+                <a href="#" class="flex items-center gap-[10px] min-h-[32px] px-[8px] rounded-lg no-underline" style="color:var(--text-secondary);">
+                    <span data-icon style="width:16px;height:16px;mask-image:url('../assets/icons/dl_builtin_trae_work/Search.svg');"></span>
+                    <span class="truncate" style="font-size:var(--body-base-font-size);line-height:var(--body-base-line-height);">搜索</span>
+                </a>
+                <a href="#" class="flex items-center gap-[10px] min-h-[32px] px-[8px] rounded-lg no-underline" style="color:var(--text-secondary);">
+                    <span data-icon style="width:16px;height:16px;mask-image:url('../assets/icons/dl_builtin_trae_work/add.svg');"></span>
+                    <span class="truncate" style="font-size:var(--body-base-font-size);line-height:var(--body-base-line-height);">导入</span>
+                </a>
+                <a href="#" class="flex items-center gap-[10px] min-h-[32px] px-[8px] rounded-lg no-underline" style="background:var(--bg-overlay-l2);color:var(--text-default);">
+                    <span data-icon style="width:16px;height:16px;mask-image:url('../assets/icons/dl_builtin_trae_work/shieldcheck.svg');"></span>
+                    <span class="truncate" style="font-size:var(--body-base-font-size);font-weight:var(--font-weight-medium);line-height:var(--body-base-line-height);">用户管理</span>
+                </a>
+                <a href="#" class="flex items-center gap-[10px] min-h-[32px] px-[8px] rounded-lg no-underline" style="background:var(--bg-brand);color:var(--text-onbrand);border-radius:var(--radius-8);">
+                    <span data-icon style="width:16px;height:16px;mask-image:url('../assets/icons/dl_builtin_trae_work/chat.svg');color:var(--icon-onbrand);"></span>
+                    <span class="truncate" style="font-size:var(--body-base-font-size);font-weight:var(--font-weight-medium);line-height:var(--body-base-line-height);">评论审核</span>
+                </a>
+                <a href="#" class="flex items-center gap-[10px] min-h-[32px] px-[8px] rounded-lg no-underline" style="color:var(--text-secondary);">
+                    <span data-icon style="width:16px;height:16px;mask-image:url('../assets/icons/dl_builtin_trae_work/explorer-file-settings.svg');"></span>
+                    <span class="truncate" style="font-size:var(--body-base-font-size);line-height:var(--body-base-line-height);">设置</span>
+                </a>
+            </nav>
 
-            <blockquote style="border-left:3px solid var(--bg-brand);padding:var(--spacer-12) var(--spacer-16);background:var(--bg-overlay-l1);border-radius:0 var(--radius-8) var(--radius-8) 0;margin:var(--spacer-24) 0;color:var(--text-secondary);">
-              学习深度学习最重要的不是记住所有的公式，而是理解每个概念背后的直觉。当遇到一个新算法时，先问自己：它要解决什么问题？为什么之前的算法不够好？它做了什么改进？
-            </blockquote>
+            <!-- Divider -->
+            <div class="mx-[16px] my-[12px]" style="height:1px;background:var(--border-neutral-l1);"></div>
 
-            <p style="margin-bottom:var(--spacer-16);">在实践中，选择合适的框架非常重要。目前推荐新手从 <code style="font-family:var(--code-editor-font-family);font-size:var(--code-editor-font-size);background:var(--bg-overlay-l1);padding:2px var(--spacer-6);border-radius:var(--radius-4);color:var(--text-brand);">PyTorch</code> 开始，它的 API 设计更加直观，社区资源丰富，非常适合入门学习。</p>
+            <!-- Category Tree -->
+            <div class="flex flex-col gap-[2px] px-[8px] flex-1 overflow-y-auto no-scrollbar">
+                <p class="px-[8px] pb-[4px] truncate" style="font-size:var(--body-xs-font-size);font-weight:var(--body-xs-strong-font-weight);line-height:var(--body-xs-line-height);color:var(--text-tertiary);letter-spacing:0.04em;">分类</p>
 
-            <pre class="ds-code" style="background:var(--bg-invert);color:var(--text-white);border:none;margin:var(--spacer-24) 0;padding:var(--spacer-16);border-radius:var(--radius-8);">import torch
-import torch.nn as nn
-
-class SimpleNet(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.fc1 = nn.Linear(784, 128)
-        self.fc2 = nn.Linear(128, 10)
-
-    def forward(self, x):
-        x = torch.relu(self.fc1(x))
-        x = self.fc2(x)
-        return x</pre>
-          </article>
-
-          <hr style="margin:var(--spacer-32) 0;border:none;border-top:1px solid var(--border-neutral-l1);">
-
-          <!-- ===== Related Articles ===== -->
-          <div style="margin-bottom:var(--spacer-32);">
-            <h2 style="font-family:var(--heading-sm-font-family);font-size:var(--heading-sm-font-size);font-weight:var(--heading-sm-font-weight);line-height:var(--heading-sm-line-height);color:var(--text-default);margin-bottom:var(--spacer-16);">相关推荐</h2>
-            <div style="display:flex;flex-direction:column;gap:var(--spacer-12);">
-              <a href="#" data-dom-id="related-article-click" style="display:flex;align-items:center;gap:var(--spacer-12);padding:var(--spacer-12);border:1px solid var(--border-neutral-l1);border-radius:var(--radius-8);background:var(--bg-base-secondary);text-decoration:none;">
-                <span data-icon style="width:20px;height:20px;mask-image:url('../assets/icons/dl_builtin_trae_work/DocFile.svg');color:var(--icon-secondary);flex-shrink:0;"></span>
-                <span style="font-size:var(--body-base-font-size);color:var(--text-default);font-weight:var(--font-weight-medium);truncate;">神经网络反向传播详解</span>
-                <span data-icon style="width:14px;height:14px;mask-image:url('../assets/icons/dl_builtin_trae_work/Right.svg);color:var(--icon-tertiary);flex-shrink:0;margin-left:auto;"></span>
-              </a>
-              <a href="#" data-dom-id="related-article-click" style="display:flex;align-items:center;gap:var(--spacer-12);padding:var(--spacer-12);border:1px solid var(--border-neutral-l1);border-radius:var(--radius-8);background:var(--bg-base-secondary);text-decoration:none;">
-                <span data-icon style="width:20px;height:20px;mask-image:url('../assets/icons/dl_builtin_trae_work/DocFile.svg');color:var(--icon-secondary);flex-shrink:0;"></span>
-                <span style="font-size:var(--body-base-font-size);color:var(--text-default);font-weight:var(--font-weight-medium);truncate;">PyTorch 实战：图像分类器</span>
-                <span data-icon style="width:14px;height:14px;mask-image:url('../assets/icons/dl_builtin_trae_work/Right.svg');color:var(--icon-tertiary);flex-shrink:0;margin-left:auto;"></span>
-              </a>
-              <a href="#" data-dom-id="related-article-click" style="display:flex;align-items:center;gap:var(--spacer-12);padding:var(--spacer-12);border:1px solid var(--border-neutral-l1);border-radius:var(--radius-8);background:var(--bg-base-secondary);text-decoration:none;">
-                <span data-icon style="width:20px;height:20px;mask-image:url('../assets/icons/dl_builtin_trae_work/DocFile.svg');color:var(--icon-secondary);flex-shrink:0;"></span>
-                <span style="font-size:var(--body-base-font-size);color:var(--text-default);font-weight:var(--font-weight-medium);truncate;">CNN 卷积神经网络入门</span>
-                <span data-icon style="width:14px;height:14px;mask-image:url('../assets/icons/dl_builtin_trae_work/Right.svg');color:var(--icon-tertiary);flex-shrink:0;margin-left:auto;"></span>
-              </a>
-            </div>
-          </div>
-
-          <hr style="margin:var(--spacer-32) 0;border:none;border-top:1px solid var(--border-neutral-l1);">
-
-          <!-- ===== NEW: Comment Section ===== -->
-          <div>
-            <!-- Comment Section Header -->
-            <div style="display:flex;align-items:center;gap:var(--spacer-8);margin-bottom:var(--spacer-24);">
-              <span data-icon style="width:20px;height:20px;mask-image:url('../assets/icons/dl_builtin_trae_work/chat.svg');color:var(--icon-default);flex-shrink:0;"></span>
-              <h2 style="font-family:var(--heading-xs-font-family);font-size:var(--heading-xs-font-size);font-weight:var(--heading-xs-font-weight);line-height:var(--heading-xs-line-height);color:var(--text-default);margin:0;">评论 (5)</h2>
-            </div>
-
-            <!-- Comment Input Area -->
-            <div style="display:flex;gap:var(--spacer-12);margin-bottom:var(--spacer-32);">
-              <img src="../assets/author-portrait.jpg" alt="我的头像" style="width:32px;height:32px;border-radius:var(--radius-full);object-fit:cover;flex-shrink:0;">
-              <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:var(--spacer-8);">
-                <textarea class="ds-textarea" style="min-height:72px;background:var(--bg-overlay-l1);resize:none;" placeholder="写下你的评论...（支持 Markdown）"></textarea>
-                <div style="display:flex;justify-content:flex-end;">
-                  <button class="ds-btn ds-btn--brand ds-btn--sm">
-                    <span data-icon style="width:14px;height:14px;mask-image:url('../assets/icons/dl_builtin_trae_work/send.svg');"></span>
-                    发表评论
-                  </button>
+                <div class="flex flex-col">
+                    <a href="#" class="flex items-center gap-[6px] min-h-[30px] px-[8px] rounded-md no-underline" style="color:var(--text-secondary);">
+                        <span data-icon style="width:14px;height:14px;mask-image:url('../assets/icons/dl_builtin_trae_work/Expand_filetree.svg');"></span>
+                        <span data-icon style="width:14px;height:14px;mask-image:url('../assets/icons/dl_builtin_trae_work/explorer-folder-closed.svg');"></span>
+                        <span class="truncate" style="font-size:var(--body-sm-font-size);line-height:var(--body-sm-line-height);">技术</span>
+                    </a>
+                    <div class="flex flex-col gap-[1px] pl-[32px]">
+                        <a href="#" class="flex items-center gap-[6px] min-h-[28px] px-[8px] rounded-md no-underline" style="color:var(--text-tertiary);">
+                            <span class="truncate" style="font-size:var(--body-sm-font-size);line-height:var(--body-sm-line-height);">AI</span>
+                        </a>
+                        <a href="#" class="flex items-center gap-[6px] min-h-[28px] px-[8px] rounded-md no-underline" style="color:var(--text-tertiary);">
+                            <span class="truncate" style="font-size:var(--body-sm-font-size);line-height:var(--body-sm-line-height);">前端</span>
+                        </a>
+                        <a href="#" class="flex items-center gap-[6px] min-h-[28px] px-[8px] rounded-md no-underline" style="color:var(--text-tertiary);">
+                            <span class="truncate" style="font-size:var(--body-sm-font-size);line-height:var(--body-sm-line-height);">后端</span>
+                        </a>
+                    </div>
                 </div>
-              </div>
+
+                <a href="#" class="flex items-center gap-[6px] min-h-[30px] px-[8px] rounded-md no-underline" style="color:var(--text-secondary);">
+                    <span data-icon style="width:14px;height:14px;mask-image:url('../assets/icons/dl_builtin_trae_work/Collapse_filetree.svg');"></span>
+                    <span data-icon style="width:14px;height:14px;mask-image:url('../assets/icons/dl_builtin_trae_work/explorer-folder-closed.svg');"></span>
+                    <span class="truncate" style="font-size:var(--body-sm-font-size);line-height:var(--body-sm-line-height);">生活</span>
+                </a>
+
+                <a href="#" class="flex items-center gap-[6px] min-h-[30px] px-[8px] rounded-md no-underline" style="color:var(--text-secondary);">
+                    <span data-icon style="width:14px;height:14px;mask-image:url('../assets/icons/dl_builtin_trae_work/Collapse_filetree.svg');"></span>
+                    <span data-icon style="width:14px;height:14px;mask-image:url('../assets/icons/dl_builtin_trae_work/explorer-folder-closed.svg');"></span>
+                    <span class="truncate" style="font-size:var(--body-sm-font-size);line-height:var(--body-sm-line-height);">阅读</span>
+                </a>
+
+                <a href="#" class="flex items-center gap-[6px] min-h-[30px] px-[8px] rounded-md no-underline" style="color:var(--text-secondary);">
+                    <span data-icon style="width:14px;height:14px;mask-image:url('../assets/icons/dl_builtin_trae_work/Collapse_filetree.svg');"></span>
+                    <span data-icon style="width:14px;height:14px;mask-image:url('../assets/icons/dl_builtin_trae_work/explorer-folder-closed.svg');"></span>
+                    <span class="truncate" style="font-size:var(--body-sm-font-size);line-height:var(--body-sm-line-height);">项目</span>
+                </a>
+
+                <div class="mx-[4px] my-[12px]" style="height:1px;background:var(--border-neutral-l1);"></div>
+
+                <p class="px-[8px] pb-[6px] truncate" style="font-size:var(--body-xs-font-size);font-weight:var(--body-xs-strong-font-weight);line-height:var(--body-xs-line-height);color:var(--text-tertiary);letter-spacing:0.04em;">热门标签</p>
+                <div class="flex flex-wrap gap-[6px] px-[8px]">
+                    <span class="ds-tag shrink-0">ai</span>
+                    <span class="ds-tag shrink-0">react</span>
+                    <span class="ds-tag shrink-0">typescript</span>
+                    <span class="ds-tag shrink-0">学习笔记</span>
+                    <span class="ds-tag shrink-0">产品设计</span>
+                    <span class="ds-tag shrink-0">deep-learning</span>
+                    <span class="ds-tag shrink-0">go</span>
+                    <span class="ds-tag shrink-0">系统设计</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col overflow-hidden" style="background:var(--bg-base-secondary);">
+            <!-- Top Bar -->
+            <div class="flex items-center gap-[16px] px-[24px] py-[16px]" style="background:var(--bg-base-default);border-bottom:1px solid var(--border-neutral-l1);">
+                <div class="flex-1 flex flex-col gap-[8px] min-w-0">
+                    <!-- Breadcrumb -->
+                    <nav class="ds-breadcrumb">
+                        <a href="#" data-dom-id="back-to-library"><span>后台</span></a>
+                        <span class="ds-breadcrumb__sep">/</span>
+                        <span class="ds-breadcrumb__current">评论审核</span>
+                    </nav>
+                    <!-- Title -->
+                    <h1 class="truncate" style="font-family:var(--font-family-heading);font-size:var(--heading-md-font-size);font-weight:var(--heading-md-font-weight);line-height:var(--heading-md-line-height);color:var(--text-default);">评论审核</h1>
+                </div>
             </div>
 
-            <!-- Comment List -->
-            <div style="display:flex;flex-direction:column;">
-
-              <!-- Comment 1: HappyLadySauce (ADMIN) -->
-              <div style="display:flex;gap:var(--spacer-12);padding:var(--spacer-16) 0;border-bottom:1px solid var(--border-neutral-l1);">
-                <img src="../assets/author-portrait.jpg" alt="HappyLadySauce" style="width:32px;height:32px;border-radius:var(--radius-full);object-fit:cover;flex-shrink:0;">
-                <div style="flex:1;min-width:0;">
-                  <div style="display:flex;align-items:center;gap:var(--spacer-8);flex-wrap:wrap;">
-                    <span style="font-size:var(--body-base-font-size);font-weight:var(--body-base-strong-font-weight);color:var(--text-default);white-space:nowrap;">HappyLadySauce</span>
-                    <span style="display:inline-flex;align-items:center;justify-content:center;background:var(--bg-brand);padding:1px var(--spacer-8);border-radius:var(--radius-4);font-size:var(--body-xs-font-size);color:var(--text-onbrand);white-space:nowrap;height:18px;">作者</span>
-                    <span style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);white-space:nowrap;">2026-06-16 09:00</span>
-                  </div>
-                  <p style="font-size:var(--body-base-font-size);line-height:1.6;color:var(--text-default);margin-top:var(--spacer-8);">这篇文章是从我的学习笔记中整理出来的，如果有什么问题或者补充建议，欢迎在评论区讨论。</p>
+            <!-- Scrollable Content Area -->
+            <div class="flex-1 overflow-y-auto px-[24px] py-[24px]">
+                <!-- Stats Strip -->
+                <div class="grid grid-cols-3 gap-[16px] mb-[24px]">
+                    <div class="flex items-center gap-[12px] rounded-lg p-[16px]" style="background:var(--bg-base-default);border:1px solid var(--border-neutral-l1);">
+                        <div class="flex items-center justify-center w-[40px] h-[40px] rounded-lg shrink-0" style="background:var(--status-alert-surface-l1);">
+                            <span data-icon style="width:20px;height:20px;mask-image:url('../assets/icons/dl_builtin_trae_work/icon-warning-fill.svg');color:var(--status-alert-default);"></span>
+                        </div>
+                        <div class="flex flex-col min-w-0">
+                            <span class="truncate whitespace-nowrap" style="font-family:var(--font-family-metric);font-size:var(--heading-md-font-size);font-weight:var(--heading-md-font-weight);line-height:var(--heading-md-line-height);color:var(--text-default);">5</span>
+                            <span class="truncate whitespace-nowrap" style="font-size:var(--body-sm-font-size);line-height:var(--body-sm-line-height);color:var(--text-tertiary);">待审核</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-[12px] rounded-lg p-[16px]" style="background:var(--bg-base-default);border:1px solid var(--border-neutral-l1);">
+                        <div class="flex items-center justify-center w-[40px] h-[40px] rounded-lg shrink-0" style="background:var(--status-success-surface-l1);">
+                            <span data-icon style="width:20px;height:20px;mask-image:url('../assets/icons/dl_builtin_trae_work/check.svg');color:var(--status-success-default);"></span>
+                        </div>
+                        <div class="flex flex-col min-w-0">
+                            <span class="truncate whitespace-nowrap" style="font-family:var(--font-family-metric);font-size:var(--heading-md-font-size);font-weight:var(--heading-md-font-weight);line-height:var(--heading-md-line-height);color:var(--text-default);">42</span>
+                            <span class="truncate whitespace-nowrap" style="font-size:var(--body-sm-font-size);line-height:var(--body-sm-line-height);color:var(--text-tertiary);">已通过</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-[12px] rounded-lg p-[16px]" style="background:var(--bg-base-default);border:1px solid var(--border-neutral-l1);">
+                        <div class="flex items-center justify-center w-[40px] h-[40px] rounded-lg shrink-0" style="background:var(--status-error-surface-l1);">
+                            <span data-icon style="width:20px;height:20px;mask-image:url('../assets/icons/dl_builtin_trae_work/Close.svg');color:var(--status-error-default);"></span>
+                        </div>
+                        <div class="flex flex-col min-w-0">
+                            <span class="truncate whitespace-nowrap" style="font-family:var(--font-family-metric);font-size:var(--heading-md-font-size);font-weight:var(--heading-md-font-weight);line-height:var(--heading-md-line-height);color:var(--text-default);">3</span>
+                            <span class="truncate whitespace-nowrap" style="font-size:var(--body-sm-font-size);line-height:var(--body-sm-line-height);color:var(--text-tertiary);">已拒绝</span>
+                        </div>
+                    </div>
                 </div>
-              </div>
 
-              <!-- Comment 2: 张三 -->
-              <div style="display:flex;gap:var(--spacer-12);padding:var(--spacer-16) 0;border-bottom:1px solid var(--border-neutral-l1);">
-                <div class="ds-avatar" style="flex-shrink:0;">张</div>
-                <div style="flex:1;min-width:0;">
-                  <div style="display:flex;align-items:center;gap:var(--spacer-8);flex-wrap:wrap;">
-                    <span style="font-size:var(--body-base-font-size);font-weight:var(--body-base-strong-font-weight);color:var(--text-default);white-space:nowrap;">张三</span>
-                    <span style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);white-space:nowrap;">2026-06-20 14:30</span>
-                  </div>
-                  <p style="font-size:var(--body-base-font-size);line-height:1.6;color:var(--text-default);margin-top:var(--spacer-8);">框架对比部分很实用！我在选框架的时候一直在纠结 PyTorch 和 TensorFlow，现在有参考了。建议补充一下 JAX 的对比，听说在科研领域很火。</p>
+                <!-- Filter Tabs -->
+                <div class="ds-tabs mb-[20px]">
+                    <button class="ds-tab is-active" style="background:var(--bg-brand);color:var(--text-onbrand);border-radius:var(--radius-8);padding:var(--spacer-6) var(--spacer-16);position:static;">待审核</button>
+                    <button class="ds-tab">已通过</button>
+                    <button class="ds-tab">已拒绝</button>
+                    <button class="ds-tab">全部</button>
                 </div>
-              </div>
 
-              <!-- Comment 3: 李四 -->
-              <div style="display:flex;gap:var(--spacer-12);padding:var(--spacer-16) 0;border-bottom:1px solid var(--border-neutral-l1);">
-                <div class="ds-avatar" style="flex-shrink:0;">李</div>
-                <div style="flex:1;min-width:0;">
-                  <div style="display:flex;align-items:center;gap:var(--spacer-8);flex-wrap:wrap;">
-                    <span style="font-size:var(--body-base-font-size);font-weight:var(--body-base-strong-font-weight);color:var(--text-default);white-space:nowrap;">李四</span>
-                    <span style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);white-space:nowrap;">2026-06-22 10:15</span>
-                  </div>
-                  <p style="font-size:var(--body-base-font-size);line-height:1.6;color:var(--text-default);margin-top:var(--spacer-8);">请问反向传播那块能再详细讲讲吗？Chain rule 的推导过程如果加上就好了。</p>
+                <!-- Comment List -->
+                <div class="flex flex-col gap-[12px]" style="background:var(--bg-base-default);border:1px solid var(--border-neutral-l1);border-radius:var(--radius-8);padding:var(--spacer-16);" data-dom-id="comment-list">
+
+                    <!-- Comment 1 (PENDING) -->
+                    <div class="flex flex-col gap-[10px] py-[14px]" style="border-left:3px solid var(--status-alert-default);padding-left:var(--spacer-16);background:var(--bg-overlay-l1);border-radius:0 var(--radius-8) var(--radius-8) 0;">
+                        <div class="flex items-center gap-[10px] min-w-0">
+                            <span class="ds-avatar ds-avatar--sm shrink-0">张</span>
+                            <div class="flex flex-col min-w-0 flex-1">
+                                <div class="flex items-center gap-[8px] min-w-0">
+                                    <span class="truncate" style="font-weight:var(--font-weight-medium);font-size:var(--body-base-font-size);line-height:var(--body-base-line-height);color:var(--text-default);">张三</span>
+                                    <span class="truncate" style="font-size:var(--body-sm-font-size);line-height:var(--body-sm-line-height);color:var(--text-tertiary);">zhangsan@example.com</span>
+                                    <span class="ds-tag ds-tag--warning shrink-0" style="background:var(--status-alert-surface-l1);color:var(--status-alert-default);border-color:var(--status-alert-surface-l2);">待审核</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-[6px] min-w-0" style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);">
+                            <span data-icon style="width:14px;height:14px;mask-image:url('../assets/icons/dl_builtin_trae_work/DocFile.svg');flex-shrink:0;"></span>
+                            <span>评论于</span>
+                            <a href="#" class="truncate" style="color:var(--text-brand);" data-dom-id="goto-article">深度学习入门笔记</a>
+                        </div>
+                        <div class="flex items-center gap-[6px] min-w-0" style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);">
+                            <span data-icon style="width:12px;height:12px;mask-image:url('../assets/icons/dl_builtin_trae_work/clock_time.svg');flex-shrink:0;"></span>
+                            <span class="whitespace-nowrap">2026-06-28 14:30</span>
+                        </div>
+                        <p class="line-clamp-3 min-w-0" style="font-size:var(--body-base-font-size);line-height:var(--body-base-line-height);color:var(--text-secondary);">这篇文章写得太好了，特别是框架对比部分，对我帮助很大。建议补充一下 JAX 的内容。</p>
+                        <div class="flex items-center gap-[8px] shrink-0 mt-[4px]">
+                            <button class="ds-btn ds-btn--brand ds-btn--sm">
+                                <span data-icon style="width:12px;height:12px;mask-image:url('../assets/icons/dl_builtin_trae_work/check.svg');color:var(--icon-onbrand);"></span>
+                                通过
+                            </button>
+                            <button class="ds-btn ds-btn--secondary ds-btn--sm">拒绝</button>
+                            <button class="ds-btn ds-btn--ghost ds-btn--sm" style="color:var(--text-tertiary);">
+                                <span data-icon style="width:12px;height:12px;mask-image:url('../assets/icons/dl_builtin_trae_work/Delete.svg');"></span>
+                                删除
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Comment 2 (PENDING) -->
+                    <div class="flex flex-col gap-[10px] py-[14px]" style="border-left:3px solid var(--status-alert-default);padding-left:var(--spacer-16);background:var(--bg-overlay-l1);border-radius:0 var(--radius-8) var(--radius-8) 0;">
+                        <div class="flex items-center gap-[10px] min-w-0">
+                            <span class="ds-avatar ds-avatar--sm shrink-0">李</span>
+                            <div class="flex flex-col min-w-0 flex-1">
+                                <div class="flex items-center gap-[8px] min-w-0">
+                                    <span class="truncate" style="font-weight:var(--font-weight-medium);font-size:var(--body-base-font-size);line-height:var(--body-base-line-height);color:var(--text-default);">李四</span>
+                                    <span class="truncate" style="font-size:var(--body-sm-font-size);line-height:var(--body-sm-line-height);color:var(--text-tertiary);">lisi@example.com</span>
+                                    <span class="ds-tag ds-tag--warning shrink-0" style="background:var(--status-alert-surface-l1);color:var(--status-alert-default);border-color:var(--status-alert-surface-l2);">待审核</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-[6px] min-w-0" style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);">
+                            <span data-icon style="width:14px;height:14px;mask-image:url('../assets/icons/dl_builtin_trae_work/DocFile.svg');flex-shrink:0;"></span>
+                            <span>评论于</span>
+                            <a href="#" class="truncate" style="color:var(--text-brand);" data-dom-id="goto-article">React Hooks 完全指南</a>
+                        </div>
+                        <div class="flex items-center gap-[6px] min-w-0" style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);">
+                            <span data-icon style="width:12px;height:12px;mask-image:url('../assets/icons/dl_builtin_trae_work/clock_time.svg');flex-shrink:0;"></span>
+                            <span class="whitespace-nowrap">2026-06-28 12:15</span>
+                        </div>
+                        <p class="line-clamp-3 min-w-0" style="font-size:var(--body-base-font-size);line-height:var(--body-base-line-height);color:var(--text-secondary);">请问 useEffect 的依赖数组如果传空数组，会不会在组件挂载时执行？和 class 组件的 componentDidMount 完全等价吗？</p>
+                        <div class="flex items-center gap-[8px] shrink-0 mt-[4px]">
+                            <button class="ds-btn ds-btn--brand ds-btn--sm">
+                                <span data-icon style="width:12px;height:12px;mask-image:url('../assets/icons/dl_builtin_trae_work/check.svg');color:var(--icon-onbrand);"></span>
+                                通过
+                            </button>
+                            <button class="ds-btn ds-btn--secondary ds-btn--sm">拒绝</button>
+                            <button class="ds-btn ds-btn--ghost ds-btn--sm" style="color:var(--text-tertiary);">
+                                <span data-icon style="width:12px;height:12px;mask-image:url('../assets/icons/dl_builtin_trae_work/Delete.svg');"></span>
+                                删除
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Comment 3 (PENDING) -->
+                    <div class="flex flex-col gap-[10px] py-[14px]" style="border-left:3px solid var(--status-alert-default);padding-left:var(--spacer-16);background:var(--bg-overlay-l1);border-radius:0 var(--radius-8) var(--radius-8) 0;">
+                        <div class="flex items-center gap-[10px] min-w-0">
+                            <span class="ds-avatar ds-avatar--sm shrink-0">王</span>
+                            <div class="flex flex-col min-w-0 flex-1">
+                                <div class="flex items-center gap-[8px] min-w-0">
+                                    <span class="truncate" style="font-weight:var(--font-weight-medium);font-size:var(--body-base-font-size);line-height:var(--body-base-line-height);color:var(--text-default);">王五</span>
+                                    <span class="truncate" style="font-size:var(--body-sm-font-size);line-height:var(--body-sm-line-height);color:var(--text-tertiary);">wangwu@example.com</span>
+                                    <span class="ds-tag ds-tag--warning shrink-0" style="background:var(--status-alert-surface-l1);color:var(--status-alert-default);border-color:var(--status-alert-surface-l2);">待审核</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-[6px] min-w-0" style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);">
+                            <span data-icon style="width:14px;height:14px;mask-image:url('../assets/icons/dl_builtin_trae_work/DocFile.svg');flex-shrink:0;"></span>
+                            <span>评论于</span>
+                            <a href="#" class="truncate" style="color:var(--text-brand);" data-dom-id="goto-article">Go 并发编程实战</a>
+                        </div>
+                        <div class="flex items-center gap-[6px] min-w-0" style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);">
+                            <span data-icon style="width:12px;height:12px;mask-image:url('../assets/icons/dl_builtin_trae_work/clock_time.svg');flex-shrink:0;"></span>
+                            <span class="whitespace-nowrap">2026-06-27 22:45</span>
+                        </div>
+                        <p class="line-clamp-3 min-w-0" style="font-size:var(--body-base-font-size);line-height:var(--body-base-line-height);color:var(--text-secondary);">goroutine 和线程的区别讲得不够清楚，建议加个对比表格。另外 channel 的使用场景可以再展开。</p>
+                        <div class="flex items-center gap-[8px] shrink-0 mt-[4px]">
+                            <button class="ds-btn ds-btn--brand ds-btn--sm">
+                                <span data-icon style="width:12px;height:12px;mask-image:url('../assets/icons/dl_builtin_trae_work/check.svg');color:var(--icon-onbrand);"></span>
+                                通过
+                            </button>
+                            <button class="ds-btn ds-btn--secondary ds-btn--sm">拒绝</button>
+                            <button class="ds-btn ds-btn--ghost ds-btn--sm" style="color:var(--text-tertiary);">
+                                <span data-icon style="width:12px;height:12px;mask-image:url('../assets/icons/dl_builtin_trae_work/Delete.svg');"></span>
+                                删除
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Comment 4 (PENDING) -->
+                    <div class="flex flex-col gap-[10px] py-[14px]" style="border-left:3px solid var(--status-alert-default);padding-left:var(--spacer-16);background:var(--bg-overlay-l1);border-radius:0 var(--radius-8) var(--radius-8) 0;">
+                        <div class="flex items-center gap-[10px] min-w-0">
+                            <span class="ds-avatar ds-avatar--sm shrink-0">赵</span>
+                            <div class="flex flex-col min-w-0 flex-1">
+                                <div class="flex items-center gap-[8px] min-w-0">
+                                    <span class="truncate" style="font-weight:var(--font-weight-medium);font-size:var(--body-base-font-size);line-height:var(--body-base-line-height);color:var(--text-default);">赵六</span>
+                                    <span class="truncate" style="font-size:var(--body-sm-font-size);line-height:var(--body-sm-line-height);color:var(--text-tertiary);">zhaoliu@example.com</span>
+                                    <span class="ds-tag ds-tag--warning shrink-0" style="background:var(--status-alert-surface-l1);color:var(--status-alert-default);border-color:var(--status-alert-surface-l2);">待审核</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-[6px] min-w-0" style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);">
+                            <span data-icon style="width:14px;height:14px;mask-image:url('../assets/icons/dl_builtin_trae_work/DocFile.svg');flex-shrink:0;"></span>
+                            <span>评论于</span>
+                            <a href="#" class="truncate" style="color:var(--text-brand);" data-dom-id="goto-article">2026 年度目标规划</a>
+                        </div>
+                        <div class="flex items-center gap-[6px] min-w-0" style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);">
+                            <span data-icon style="width:12px;height:12px;mask-image:url('../assets/icons/dl_builtin_trae_work/clock_time.svg');flex-shrink:0;"></span>
+                            <span class="whitespace-nowrap">2026-06-27 18:30</span>
+                        </div>
+                        <p class="line-clamp-3 min-w-0" style="font-size:var(--body-base-font-size);line-height:var(--body-base-line-height);color:var(--text-secondary);">目标不错，加油！建议把学习计划和项目经验结合起来，效果会更好。</p>
+                        <div class="flex items-center gap-[8px] shrink-0 mt-[4px]">
+                            <button class="ds-btn ds-btn--brand ds-btn--sm">
+                                <span data-icon style="width:12px;height:12px;mask-image:url('../assets/icons/dl_builtin_trae_work/check.svg');color:var(--icon-onbrand);"></span>
+                                通过
+                            </button>
+                            <button class="ds-btn ds-btn--secondary ds-btn--sm">拒绝</button>
+                            <button class="ds-btn ds-btn--ghost ds-btn--sm" style="color:var(--text-tertiary);">
+                                <span data-icon style="width:12px;height:12px;mask-image:url('../assets/icons/dl_builtin_trae_work/Delete.svg');"></span>
+                                删除
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Comment 5 (PENDING) -->
+                    <div class="flex flex-col gap-[10px] py-[14px]" style="border-left:3px solid var(--status-alert-default);padding-left:var(--spacer-16);background:var(--bg-overlay-l1);border-radius:0 var(--radius-8) var(--radius-8) 0;">
+                        <div class="flex items-center gap-[10px] min-w-0">
+                            <span class="ds-avatar ds-avatar--sm shrink-0">张</span>
+                            <div class="flex flex-col min-w-0 flex-1">
+                                <div class="flex items-center gap-[8px] min-w-0">
+                                    <span class="truncate" style="font-weight:var(--font-weight-medium);font-size:var(--body-base-font-size);line-height:var(--body-base-line-height);color:var(--text-default);">张三</span>
+                                    <span class="truncate" style="font-size:var(--body-sm-font-size);line-height:var(--body-sm-line-height);color:var(--text-tertiary);">zhangsan@example.com</span>
+                                    <span class="ds-tag ds-tag--warning shrink-0" style="background:var(--status-alert-surface-l1);color:var(--status-alert-default);border-color:var(--status-alert-surface-l2);">待审核</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-[6px] min-w-0" style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);">
+                            <span data-icon style="width:14px;height:14px;mask-image:url('../assets/icons/dl_builtin_trae_work/DocFile.svg');flex-shrink:0;"></span>
+                            <span>评论于</span>
+                            <a href="#" class="truncate" style="color:var(--text-brand);" data-dom-id="goto-article">思考快与慢 — 读书笔记</a>
+                        </div>
+                        <div class="flex items-center gap-[6px] min-w-0" style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);">
+                            <span data-icon style="width:12px;height:12px;mask-image:url('../assets/icons/dl_builtin_trae_work/clock_time.svg');flex-shrink:0;"></span>
+                            <span class="whitespace-nowrap">2026-06-27 10:00</span>
+                        </div>
+                        <p class="line-clamp-3 min-w-0" style="font-size:var(--body-base-font-size);line-height:var(--body-base-line-height);color:var(--text-secondary);">系统1和系统2的总结很到位，我自己读完的时候反而没有这么清晰的框架。感谢分享！</p>
+                        <div class="flex items-center gap-[8px] shrink-0 mt-[4px]">
+                            <button class="ds-btn ds-btn--brand ds-btn--sm">
+                                <span data-icon style="width:12px;height:12px;mask-image:url('../assets/icons/dl_builtin_trae_work/check.svg');color:var(--icon-onbrand);"></span>
+                                通过
+                            </button>
+                            <button class="ds-btn ds-btn--secondary ds-btn--sm">拒绝</button>
+                            <button class="ds-btn ds-btn--ghost ds-btn--sm" style="color:var(--text-tertiary);">
+                                <span data-icon style="width:12px;height:12px;mask-image:url('../assets/icons/dl_builtin_trae_work/Delete.svg');"></span>
+                                删除
+                            </button>
+                        </div>
+                    </div>
+
                 </div>
-              </div>
 
-              <!-- Comment 4: 王五 -->
-              <div style="display:flex;gap:var(--spacer-12);padding:var(--spacer-16) 0;border-bottom:1px solid var(--border-neutral-l1);">
-                <div class="ds-avatar" style="flex-shrink:0;">王</div>
-                <div style="flex:1;min-width:0;">
-                  <div style="display:flex;align-items:center;gap:var(--spacer-8);flex-wrap:wrap;">
-                    <span style="font-size:var(--body-base-font-size);font-weight:var(--body-base-strong-font-weight);color:var(--text-default);white-space:nowrap;">王五</span>
-                    <span style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);white-space:nowrap;">2026-06-25 18:45</span>
-                  </div>
-                  <p style="font-size:var(--body-base-font-size);line-height:1.6;color:var(--text-default);margin-top:var(--spacer-8);">学完了基础部分，准备开始看 CNN 了，博主有推荐的 CNN 入门资源吗？</p>
+                <!-- Batch Actions Bar -->
+                <div class="flex items-center justify-end gap-[8px] mt-[16px] py-[12px] px-[16px]" style="background:var(--bg-base-default);border:1px solid var(--border-neutral-l1);border-radius:var(--radius-8);">
+                    <button class="ds-btn ds-btn--secondary ds-btn--md">全部拒绝</button>
+                    <button class="ds-btn ds-btn--brand ds-btn--md">
+                        <span data-icon style="width:14px;height:14px;mask-image:url('../assets/icons/dl_builtin_trae_work/check.svg');color:var(--icon-onbrand);"></span>
+                        全部通过
+                    </button>
                 </div>
-              </div>
 
-              <!-- Comment 5: 赵六 (last, no border-bottom) -->
-              <div style="display:flex;gap:var(--spacer-12);padding:var(--spacer-16) 0;">
-                <div class="ds-avatar" style="flex-shrink:0;">赵</div>
-                <div style="flex:1;min-width:0;">
-                  <div style="display:flex;align-items:center;gap:var(--spacer-8);flex-wrap:wrap;">
-                    <span style="font-size:var(--body-base-font-size);font-weight:var(--body-base-strong-font-weight);color:var(--text-default);white-space:nowrap;">赵六</span>
-                    <span style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);white-space:nowrap;">2026-06-28 08:30</span>
-                  </div>
-                  <p style="font-size:var(--body-base-font-size);line-height:1.6;color:var(--text-default);margin-top:var(--spacer-8);">代码示例可以直接跑起来，环境是 Python 3.11 + PyTorch 2.0，大家注意版本兼容。</p>
+                <!-- Pagination -->
+                <div class="flex items-center justify-between mt-[24px]">
+                    <span class="ds-pagination__range">1–5 / 共 50 条评论</span>
+                    <div class="ds-pagination">
+                        <button class="ds-pagination__item" disabled aria-label="Previous">
+                            <span data-icon style="width:14px;height:14px;mask-image:url('../assets/icons/dl_builtin_trae_work/DescendingSorting.svg');transform:rotate(90deg);"></span>
+                        </button>
+                        <button class="ds-pagination__item is-active">1</button>
+                        <button class="ds-pagination__item">2</button>
+                        <button class="ds-pagination__item">3</button>
+                        <button class="ds-pagination__item" aria-label="Next">
+                            <span data-icon style="width:14px;height:14px;mask-image:url('../assets/icons/dl_builtin_trae_work/DescendingSorting.svg');transform:rotate(-90deg);"></span>
+                        </button>
+                    </div>
                 </div>
-              </div>
-
             </div>
-          </div>
-
-        </div>
-
-        <!-- ===== RIGHT: Sidebar ===== -->
-        <div class="w-full lg:w-[300px] lg:flex-shrink-0 flex flex-col" style="gap:var(--spacer-24);">
-
-          <!-- Author Profile Card -->
-          <div class="ds-card" style="display:flex;flex-direction:column;align-items:center;text-align:center;">
-            <img src="../assets/author-portrait.jpg" alt="HappyLadySauce" style="width:64px;height:64px;border-radius:var(--radius-full);object-fit:cover;">
-            <span style="font-size:var(--heading-xs-font-size);font-weight:var(--heading-xs-font-weight);line-height:var(--heading-xs-line-height);color:var(--text-default);margin-top:var(--spacer-12);white-space:nowrap;">HappyLadySauce</span>
-            <span style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);margin-top:var(--spacer-4);line-height:var(--body-sm-line-height);">热爱技术，乐于分享</span>
-          </div>
-
-          <!-- Categories Card -->
-          <div class="ds-card">
-            <span style="font-size:var(--heading-3xs-font-size);font-weight:var(--heading-3xs-font-weight);line-height:var(--heading-3xs-line-height);color:var(--text-tertiary);text-transform:uppercase;letter-spacing:var(--body-xs-letter-spacing);margin-bottom:var(--spacer-12);display:block;white-space:nowrap;">分类</span>
-            <div style="display:flex;flex-direction:column;gap:var(--spacer-8);">
-              <a href="#" style="display:flex;align-items:center;gap:var(--spacer-8);font-size:var(--body-base-font-size);color:var(--text-secondary);text-decoration:none;">
-                <span data-icon style="width:16px;height:16px;mask-image:url('../assets/icons/dl_builtin_trae_work/Folder.svg');color:var(--icon-tertiary);flex-shrink:0;"></span>
-                <span style="flex:1;min-width:0;truncate;">tech/ai</span>
-                <span style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);white-space:nowrap;">12</span>
-              </a>
-              <a href="#" style="display:flex;align-items:center;gap:var(--spacer-8);font-size:var(--body-base-font-size);color:var(--text-secondary);text-decoration:none;">
-                <span data-icon style="width:16px;height:16px;mask-image:url('../assets/icons/dl_builtin_trae_work/Folder.svg');color:var(--icon-tertiary);flex-shrink:0;"></span>
-                <span style="flex:1;min-width:0;truncate;">tech/frontend</span>
-                <span style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);white-space:nowrap;">8</span>
-              </a>
-              <a href="#" style="display:flex;align-items:center;gap:var(--spacer-8);font-size:var(--body-base-font-size);color:var(--text-secondary);text-decoration:none;">
-                <span data-icon style="width:16px;height:16px;mask-image:url('../assets/icons/dl_builtin_trae_work/Folder.svg');color:var(--icon-tertiary);flex-shrink:0;"></span>
-                <span style="flex:1;min-width:0;truncate;">life/essay</span>
-                <span style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);white-space:nowrap;">5</span>
-              </a>
-              <a href="#" style="display:flex;align-items:center;gap:var(--spacer-8);font-size:var(--body-base-font-size);color:var(--text-secondary);text-decoration:none;">
-                <span data-icon style="width:16px;height:16px;mask-image:url('../assets/icons/dl_builtin_trae_work/Folder.svg');color:var(--icon-tertiary);flex-shrink:0;"></span>
-                <span style="flex:1;min-width:0;truncate;">tech/backend</span>
-                <span style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);white-space:nowrap;">6</span>
-              </a>
-            </div>
-          </div>
-
-          <!-- Tags Cloud Card -->
-          <div class="ds-card">
-            <span style="font-size:var(--heading-3xs-font-size);font-weight:var(--heading-3xs-font-weight);line-height:var(--heading-3xs-line-height);color:var(--text-tertiary);text-transform:uppercase;letter-spacing:var(--body-xs-letter-spacing);margin-bottom:var(--spacer-12);display:block;white-space:nowrap;">标签</span>
-            <div style="display:flex;flex-wrap:wrap;gap:var(--spacer-8);">
-              <span class="ds-tag">ai</span>
-              <span class="ds-tag">deep-learning</span>
-              <span class="ds-tag">学习笔记</span>
-              <span class="ds-tag">神经网络</span>
-              <span class="ds-tag">PyTorch</span>
-              <span class="ds-tag">前端</span>
-              <span class="ds-tag">React</span>
-              <span class="ds-tag">随笔</span>
-            </div>
-          </div>
-
-          <!-- Archives Card -->
-          <div class="ds-card">
-            <span style="font-size:var(--heading-3xs-font-size);font-weight:var(--heading-3xs-font-weight);line-height:var(--heading-3xs-line-height);color:var(--text-tertiary);text-transform:uppercase;letter-spacing:var(--body-xs-letter-spacing);margin-bottom:var(--spacer-12);display:block;white-space:nowrap;">归档</span>
-            <div style="display:flex;flex-direction:column;gap:var(--spacer-8);">
-              <a href="#" style="display:flex;align-items:center;gap:var(--spacer-8);font-size:var(--body-base-font-size);color:var(--text-secondary);text-decoration:none;">
-                <span data-icon style="width:16px;height:16px;mask-image:url('../assets/icons/dl_builtin_trae_work/calendar.svg');color:var(--icon-tertiary);flex-shrink:0;"></span>
-                <span style="flex:1;min-width:0;truncate;">2026-06</span>
-                <span style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);white-space:nowrap;">3</span>
-              </a>
-              <a href="#" style="display:flex;align-items:center;gap:var(--spacer-8);font-size:var(--body-base-font-size);color:var(--text-secondary);text-decoration:none;">
-                <span data-icon style="width:16px;height:16px;mask-image:url('../assets/icons/dl_builtin_trae_work/calendar.svg');color:var(--icon-tertiary);flex-shrink:0;"></span>
-                <span style="flex:1;min-width:0;truncate;">2026-05</span>
-                <span style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);white-space:nowrap;">4</span>
-              </a>
-              <a href="#" style="display:flex;align-items:center;gap:var(--spacer-8);font-size:var(--body-base-font-size);color:var(--text-secondary);text-decoration:none;">
-                <span data-icon style="width:16px;height:16px;mask-image:url('../assets/icons/dl_builtin_trae_work/calendar.svg');color:var(--icon-tertiary);flex-shrink:0;"></span>
-                <span style="flex:1;min-width:0;truncate;">2026-04</span>
-                <span style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);white-space:nowrap;">2</span>
-              </a>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- ========== Footer ========== -->
-      <footer style="border-top:1px solid var(--border-neutral-l1);margin-top:var(--spacer-64);padding:var(--spacer-24);text-align:center;">
-        <span style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);">Copyright 2026 Knowledge Core. All rights reserved.</span>
-      </footer>
+        </main>
+    </div>
     </main>
     <script>lucide.createIcons();</script>
 </body>
 </html>
-
