@@ -1,4 +1,4 @@
-// Package main 提供 Beehive-Blog 的 SQL 迁移 CLI。
+// Package main 提供 Knowledge-Core 的 SQL 迁移 CLI。
 //
 // 模式说明：
 //   - versioned（默认，全覆盖）：每个迁移文件在一个事务中原子执行，并记录 checksum。
@@ -29,7 +29,7 @@ import (
 )
 
 const (
-	defaultDSN          = "postgres://Beehive-Blog:Beehive-Blog@127.0.0.1:5432/Beehive-Blog?sslmode=disable"
+	defaultDSN          = "postgres://Knowledge-Core:Knowledge-Core@127.0.0.1:5432/Knowledge-Core?sslmode=disable"
 	modeVersioned       = "versioned"
 	modeAdaptive        = "adaptive"
 	migrateLockID int64 = 903241127

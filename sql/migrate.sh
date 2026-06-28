@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Beehive-Blog 数据库迁移入口（Unix shell）
+# Knowledge-Core 数据库迁移入口（Unix shell）
 #
 # 全覆盖（默认）：MODE=versioned
 # 适应：MODE=adaptive  （详见 sql/migrate/main.go 头部注释）
@@ -20,7 +20,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MIGRATIONS="${ROOT}/sql/migrations"
 MODE="${MODE:-versioned}"
-DSN="${DB_DSN:-postgres://Beehive-Blog:Beehive-Blog@127.0.0.1:5432/Beehive-Blog?sslmode=disable}"
+DSN="${DB_DSN:-postgres://Knowledge-Core:Knowledge-Core@127.0.0.1:5432/Knowledge-Core?sslmode=disable}"
 
 GO_ARGS=(run ./sql/migrate/main.go -dsn "$DSN" -dir "$MIGRATIONS" -catalog "$MIGRATIONS" -mode "$MODE")
 if [[ "${VERBOSE:-}" == "1" ]]; then
