@@ -11,6 +11,7 @@ import (
 type Config struct {
 	InsecureServing *options.InsecureServingOptions `mapstructure:"insecure"`
 	SQLite          *options.SQLiteOptions          `mapstructure:"sqlite"`
+	JWT             *options.JWTOptions             `mapstructure:"jwt"`
 }
 
 var (

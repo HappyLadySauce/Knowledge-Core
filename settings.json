@@ -1,11 +1,12 @@
 {
   "insecure": {
-    "bind-address": "127.0.0.1",
-    "bind-port": 8080,
-    "trusted-proxies": []
+    "bind-address": "${KNOWLEDGE_CORE_BIND_ADDRESS}",
+    "bind-port": "${KNOWLEDGE_CORE_BIND_PORT}",
+    "trusted-proxies": "${KNOWLEDGE_CORE_TRUSTED_PROXIES_JSON}"
   },
-  "sqlite": {
-    "path": ".knowledge-core/index.db",
-    "busy-timeout": "5s"
+  "jwt": {
+    "secret": "${KNOWLEDGE_CORE_JWT_SECRET}",
+    "access-ttl": "${KNOWLEDGE_CORE_JWT_ACCESS_TTL}",
+    "refresh-ttl": "${KNOWLEDGE_CORE_JWT_REFRESH_TTL}"
   }
 }

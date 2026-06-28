@@ -34,7 +34,13 @@ LDFLAGS  := -s -w
 # Auto-load local overrides; missing .env is OK.
 # 自动加载本地覆盖配置；.env 不存在时不报错。
 -include .env
-KNOWLEDGE_CORE_SQLITE_PATH ?= .knowledge-core/index.db
+KNOWLEDGE_CORE_BIND_ADDRESS ?= 127.0.0.1
+KNOWLEDGE_CORE_BIND_PORT ?= 8080
+KNOWLEDGE_CORE_TRUSTED_PROXIES ?=
+KNOWLEDGE_CORE_TRUSTED_PROXIES_JSON ?= []
+KNOWLEDGE_CORE_JWT_SECRET ?= Knowledge-Core-dev-secret-change-me-32bytes
+KNOWLEDGE_CORE_JWT_ACCESS_TTL ?= 15m
+KNOWLEDGE_CORE_JWT_REFRESH_TTL ?= 168h
 export
 
 .PHONY: help deps tidy fmt vet lint check verify build install run run-bin migrate \
@@ -109,9 +115,9 @@ install:
 ## migrate: Apply SQLite migrations
 migrate:
 ifeq ($(IS_WINDOWS),1)
-	powershell -NoProfile -ExecutionPolicy Bypass -File .\sql\migrate.ps1 -Db "$(KNOWLEDGE_CORE_SQLITE_PATH)"
+	powershell -NoProfile -ExecutionPolicy Bypass -File .\sql\migrate.ps1 -Db ".knowledge-core/index.db"
 else
-	KNOWLEDGE_CORE_SQLITE_PATH="$(KNOWLEDGE_CORE_SQLITE_PATH)" ./sql/migrate.sh
+	KNOWLEDGE_CORE_SQLITE_PATH=".knowledge-core/index.db" ./sql/migrate.sh
 endif
 
 ## run: Run API server with go run

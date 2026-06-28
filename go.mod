@@ -4,11 +4,13 @@ go 1.26.1
 
 require (
 	github.com/gin-gonic/gin v1.12.0
+	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.21.0
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.1
+	golang.org/x/crypto v0.51.0
 	k8s.io/component-base v0.36.2
 	k8s.io/klog/v2 v2.140.0
 	modernc.org/sqlite v1.53.0
@@ -76,7 +78,6 @@ require (
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/arch v0.22.0 // indirect
-	golang.org/x/crypto v0.51.0 // indirect
 	golang.org/x/net v0.54.0 // indirect
 	golang.org/x/sys v0.44.0 // indirect
 	golang.org/x/text v0.37.0 // indirect

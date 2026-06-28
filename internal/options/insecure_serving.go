@@ -1,8 +1,10 @@
 package options
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/spf13/pflag"
 )
@@ -21,6 +23,9 @@ func NewInsecureServingOptions() *InsecureServingOptions {
 
 func (i *InsecureServingOptions) Validate() error {
 	var err error
+	if normalizeErr := i.normalizeTrustedProxies(); normalizeErr != nil {
+		err = errors.Join(err, normalizeErr)
+	}
 	if i.BindAddress == "" {
 		err = errors.Join(err, fmt.Errorf("bind-address is required"))
 	}
@@ -35,4 +40,24 @@ func (i *InsecureServingOptions) AddFlags(fs *pflag.FlagSet) {
 	fs.IntVarP(&i.BindPort, "bind-port", "p", 8080, "port to listen to for incoming HTTPS requests")
 	fs.StringSliceVar(&i.TrustedProxies, "trusted-proxies", nil,
 		"Trusted proxy IPs or CIDRs for Forwarded headers (repeat flag or comma-separated); empty means trust no proxies")
+}
+
+func (i *InsecureServingOptions) normalizeTrustedProxies() error {
+	if len(i.TrustedProxies) != 1 {
+		return nil
+	}
+	value := strings.TrimSpace(i.TrustedProxies[0])
+	if value == "" {
+		i.TrustedProxies = nil
+		return nil
+	}
+	if !strings.HasPrefix(value, "[") {
+		return nil
+	}
+	var proxies []string
+	if err := json.Unmarshal([]byte(value), &proxies); err != nil {
+		return fmt.Errorf("trusted-proxies must be a JSON string array: %w", err)
+	}
+	i.TrustedProxies = proxies
+	return nil
 }

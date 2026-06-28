@@ -31,9 +31,16 @@ func NewServiceContext(ctx context.Context, cfg *config.Config) (*ServiceContext
 	if cfg.SQLite == nil {
 		return nil, fmt.Errorf("sqlite config is nil")
 	}
+	if cfg.JWT == nil {
+		return nil, fmt.Errorf("jwt config is nil")
+	}
 
 	db, err := openSQLite(ctx, cfg)
 	if err != nil {
+		return nil, err
+	}
+	if err := verifySchema(ctx, db); err != nil {
+		_ = db.Close()
 		return nil, err
 	}
 	return &ServiceContext{
@@ -88,4 +95,22 @@ func sqliteDSN(path string, busyTimeoutMS int) string {
 	values := url.Values{}
 	values.Set("_pragma", "busy_timeout("+strconv.Itoa(busyTimeoutMS)+")")
 	return "file:" + filepath.ToSlash(path) + "?" + values.Encode()
+}
+
+func verifySchema(ctx context.Context, db *sql.DB) error {
+	requiredTables := []string{"users", "refresh_tokens"}
+	for _, table := range requiredTables {
+		var name string
+		err := db.QueryRowContext(ctx, `
+SELECT name
+FROM sqlite_master
+WHERE type = 'table' AND name = ?`, table).Scan(&name)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return fmt.Errorf("sqlite schema is not migrated: missing table %s; run make migrate", table)
+			}
+			return fmt.Errorf("verify sqlite schema: %w", err)
+		}
+	}
+	return nil
 }

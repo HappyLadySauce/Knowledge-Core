@@ -90,9 +90,10 @@ func configureEnvBinding(prefix string) {
 var KNOWLEDGE_COREEnvBindings = map[string]string{
 	"insecure.bind-address":    "KNOWLEDGE_CORE_BIND_ADDRESS",
 	"insecure.bind-port":       "KNOWLEDGE_CORE_BIND_PORT",
-	"insecure.trusted-proxies": "KNOWLEDGE_CORE_TRUSTED_PROXIES",
-	"sqlite.path":              "KNOWLEDGE_CORE_SQLITE_PATH",
-	"sqlite.busy-timeout":      "KNOWLEDGE_CORE_SQLITE_BUSY_TIMEOUT",
+	"insecure.trusted-proxies": "KNOWLEDGE_CORE_TRUSTED_PROXIES_JSON",
+	"jwt.secret":               "KNOWLEDGE_CORE_JWT_SECRET",
+	"jwt.access-ttl":           "KNOWLEDGE_CORE_JWT_ACCESS_TTL",
+	"jwt.refresh-ttl":          "KNOWLEDGE_CORE_JWT_REFRESH_TTL",
 }
 
 // loadViperConfig loads configuration with priority: --config > cwd > ~/basename/.
