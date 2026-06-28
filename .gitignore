@@ -1,7 +1,8 @@
 # Local data (never commit)
 data/
+.knowledge-core/
 
-# User uploads (legacy)
+# User uploads
 .uploads/
 
 # Environment and secrets

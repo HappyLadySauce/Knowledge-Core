@@ -11,9 +11,9 @@ import (
 	"k8s.io/klog/v2"
 
 	"github.com/HappyLadySauce/Knowledge-Core/cmd/app/options"
-	"github.com/HappyLadySauce/Knowledge-Core/internal/config"
 	"github.com/HappyLadySauce/Knowledge-Core/cmd/app/router"
 	"github.com/HappyLadySauce/Knowledge-Core/cmd/app/svc"
+	"github.com/HappyLadySauce/Knowledge-Core/internal/config"
 )
 
 func NewAPICommand(ctx context.Context, basename string) *cobra.Command {
@@ -56,7 +56,7 @@ func NewAPICommand(ctx context.Context, basename string) *cobra.Command {
 func run(ctx context.Context, opts *options.Options) error {
 	cfg := &config.Config{
 		InsecureServing: opts.InsecureServing,
-		JWT:             opts.JWT,
+		SQLite:          opts.SQLite,
 	}
 	config.Init(cfg)
 
@@ -96,7 +96,5 @@ func serve(opts *options.Options) {
 // Initialize HTTP route handlers after the service context is ready.
 // 在服务上下文就绪后初始化 HTTP 路由处理器。
 func routesInit(ctx context.Context, sc *svc.ServiceContext) error {
-
-	
 	return nil
 }
