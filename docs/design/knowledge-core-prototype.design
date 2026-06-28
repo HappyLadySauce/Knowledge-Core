@@ -1,14 +1,113 @@
 {
   "data": [
     {
+      "id": "page-user-login",
+      "title": "登录页",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1751100000000,
+      "canvasData": {
+        "x": 620,
+        "y": 0,
+        "group": 2
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/user-login.html",
+        "interactions": [
+          {
+            "domId": "goto-register",
+            "targetPageId": "page-user-register",
+            "transitionLabel": "注册"
+          },
+          {
+            "domId": "login-success",
+            "targetPageId": "page-note-library",
+            "transitionLabel": "登录成功"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-user-register",
+      "title": "注册页",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1751100000000,
+      "canvasData": {
+        "x": 0,
+        "y": 506,
+        "group": 2
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/user-register.html",
+        "interactions": [
+          {
+            "domId": "goto-login",
+            "targetPageId": "page-user-login",
+            "transitionLabel": "登录"
+          },
+          {
+            "domId": "register-success",
+            "targetPageId": "page-user-login",
+            "transitionLabel": "注册成功"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-user-profile",
+      "title": "个人中心",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1751100000000,
+      "canvasData": {
+        "x": 0,
+        "y": 0,
+        "group": 2
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/user-profile.html",
+        "interactions": [
+          {
+            "domId": "goto-login",
+            "targetPageId": "page-user-login",
+            "transitionLabel": "登录"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-user-management",
+      "title": "用户管理",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1751100000000,
+      "canvasData": {
+        "x": 0,
+        "y": 4702,
+        "group": 2
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/user-management.html",
+        "interactions": [
+          {
+            "domId": "back-to-library",
+            "targetPageId": "page-note-library",
+            "hideEdge": true,
+            "transitionLabel": "返回"
+          }
+        ]
+      }
+    },
+    {
       "id": "page-note-library",
       "title": "笔记库首页",
       "type": "page",
       "version": 1,
       "createdAt": 1751068800000,
       "canvasData": {
-        "x": 820,
-        "y": 0,
+        "x": 0,
+        "y": 883,
         "group": 0
       },
       "devMetadata": {
@@ -39,8 +138,8 @@
       "version": 1,
       "createdAt": 1751068800000,
       "canvasData": {
-        "x": 820,
-        "y": 409,
+        "x": 0,
+        "y": 1260,
         "group": 0
       },
       "devMetadata": {
@@ -62,8 +161,8 @@
       "version": 1,
       "createdAt": 1751068800000,
       "canvasData": {
-        "x": 200,
-        "y": 0,
+        "x": 0,
+        "y": 1794,
         "group": 0
       },
       "devMetadata": {
@@ -84,8 +183,8 @@
       "version": 1,
       "createdAt": 1751068800000,
       "canvasData": {
-        "x": 200,
-        "y": 409,
+        "x": 0,
+        "y": 2203,
         "group": 0
       },
       "devMetadata": {
@@ -113,7 +212,7 @@
       "createdAt": 1751080000000,
       "canvasData": {
         "x": 0,
-        "y": 943,
+        "y": 2580,
         "group": 1
       },
       "devMetadata": {
@@ -145,7 +244,7 @@
       "createdAt": 1751080000000,
       "canvasData": {
         "x": 620,
-        "y": 943,
+        "y": 2580,
         "group": 1
       },
       "devMetadata": {
@@ -178,7 +277,7 @@
       "createdAt": 1751080000000,
       "canvasData": {
         "x": 620,
-        "y": 1614,
+        "y": 3251,
         "group": 1
       },
       "devMetadata": {
@@ -207,7 +306,7 @@
       "createdAt": 1751080000000,
       "canvasData": {
         "x": 620,
-        "y": 2402,
+        "y": 4039,
         "group": 1
       },
       "devMetadata": {
@@ -235,7 +334,7 @@
       "createdAt": 1751080000000,
       "canvasData": {
         "x": 0,
-        "y": 3065
+        "y": 5079
       },
       "devMetadata": {
         "imageSrc": "assets/hero-knowledge-network.jpg"
@@ -249,7 +348,7 @@
       "createdAt": 1751080000000,
       "canvasData": {
         "x": 620,
-        "y": 3065
+        "y": 5079
       },
       "devMetadata": {
         "imageSrc": "assets/author-portrait.jpg"
@@ -263,7 +362,7 @@
       "createdAt": 1751090000000,
       "canvasData": {
         "x": 1240,
-        "y": 3065
+        "y": 5079
       },
       "devMetadata": {
         "imageSrc": "assets/hero-bg.jpg"
@@ -277,7 +376,7 @@
       "createdAt": 1751090000000,
       "canvasData": {
         "x": 1860,
-        "y": 3065
+        "y": 5079
       },
       "devMetadata": {
         "imageSrc": "assets/cover-deep-learning.jpg"
@@ -291,7 +390,7 @@
       "createdAt": 1751090000000,
       "canvasData": {
         "x": 2480,
-        "y": 3065
+        "y": 5079
       },
       "devMetadata": {
         "imageSrc": "assets/cover-react-hooks.jpg"
@@ -305,7 +404,7 @@
       "createdAt": 1751090000000,
       "canvasData": {
         "x": 3100,
-        "y": 3065
+        "y": 5079
       },
       "devMetadata": {
         "imageSrc": "assets/cover-go-concurrency.jpg"
@@ -319,7 +418,7 @@
       "createdAt": 1751090000000,
       "canvasData": {
         "x": 3720,
-        "y": 3065
+        "y": 5079
       },
       "devMetadata": {
         "imageSrc": "assets/cover-thinking-fast-slow.jpg"
@@ -333,7 +432,7 @@
       "createdAt": 1751090000000,
       "canvasData": {
         "x": 4340,
-        "y": 3065
+        "y": 5079
       },
       "devMetadata": {
         "imageSrc": "assets/cover-goals-2026.jpg"
@@ -347,7 +446,7 @@
       "createdAt": 1751090000000,
       "canvasData": {
         "x": 4960,
-        "y": 3065
+        "y": 5079
       },
       "devMetadata": {
         "imageSrc": "assets/cover-pytorch.jpg"
