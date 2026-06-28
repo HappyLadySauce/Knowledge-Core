@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="light">
+<html lang="zh-CN" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -879,252 +879,303 @@
       }
     </style>
 </head>
-<body class="min-h-screen font-sans antialiased">
-    <main>
-      <!-- Top Navbar -->
-      <nav class="sticky top-0 z-50 w-full" style="background:var(--bg-base-default); border-bottom:1px solid var(--border-neutral-l1);">
-        <div class="mx-auto flex items-center justify-between px-6" style="max-width:1200px; height:56px;">
-          <div class="flex items-center gap-8">
-            <a href="#" class="flex items-center gap-2 whitespace-nowrap" style="font-family:var(--heading-sm-font-family); font-size:var(--heading-sm-font-size); font-weight:var(--heading-sm-font-weight); color:var(--text-brand);">
-              <span data-icon style="width:20px; height:20px; mask-image:url('../assets/icons/dl_builtin_trae_work/DocFile.svg');"></span>
-              Knowledge Core
-            </a>
-            <div class="hidden sm:flex items-center gap-6">
-              <a href="#" data-dom-id="nav-home" class="whitespace-nowrap" style="font-size:var(--body-base-font-size); font-weight:var(--body-base-font-weight); color:var(--text-tertiary); transition:color .12s;">首页</a>
-              <a href="#" class="whitespace-nowrap" style="font-size:var(--body-base-font-size); font-weight:var(--body-base-font-weight); color:var(--text-tertiary); transition:color .12s;">知识目录</a>
-              <a href="#" class="whitespace-nowrap" style="font-size:var(--body-base-font-size); font-weight:var(--body-base-font-weight); color:var(--text-tertiary); transition:color .12s;">关于</a>
-            </div>
+<body>
+    <main class="flex flex-col min-h-screen" style="background:var(--bg-base-default);color:var(--text-default);">
+
+      <!-- ===== Top Navbar ===== -->
+      <nav class="w-full sticky top-0 z-50 border-b" style="background:var(--bg-base-default);border-color:var(--border-neutral-l1);">
+        <div class="max-w-6xl mx-auto flex items-center justify-between px-6 h-12">
+          <!-- Left: Logo -->
+          <a href="#" class="whitespace-nowrap" style="font-family:var(--heading-xs-font-family);font-size:var(--heading-xs-font-size);font-weight:var(--heading-xs-font-weight);color:var(--text-default);line-height:var(--heading-xs-line-height);">Knowledge Core</a>
+          <!-- Center: Nav links -->
+          <nav class="flex items-center gap-6">
+            <a href="#" data-dom-id="nav-home" class="inline-flex items-center justify-center whitespace-nowrap" style="font-size:var(--body-base-font-size);font-weight:var(--font-weight-medium);color:var(--text-secondary);padding:var(--spacer-6) 0;">首页</a>
+            <a href="#" class="inline-flex items-center justify-center whitespace-nowrap" style="font-size:var(--body-base-font-size);font-weight:var(--font-weight-medium);color:var(--text-brand);padding:var(--spacer-6) 0;border-bottom:2px solid var(--bg-brand);height:28px;">文库</a>
+            <a href="#" class="inline-flex items-center justify-center whitespace-nowrap" style="font-size:var(--body-base-font-size);font-weight:var(--font-weight-medium);color:var(--text-secondary);padding:var(--spacer-6) 0;">友链</a>
+            <a href="#" class="inline-flex items-center justify-center whitespace-nowrap" style="font-size:var(--body-base-font-size);font-weight:var(--font-weight-medium);color:var(--text-secondary);padding:var(--spacer-6) 0;">关于</a>
+          </nav>
+          <!-- Right: Search -->
+          <div class="flex items-center gap-3 shrink-0">
+            <button class="inline-flex items-center justify-center" style="width:28px;height:28px;background:transparent;border:none;color:var(--icon-secondary);cursor:pointer;border-radius:var(--radius-8);">
+              <span data-icon style="display:inline-block;width:var(--icon-size-16);height:var(--icon-size-16);background-color:currentColor;mask-image:url('../assets/icons/dl_builtin_trae_work/Search.svg');mask-size:contain;mask-repeat:no-repeat;mask-position:center;-webkit-mask-image:url('../assets/icons/dl_builtin_trae_work/Search.svg');-webkit-mask-size:contain;-webkit-mask-repeat:no-repeat;-webkit-mask-position:center;"></span>
+            </button>
           </div>
-          <button class="flex items-center justify-center shrink-0" style="width:32px; height:32px; background:transparent; border:none; cursor:pointer; border-radius:var(--radius-8); color:var(--icon-secondary);">
-            <i data-lucide="search" style="width:18px; height:18px;"></i>
-          </button>
         </div>
       </nav>
 
-      <!-- Page Content -->
-      <div class="mx-auto px-6" style="max-width:780px; padding-top:var(--spacer-32); padding-bottom:var(--spacer-64);">
-
-        <!-- Breadcrumb -->
-        <div class="ds-breadcrumb" style="margin-bottom:var(--spacer-24);">
-          <a href="#">首页</a>
-          <span class="ds-breadcrumb__sep">/</span>
-          <a href="#">知识目录</a>
-          <span class="ds-breadcrumb__sep">/</span>
-          <a href="#">tech/ai</a>
-          <span class="ds-breadcrumb__sep">/</span>
-          <span class="ds-breadcrumb__current">深度学习入门笔记</span>
-        </div>
-
-        <!-- Article Header -->
-        <header class="text-center" style="margin-bottom:var(--spacer-40);">
-          <span class="inline-flex items-center whitespace-nowrap ds-tag" style="margin-bottom:var(--spacer-16); background:var(--bg-overlay-l1); color:var(--text-tertiary); border:1px solid var(--border-neutral-l1);">
-            <span data-icon style="width:12px; height:12px; mask-image:url('../assets/icons/dl_builtin_trae_work/Folder.svg'); color:var(--icon-tertiary);"></span>
-            tech/ai
+      <!-- ===== Breadcrumb ===== -->
+      <div class="w-full" style="background:var(--bg-base-default);">
+        <div class="max-w-6xl mx-auto px-6 py-3" style="font-size:var(--body-sm-font-size);line-height:var(--body-sm-line-height);">
+          <span class="flex items-center gap-1 flex-wrap" style="color:var(--text-tertiary);">
+            <a href="#" class="whitespace-nowrap" style="color:var(--text-secondary);text-decoration:none;">首页</a>
+            <span class="whitespace-nowrap">/</span>
+            <a href="#" class="whitespace-nowrap" style="color:var(--text-secondary);text-decoration:none;">文库</a>
+            <span class="whitespace-nowrap">/</span>
+            <a href="#" class="whitespace-nowrap" style="color:var(--text-secondary);text-decoration:none;">tech/ai</a>
+            <span class="whitespace-nowrap">/</span>
+            <span class="whitespace-nowrap" style="color:var(--text-tertiary);">深度学习入门笔记</span>
           </span>
-          <h1 class="mx-auto" style="font-family:var(--heading-2xl-font-family); font-size:var(--heading-2xl-font-size); font-weight:var(--heading-2xl-font-weight); line-height:var(--heading-2xl-line-height); color:var(--text-default); text-wrap:balance; word-break:keep-all; overflow-wrap:break-word; max-width:640px; margin-bottom:var(--spacer-16);">
-            深度学习入门笔记
-          </h1>
-          <div class="flex items-center justify-center flex-wrap gap-4" style="font-size:var(--body-base-font-size); color:var(--text-tertiary); line-height:var(--body-base-line-height);">
-            <span class="flex items-center gap-1 whitespace-nowrap">
-              <span data-icon style="width:14px; height:14px; mask-image:url('../assets/icons/dl_builtin_trae_work/user-small.svg'); color:var(--icon-tertiary);"></span>
-              HappyLadySauce
-            </span>
-            <span style="color:var(--border-neutral-l2);">·</span>
-            <span class="flex items-center gap-1 whitespace-nowrap">
-              <span data-icon style="width:14px; height:14px; mask-image:url('../assets/icons/dl_builtin_trae_work/Calendar.svg'); color:var(--icon-tertiary);"></span>
-              2026-06-15
-            </span>
-            <span style="color:var(--border-neutral-l2);">·</span>
-            <span class="whitespace-nowrap">2,340 字</span>
-            <span style="color:var(--border-neutral-l2);">·</span>
-            <span class="flex items-center gap-1 whitespace-nowrap">
-              <span data-icon style="width:14px; height:14px; mask-image:url('../assets/icons/dl_builtin_trae_work/clock_time.svg'); color:var(--icon-tertiary);"></span>
-              阅读约 8 分钟
-            </span>
-          </div>
-          <div class="flex items-center justify-center flex-wrap gap-2 mt-4">
-            <span class="ds-tag whitespace-nowrap">ai</span>
-            <span class="ds-tag whitespace-nowrap">deep-learning</span>
-            <span class="ds-tag whitespace-nowrap">学习笔记</span>
-            <span class="ds-tag whitespace-nowrap">神经网络</span>
-          </div>
-        </header>
-
-        <!-- Article Body -->
-        <article style="font-size:var(--body-base-font-size); line-height:1.75; color:var(--text-default); font-family:var(--body-base-font-family); letter-spacing:var(--body-base-letter-spacing);">
-
-          <!-- H2 -->
-          <h2 style="font-family:var(--heading-lg-font-family); font-size:var(--heading-lg-font-size); font-weight:var(--heading-lg-font-weight); line-height:var(--heading-lg-line-height); color:var(--text-default); margin-top:var(--spacer-40); margin-bottom:var(--spacer-16); padding-top:var(--spacer-24); border-top:1px solid var(--border-neutral-l1);">
-            什么是深度学习
-          </h2>
-
-          <!-- Paragraph -->
-          <p style="margin-bottom:var(--spacer-20); color:var(--text-secondary);">
-            深度学习（Deep Learning）是机器学习的一个分支，它试图使用包含复杂结构或由多重非线性变换构成的多个处理层对数据进行高层抽象的算法。深度学习的核心思想是通过模拟人脑神经网络的结构，让计算机自动学习数据的层次化表示。
-          </p>
-
-          <!-- H3 -->
-          <h3 style="font-family:var(--heading-md-font-family); font-size:var(--heading-md-font-size); font-weight:var(--heading-md-font-weight); line-height:var(--heading-md-line-height); color:var(--text-default); margin-top:var(--spacer-32); margin-bottom:var(--spacer-12);">
-            核心概念
-          </h3>
-
-          <!-- Bullet List -->
-          <ul style="margin-bottom:var(--spacer-24); padding-left:var(--spacer-24); color:var(--text-secondary);">
-            <li style="margin-bottom:var(--spacer-8); padding-left:var(--spacer-8);">神经网络与感知机</li>
-            <li style="margin-bottom:var(--spacer-8); padding-left:var(--spacer-8);">反向传播算法</li>
-            <li style="margin-bottom:var(--spacer-8); padding-left:var(--spacer-8);">梯度下降优化</li>
-            <li style="padding-left:var(--spacer-8);">损失函数与评估指标</li>
-          </ul>
-
-          <!-- H2 -->
-          <h2 style="font-family:var(--heading-lg-font-family); font-size:var(--heading-lg-font-size); font-weight:var(--heading-lg-font-weight); line-height:var(--heading-lg-line-height); color:var(--text-default); margin-top:var(--spacer-40); margin-bottom:var(--spacer-16); padding-top:var(--spacer-24); border-top:1px solid var(--border-neutral-l1);">
-            常用框架对比
-          </h2>
-
-          <!-- Table -->
-          <div class="ds-table-card" style="margin-bottom:var(--spacer-24);">
-            <table class="ds-table" style="min-width:480px;">
-              <thead>
-                <tr>
-                  <th>框架</th>
-                  <th>计算图</th>
-                  <th>语言</th>
-                  <th>开发方</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="color:var(--text-default); font-weight:var(--font-weight-medium);">PyTorch</td>
-                  <td>动态计算图</td>
-                  <td>Python</td>
-                  <td>Meta</td>
-                </tr>
-                <tr>
-                  <td style="color:var(--text-default); font-weight:var(--font-weight-medium);">TensorFlow</td>
-                  <td>静态计算图</td>
-                  <td>Python/C++</td>
-                  <td>Google</td>
-                </tr>
-                <tr>
-                  <td style="color:var(--text-default); font-weight:var(--font-weight-medium);">JAX</td>
-                  <td>函数式变换</td>
-                  <td>Python</td>
-                  <td>Google</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- H2 -->
-          <h2 style="font-family:var(--heading-lg-font-family); font-size:var(--heading-lg-font-size); font-weight:var(--heading-lg-font-weight); line-height:var(--heading-lg-line-height); color:var(--text-default); margin-top:var(--spacer-40); margin-bottom:var(--spacer-16); padding-top:var(--spacer-24); border-top:1px solid var(--border-neutral-l1);">
-            学习路径建议
-          </h2>
-
-          <!-- Numbered List -->
-          <ol style="margin-bottom:var(--spacer-24); padding-left:var(--spacer-24); color:var(--text-secondary); list-style-type:decimal;">
-            <li style="margin-bottom:var(--spacer-8); padding-left:var(--spacer-8);">掌握线性代数、概率论和微积分基础</li>
-            <li style="margin-bottom:var(--spacer-8); padding-left:var(--spacer-8);">学习 Python 编程与数据处理工具（NumPy、Pandas）</li>
-            <li style="margin-bottom:var(--spacer-8); padding-left:var(--spacer-8);">从全连接神经网络开始，理解前向传播与反向传播</li>
-            <li style="padding-left:var(--spacer-8);">选择一个主流框架（推荐 PyTorch），动手实现经典项目</li>
-          </ol>
-
-          <!-- Blockquote -->
-          <blockquote style="margin:var(--spacer-24) 0; padding:var(--spacer-16) var(--spacer-20); border-left:3px solid var(--bg-brand); background:var(--bg-overlay-l1); border-radius:0 var(--radius-8) var(--radius-8) 0;">
-            <p style="margin:0; color:var(--text-secondary); font-style:italic;">
-              深度学习的本质是让机器学会用多层抽象来理解世界
-            </p>
-            <footer style="margin-top:var(--spacer-8); font-size:var(--body-sm-font-size); color:var(--text-tertiary);">—— Yoshua Bengio</footer>
-          </blockquote>
-
-          <!-- Paragraph with inline code -->
-          <p style="margin-bottom:var(--spacer-24); color:var(--text-secondary);">
-            在 PyTorch 中，所有自定义网络都需要继承
-            <code style="font-family:var(--font-family-mono); font-size:var(--code-editor-font-size); background:var(--bg-overlay-l2); color:var(--code-text); padding:2px 6px; border-radius:var(--radius-4);">torch.nn.Module</code>
-            基类，并实现 forward 方法。
-          </p>
-
-          <!-- Code Block -->
-          <div style="margin-bottom:var(--spacer-32); background:var(--bg-invert); border-radius:var(--radius-12); padding:var(--spacer-20); overflow-x:auto;">
-            <pre style="margin:0; font-family:var(--font-family-mono); font-size:var(--code-editor-font-size); line-height:var(--code-editor-line-height); color:var(--text-white); white-space:pre; tab-size:4;"><code>import torch
-import torch.nn as nn
-
-class SimpleNet(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.fc1 = nn.Linear(784, 128)
-        self.fc2 = nn.Linear(128, 10)
-
-    def forward(self, x):
-        x = torch.relu(self.fc1(x))
-        return self.fc2(x)</code></pre>
-          </div>
-
-        </article>
-
-        <!-- Article Footer: Related Articles -->
-        <footer style="margin-top:var(--spacer-48);">
-          <hr style="border:0; border-top:1px solid var(--border-neutral-l1); margin:0 0 var(--spacer-32) 0;">
-          <h2 style="font-family:var(--heading-md-font-family); font-size:var(--heading-md-font-size); font-weight:var(--heading-md-font-weight); line-height:var(--heading-md-line-height); color:var(--text-default); margin-bottom:var(--spacer-20);">
-            相关文章
-          </h2>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <!-- Related Article 1 -->
-            <a href="#" data-dom-id="related-article-click" class="group flex flex-col gap-2 p-4 rounded-xl transition-colors" style="background:var(--bg-base-secondary); border:1px solid var(--border-neutral-l1); border-radius:var(--radius-12); text-decoration:none;">
-              <h3 class="truncate" style="font-family:var(--body-base-strong-font-family); font-size:var(--body-base-strong-font-size); font-weight:var(--body-base-strong-font-weight); line-height:var(--body-base-strong-line-height); color:var(--text-default); margin-bottom:var(--spacer-4);">
-                PyTorch 实战笔记
-              </h3>
-              <div class="flex items-center gap-2" style="font-size:var(--body-sm-font-size); color:var(--text-tertiary);">
-                <span class="flex items-center gap-1 whitespace-nowrap">
-                  <span data-icon style="width:12px; height:12px; mask-image:url('../assets/icons/dl_builtin_trae_work/Calendar.svg'); color:var(--icon-tertiary);"></span>
-                  2026-06-20
-                </span>
-              </div>
-              <div class="flex gap-2 mt-1">
-                <span class="ds-tag whitespace-nowrap" style="font-size:10px; height:18px;">ai</span>
-                <span class="ds-tag whitespace-nowrap" style="font-size:10px; height:18px;">pytorch</span>
-              </div>
-            </a>
-            <!-- Related Article 2 -->
-            <a href="#" data-dom-id="related-article-click" class="group flex flex-col gap-2 p-4 rounded-xl transition-colors" style="background:var(--bg-base-secondary); border:1px solid var(--border-neutral-l1); border-radius:var(--radius-12); text-decoration:none;">
-              <h3 class="truncate" style="font-family:var(--body-base-strong-font-family); font-size:var(--body-base-strong-font-size); font-weight:var(--body-base-strong-font-weight); line-height:var(--body-base-strong-line-height); color:var(--text-default); margin-bottom:var(--spacer-4);">
-                神经网络原理详解
-              </h3>
-              <div class="flex items-center gap-2" style="font-size:var(--body-sm-font-size); color:var(--text-tertiary);">
-                <span class="flex items-center gap-1 whitespace-nowrap">
-                  <span data-icon style="width:12px; height:12px; mask-image:url('../assets/icons/dl_builtin_trae_work/Calendar.svg'); color:var(--icon-tertiary);"></span>
-                  2026-06-10
-                </span>
-              </div>
-              <div class="flex gap-2 mt-1">
-                <span class="ds-tag whitespace-nowrap" style="font-size:10px; height:18px;">ai</span>
-                <span class="ds-tag whitespace-nowrap" style="font-size:10px; height:18px;">神经网络</span>
-              </div>
-            </a>
-            <!-- Related Article 3 -->
-            <a href="#" data-dom-id="related-article-click" class="group flex flex-col gap-2 p-4 rounded-xl transition-colors" style="background:var(--bg-base-secondary); border:1px solid var(--border-neutral-l1); border-radius:var(--radius-12); text-decoration:none;">
-              <h3 class="truncate" style="font-family:var(--body-base-strong-font-family); font-size:var(--body-base-strong-font-size); font-weight:var(--body-base-strong-font-weight); line-height:var(--body-base-strong-line-height); color:var(--text-default); margin-bottom:var(--spacer-4);">
-                机器学习算法总结
-              </h3>
-              <div class="flex items-center gap-2" style="font-size:var(--body-sm-font-size); color:var(--text-tertiary);">
-                <span class="flex items-center gap-1 whitespace-nowrap">
-                  <span data-icon style="width:12px; height:12px; mask-image:url('../assets/icons/dl_builtin_trae_work/Calendar.svg'); color:var(--icon-tertiary);"></span>
-                  2026-05-28
-                </span>
-              </div>
-              <div class="flex gap-2 mt-1">
-                <span class="ds-tag whitespace-nowrap" style="font-size:10px; height:18px;">ai</span>
-                <span class="ds-tag whitespace-nowrap" style="font-size:10px; height:18px;">机器学习</span>
-              </div>
-            </a>
-          </div>
-        </footer>
-
+        </div>
       </div>
 
-      <!-- Page Footer -->
-      <footer class="w-full text-center py-8" style="border-top:1px solid var(--border-neutral-l1); font-size:var(--body-sm-font-size); color:var(--text-tertiary);">
-        Knowledge Core · 用 AI 构建个人知识体系
+      <!-- ===== Main Content: Two-Column ===== -->
+      <section class="w-full flex-1" style="background:var(--bg-base-default);">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex gap-8">
+
+          <!-- Left: Article Content -->
+          <article class="flex-1 min-w-0" style="max-width:680px;">
+
+            <!-- Article Cover Image -->
+            <img src="../assets/cover-deep-learning.jpg" alt="深度学习入门笔记封面" class="w-full shrink-0" style="height:300px;object-fit:cover;border-radius:var(--radius-8);">
+
+            <!-- Article Header (below cover) -->
+            <header class="flex flex-col gap-3" style="margin-top:var(--spacer-24);">
+              <span class="inline-flex items-center justify-center whitespace-nowrap shrink-0" style="height:22px;padding:0 var(--spacer-8);border-radius:var(--radius-6);background:var(--bg-overlay-l1);color:var(--text-secondary);font-size:var(--body-sm-font-size);width:fit-content;">tech/ai</span>
+              <h1 style="font-family:var(--heading-xl-font-family);font-size:var(--heading-xl-font-size);font-weight:var(--heading-xl-font-weight);line-height:var(--heading-xl-line-height);color:var(--text-default);text-wrap:balance;word-break:keep-all;overflow-wrap:break-word;">深度学习入门笔记</h1>
+              <div class="flex items-center gap-2 flex-nowrap overflow-x-auto" style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);">
+                <span class="whitespace-nowrap">HappyLadySauce</span>
+                <span class="whitespace-nowrap">&middot;</span>
+                <span class="whitespace-nowrap">2026-06-15</span>
+                <span class="whitespace-nowrap">&middot;</span>
+                <span class="whitespace-nowrap">2,340 字</span>
+                <span class="whitespace-nowrap">&middot;</span>
+                <span class="whitespace-nowrap">阅读约 8 分钟</span>
+              </div>
+              <div class="flex items-center gap-2 flex-nowrap overflow-x-auto">
+                <span class="ds-tag whitespace-nowrap shrink-0">ai</span>
+                <span class="ds-tag whitespace-nowrap shrink-0">deep-learning</span>
+                <span class="ds-tag whitespace-nowrap shrink-0">学习笔记</span>
+                <span class="ds-tag whitespace-nowrap shrink-0">神经网络</span>
+              </div>
+            </header>
+
+            <!-- Article Body -->
+            <div class="flex flex-col gap-6" style="margin-top:var(--spacer-32);font-size:var(--body-base-font-size);line-height:1.75;color:var(--text-default);">
+
+              <!-- H2: 什么是深度学习？ -->
+              <h2 style="font-family:var(--heading-md-font-family);font-size:var(--heading-md-font-size);font-weight:var(--heading-md-font-weight);line-height:var(--heading-md-line-height);color:var(--text-default);margin-top:var(--spacer-8);">什么是深度学习？</h2>
+              <p>深度学习（Deep Learning）是机器学习的一个分支，它试图使用包含复杂结构或由多重非线性变换构成的多个处理层对数据进行高层抽象的算法。深度学习的核心思想是通过模拟人脑神经网络的结构，让计算机自动学习数据的层次化表示。</p>
+
+              <!-- H3: 核心概念 -->
+              <h3 style="font-family:var(--heading-sm-font-family);font-size:var(--heading-sm-font-size);font-weight:var(--heading-sm-font-weight);line-height:var(--heading-sm-line-height);color:var(--text-default);margin-top:var(--spacer-8);">核心概念</h3>
+              <ul style="padding-left:var(--spacer-24);display:flex;flex-direction:column;gap:var(--spacer-8);">
+                <li style="display:flex;align-items:flex-start;gap:var(--spacer-8);"><span style="flex-shrink:0;">&middot;</span><span>神经网络与感知机</span></li>
+                <li style="display:flex;align-items:flex-start;gap:var(--spacer-8);"><span style="flex-shrink:0;">&middot;</span><span>反向传播算法</span></li>
+                <li style="display:flex;align-items:flex-start;gap:var(--spacer-8);"><span style="flex-shrink:0;">&middot;</span><span>梯度下降优化</span></li>
+                <li style="display:flex;align-items:flex-start;gap:var(--spacer-8);"><span style="flex-shrink:0;">&middot;</span><span>损失函数与评估指标</span></li>
+              </ul>
+
+              <!-- H2: 常用框架对比 -->
+              <h2 style="font-family:var(--heading-md-font-family);font-size:var(--heading-md-font-size);font-weight:var(--heading-md-font-weight);line-height:var(--heading-md-line-height);color:var(--text-default);margin-top:var(--spacer-8);">常用框架对比</h2>
+              <div class="overflow-x-auto" style="border:1px solid var(--border-neutral-l1);border-radius:var(--radius-8);">
+                <table style="width:100%;border-collapse:collapse;font-size:var(--body-base-font-size);line-height:var(--body-base-line-height);">
+                  <thead>
+                    <tr style="border-bottom:1px solid var(--border-neutral-l1);">
+                      <th class="whitespace-nowrap" style="padding:var(--spacer-10) var(--spacer-12);text-align:left;color:var(--text-tertiary);font-weight:var(--font-weight-medium);font-size:var(--body-md-font-size);line-height:var(--body-md-line-height);background:var(--bg-base-secondary);">框架</th>
+                      <th class="whitespace-nowrap" style="padding:var(--spacer-10) var(--spacer-12);text-align:left;color:var(--text-tertiary);font-weight:var(--font-weight-medium);font-size:var(--body-md-font-size);line-height:var(--body-md-line-height);background:var(--bg-base-secondary);">计算图类型</th>
+                      <th class="whitespace-nowrap" style="padding:var(--spacer-10) var(--spacer-12);text-align:left;color:var(--text-tertiary);font-weight:var(--font-weight-medium);font-size:var(--body-md-font-size);line-height:var(--body-md-line-height);background:var(--bg-base-secondary);">语言</th>
+                      <th class="whitespace-nowrap" style="padding:var(--spacer-10) var(--spacer-12);text-align:left;color:var(--text-tertiary);font-weight:var(--font-weight-medium);font-size:var(--body-md-font-size);line-height:var(--body-md-line-height);background:var(--bg-base-secondary);">开发者</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr style="border-bottom:1px solid var(--border-neutral-l1);">
+                      <td class="whitespace-nowrap" style="padding:var(--spacer-10) var(--spacer-12);color:var(--text-default);font-weight:var(--font-weight-medium);">PyTorch</td>
+                      <td class="whitespace-nowrap" style="padding:var(--spacer-10) var(--spacer-12);color:var(--text-secondary);">动态计算图</td>
+                      <td class="whitespace-nowrap" style="padding:var(--spacer-10) var(--spacer-12);color:var(--text-secondary);">Python</td>
+                      <td class="whitespace-nowrap" style="padding:var(--spacer-10) var(--spacer-12);color:var(--text-secondary);">Meta</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid var(--border-neutral-l1);">
+                      <td class="whitespace-nowrap" style="padding:var(--spacer-10) var(--spacer-12);color:var(--text-default);font-weight:var(--font-weight-medium);">TensorFlow</td>
+                      <td class="whitespace-nowrap" style="padding:var(--spacer-10) var(--spacer-12);color:var(--text-secondary);">静态计算图</td>
+                      <td class="whitespace-nowrap" style="padding:var(--spacer-10) var(--spacer-12);color:var(--text-secondary);">Python/C++</td>
+                      <td class="whitespace-nowrap" style="padding:var(--spacer-10) var(--spacer-12);color:var(--text-secondary);">Google</td>
+                    </tr>
+                    <tr>
+                      <td class="whitespace-nowrap" style="padding:var(--spacer-10) var(--spacer-12);color:var(--text-default);font-weight:var(--font-weight-medium);">JAX</td>
+                      <td class="whitespace-nowrap" style="padding:var(--spacer-10) var(--spacer-12);color:var(--text-secondary);">函数式变换</td>
+                      <td class="whitespace-nowrap" style="padding:var(--spacer-10) var(--spacer-12);color:var(--text-secondary);">Python</td>
+                      <td class="whitespace-nowrap" style="padding:var(--spacer-10) var(--spacer-12);color:var(--text-secondary);">Google</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- H2: 学习路径建议 -->
+              <h2 style="font-family:var(--heading-md-font-family);font-size:var(--heading-md-font-size);font-weight:var(--heading-md-font-weight);line-height:var(--heading-md-line-height);color:var(--text-default);margin-top:var(--spacer-8);">学习路径建议</h2>
+              <ol style="padding-left:var(--spacer-24);display:flex;flex-direction:column;gap:var(--spacer-8);list-style:none;counter-reset:step;">
+                <li style="display:flex;align-items:flex-start;gap:var(--spacer-8);counter-increment:step;"><span style="flex-shrink:0;font-weight:var(--font-weight-medium);color:var(--text-brand);min-width:var(--spacer-20);">1.</span><span>先学习线性代数和概率论基础</span></li>
+                <li style="display:flex;align-items:flex-start;gap:var(--spacer-8);counter-increment:step;"><span style="flex-shrink:0;font-weight:var(--font-weight-medium);color:var(--text-brand);min-width:var(--spacer-20);">2.</span><span>从简单的全连接网络开始实践</span></li>
+                <li style="display:flex;align-items:flex-start;gap:var(--spacer-8);counter-increment:step;"><span style="flex-shrink:0;font-weight:var(--font-weight-medium);color:var(--text-brand);min-width:var(--spacer-20);">3.</span><span>逐步学习 CNN 和 RNN</span></li>
+                <li style="display:flex;align-items:flex-start;gap:var(--spacer-8);counter-increment:step;"><span style="flex-shrink:0;font-weight:var(--font-weight-medium);color:var(--text-brand);min-width:var(--spacer-20);">4.</span><span>阅读经典论文</span></li>
+              </ol>
+
+              <!-- Blockquote -->
+              <blockquote style="border-left:3px solid var(--bg-brand);padding:var(--spacer-12) var(--spacer-16);background:var(--bg-overlay-l1);border-radius:0 var(--radius-8) var(--radius-8) 0;color:var(--text-secondary);font-style:italic;">
+                深度学习的本质是让机器学会用多层抽象来理解世界 —— Yoshua Bengio
+              </blockquote>
+
+              <!-- Inline code examples -->
+              <p>在 PyTorch 中，所有自定义网络都需要继承 <code style="font-family:var(--font-family-mono);font-size:var(--code-editor-font-size);font-weight:var(--code-editor-font-weight);line-height:var(--code-editor-line-height);color:var(--code-function);background:var(--bg-overlay-l1);padding:2px 6px;border-radius:var(--radius-4);">torch.nn.Module</code>，并通过 <code style="font-family:var(--font-family-mono);font-size:var(--code-editor-font-size);font-weight:var(--code-editor-font-weight);line-height:var(--code-editor-line-height);color:var(--code-function);background:var(--bg-overlay-l1);padding:2px 6px;border-radius:var(--radius-4);">Sequential</code> 或自定义 <code style="font-family:var(--font-family-mono);font-size:var(--code-editor-font-size);font-weight:var(--code-editor-font-weight);line-height:var(--code-editor-line-height);color:var(--code-function);background:var(--bg-overlay-l1);padding:2px 6px;border-radius:var(--radius-4);">forward</code> 方法来定义前向传播逻辑。</p>
+
+              <!-- Code Block -->
+              <div class="overflow-x-auto" style="background:var(--bg-invert);border-radius:var(--radius-8);padding:var(--spacer-16) var(--spacer-20);">
+<pre style="font-family:var(--font-family-mono);font-size:var(--code-editor-font-size);font-weight:var(--code-editor-font-weight);line-height:var(--code-editor-line-height);color:var(--code-text);margin:0;white-space:pre;overflow-x:auto;"><span style="color:var(--code-action);">import</span> torch
+<span style="color:var(--code-action);">import</span> torch.nn <span style="color:var(--code-action);">as</span> nn
+
+<span style="color:var(--code-doc);"># SimpleNet: 2-layer MLP for MNIST</span>
+<span style="color:var(--code-action);">class</span> <span style="color:var(--code-instruction);">SimpleNet</span>(nn.Module):
+    <span style="color:var(--code-action);">def</span> <span style="color:var(--code-function);">__init__</span>(<span style="color:var(--code-parameter);">self</span>):
+        <span style="color:var(--code-function);">super</span>().__init__()
+        <span style="color:var(--code-parameter);">self</span>.fc1 = nn.<span style="color:var(--code-constant);">Linear</span>(<span style="color:var(--code-number);">784</span>, <span style="color:var(--code-number);">128</span>)
+        <span style="color:var(--code-parameter);">self</span>.fc2 = nn.<span style="color:var(--code-constant);">Linear</span>(<span style="color:var(--code-number);">128</span>, <span style="color:var(--code-number);">10</span>)
+
+    <span style="color:var(--code-action);">def</span> <span style="color:var(--code-function);">forward</span>(<span style="color:var(--code-parameter);">self</span>, x):
+        x = torch.<span style="color:var(--code-constant);">relu</span>(<span style="color:var(--code-parameter);">self</span>.fc1(x))
+        <span style="color:var(--code-action);">return</span> <span style="color:var(--code-parameter);">self</span>.fc2(x)</pre>
+              </div>
+
+            </div>
+
+            <!-- Article Footer: Related Articles -->
+            <div class="flex flex-col gap-4" style="margin-top:var(--spacer-48);padding-top:var(--spacer-24);border-top:1px solid var(--border-neutral-l1);">
+              <h2 class="truncate" style="font-family:var(--heading-sm-font-family);font-size:var(--heading-sm-font-size);font-weight:var(--heading-sm-font-weight);line-height:var(--heading-sm-line-height);color:var(--text-default);">相关文章</h2>
+
+              <a href="#" data-dom-id="related-article-click" class="flex items-center justify-between gap-4 p-3 transition-colors duration-150 hover:bg-[var(--bg-overlay-l1)]" style="border-radius:var(--radius-8);text-decoration:none;color:inherit;">
+                <div class="flex-1 min-w-0">
+                  <p class="truncate" style="font-size:var(--body-base-font-size);font-weight:var(--font-weight-strong);line-height:var(--body-base-line-height);color:var(--text-default);">PyTorch 实战笔记</p>
+                  <div class="flex items-center gap-2 mt-1 flex-nowrap overflow-x-auto">
+                    <span class="ds-tag whitespace-nowrap shrink-0" style="font-size:var(--body-xs-font-size);height:18px;">pytorch</span>
+                    <span class="whitespace-nowrap shrink-0" style="font-size:var(--body-xs-font-size);color:var(--text-tertiary);">2026-06-20</span>
+                  </div>
+                </div>
+              </a>
+
+              <a href="#" data-dom-id="related-article-click" class="flex items-center justify-between gap-4 p-3 transition-colors duration-150 hover:bg-[var(--bg-overlay-l1)]" style="border-radius:var(--radius-8);text-decoration:none;color:inherit;">
+                <div class="flex-1 min-w-0">
+                  <p class="truncate" style="font-size:var(--body-base-font-size);font-weight:var(--font-weight-strong);line-height:var(--body-base-line-height);color:var(--text-default);">神经网络原理详解</p>
+                  <div class="flex items-center gap-2 mt-1 flex-nowrap overflow-x-auto">
+                    <span class="ds-tag whitespace-nowrap shrink-0" style="font-size:var(--body-xs-font-size);height:18px;">神经网络</span>
+                    <span class="whitespace-nowrap shrink-0" style="font-size:var(--body-xs-font-size);color:var(--text-tertiary);">2026-06-10</span>
+                  </div>
+                </div>
+              </a>
+
+              <a href="#" data-dom-id="related-article-click" class="flex items-center justify-between gap-4 p-3 transition-colors duration-150 hover:bg-[var(--bg-overlay-l1)]" style="border-radius:var(--radius-8);text-decoration:none;color:inherit;">
+                <div class="flex-1 min-w-0">
+                  <p class="truncate" style="font-size:var(--body-base-font-size);font-weight:var(--font-weight-strong);line-height:var(--body-base-line-height);color:var(--text-default);">机器学习算法总结</p>
+                  <div class="flex items-center gap-2 mt-1 flex-nowrap overflow-x-auto">
+                    <span class="ds-tag whitespace-nowrap shrink-0" style="font-size:var(--body-xs-font-size);height:18px;">机器学习</span>
+                    <span class="whitespace-nowrap shrink-0" style="font-size:var(--body-xs-font-size);color:var(--text-tertiary);">2026-05-28</span>
+                  </div>
+                </div>
+              </a>
+
+            </div>
+
+          </article>
+
+          <!-- Right: Sidebar -->
+          <aside class="hidden lg:flex flex-col gap-6" style="width:280px;flex-shrink:0;">
+
+            <!-- Author Profile Card -->
+            <div class="p-4 flex flex-col items-center gap-3" style="background:var(--bg-base-secondary);border:1px solid var(--border-neutral-l1);border-radius:var(--radius-12);">
+              <img src="../assets/author-portrait.jpg" alt="HappyLadySauce" class="shrink-0" style="width:64px;height:64px;border-radius:var(--radius-full);object-fit:cover;">
+              <p class="truncate" style="font-size:var(--body-base-font-size);font-weight:var(--font-weight-strong);line-height:var(--body-base-line-height);color:var(--text-default);text-align:center;">HappyLadySauce</p>
+              <p class="line-clamp-2 text-center" style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);">用 AI 构建个人知识体系，记录技术与生活的思考</p>
+            </div>
+
+            <!-- Categories Card -->
+            <div class="p-4 flex flex-col gap-3" style="background:var(--bg-base-secondary);border:1px solid var(--border-neutral-l1);border-radius:var(--radius-12);">
+              <h3 class="truncate" style="font-family:var(--heading-xs-font-family);font-size:var(--heading-xs-font-size);font-weight:var(--heading-xs-font-weight);line-height:var(--heading-xs-line-height);color:var(--text-default);">分类</h3>
+              <div class="flex flex-col gap-1">
+                <a href="#" class="flex items-center justify-between py-1.5 transition-colors duration-150 hover:bg-[var(--bg-overlay-l1)]" style="border-radius:var(--radius-4);text-decoration:none;color:inherit;padding-left:var(--spacer-4);padding-right:var(--spacer-4);">
+                  <span class="truncate" style="font-size:var(--body-base-font-size);color:var(--text-secondary);">技术</span>
+                  <span class="whitespace-nowrap shrink-0" style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);">42</span>
+                </a>
+                <a href="#" class="flex items-center justify-between py-1.5 transition-colors duration-150 hover:bg-[var(--bg-overlay-l1)]" style="border-radius:var(--radius-4);text-decoration:none;color:inherit;padding-left:var(--spacer-4);padding-right:var(--spacer-4);">
+                  <span class="truncate" style="font-size:var(--body-base-font-size);color:var(--text-secondary);">生活</span>
+                  <span class="whitespace-nowrap shrink-0" style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);">18</span>
+                </a>
+                <a href="#" class="flex items-center justify-between py-1.5 transition-colors duration-150 hover:bg-[var(--bg-overlay-l1)]" style="border-radius:var(--radius-4);text-decoration:none;color:inherit;padding-left:var(--spacer-4);padding-right:var(--spacer-4);">
+                  <span class="truncate" style="font-size:var(--body-base-font-size);color:var(--text-secondary);">阅读</span>
+                  <span class="whitespace-nowrap shrink-0" style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);">15</span>
+                </a>
+                <a href="#" class="flex items-center justify-between py-1.5 transition-colors duration-150 hover:bg-[var(--bg-overlay-l1)]" style="border-radius:var(--radius-4);text-decoration:none;color:inherit;padding-left:var(--spacer-4);padding-right:var(--spacer-4);">
+                  <span class="truncate" style="font-size:var(--body-base-font-size);color:var(--text-secondary);">项目</span>
+                  <span class="whitespace-nowrap shrink-0" style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);">23</span>
+                </a>
+                <a href="#" class="flex items-center justify-between py-1.5 transition-colors duration-150 hover:bg-[var(--bg-overlay-l1)]" style="border-radius:var(--radius-4);text-decoration:none;color:inherit;padding-left:var(--spacer-4);padding-right:var(--spacer-4);">
+                  <span class="truncate" style="font-size:var(--body-base-font-size);color:var(--text-secondary);">学习笔记</span>
+                  <span class="whitespace-nowrap shrink-0" style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);">30</span>
+                </a>
+                <a href="#" class="flex items-center justify-between py-1.5 transition-colors duration-150 hover:bg-[var(--bg-overlay-l1)]" style="border-radius:var(--radius-4);text-decoration:none;color:inherit;padding-left:var(--spacer-4);padding-right:var(--spacer-4);">
+                  <span class="truncate" style="font-size:var(--body-base-font-size);color:var(--text-secondary);">随想</span>
+                  <span class="whitespace-nowrap shrink-0" style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);">12</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- Tags Cloud Card -->
+            <div class="p-4 flex flex-col gap-3" style="background:var(--bg-base-secondary);border:1px solid var(--border-neutral-l1);border-radius:var(--radius-12);">
+              <h3 class="truncate" style="font-family:var(--heading-xs-font-family);font-size:var(--heading-xs-font-size);font-weight:var(--heading-xs-font-weight);line-height:var(--heading-xs-line-height);color:var(--text-default);">标签</h3>
+              <div class="flex flex-wrap gap-2">
+                <span class="ds-tag whitespace-nowrap shrink-0" style="background:var(--bg-brand);color:var(--text-onbrand);border-color:var(--bg-brand);">ai</span>
+                <span class="ds-tag whitespace-nowrap shrink-0" style="background:var(--bg-brand);color:var(--text-onbrand);border-color:var(--bg-brand);">deep-learning</span>
+                <span class="ds-tag whitespace-nowrap shrink-0" style="background:var(--bg-brand);color:var(--text-onbrand);border-color:var(--bg-brand);">学习笔记</span>
+                <span class="ds-tag whitespace-nowrap shrink-0" style="background:var(--bg-brand);color:var(--text-onbrand);border-color:var(--bg-brand);">神经网络</span>
+                <span class="ds-tag whitespace-nowrap shrink-0">react</span>
+                <span class="ds-tag whitespace-nowrap shrink-0">typescript</span>
+                <span class="ds-tag whitespace-nowrap shrink-0">心理学</span>
+                <span class="ds-tag whitespace-nowrap shrink-0">读书笔记</span>
+                <span class="ds-tag whitespace-nowrap shrink-0">python</span>
+                <span class="ds-tag whitespace-nowrap shrink-0">机器学习</span>
+                <span class="ds-tag whitespace-nowrap shrink-0">pytorch</span>
+                <span class="ds-tag whitespace-nowrap shrink-0">前端</span>
+                <span class="ds-tag whitespace-nowrap shrink-0">设计模式</span>
+                <span class="ds-tag whitespace-nowrap shrink-0">算法</span>
+              </div>
+            </div>
+
+            <!-- Archives Card -->
+            <div class="p-4 flex flex-col gap-3" style="background:var(--bg-base-secondary);border:1px solid var(--border-neutral-l1);border-radius:var(--radius-12);">
+              <h3 class="truncate" style="font-family:var(--heading-xs-font-family);font-size:var(--heading-xs-font-size);font-weight:var(--heading-xs-font-weight);line-height:var(--heading-xs-line-height);color:var(--text-default);">归档</h3>
+              <div class="flex flex-col gap-1">
+                <a href="#" class="flex items-center justify-between py-1.5 transition-colors duration-150 hover:bg-[var(--bg-overlay-l1)]" style="border-radius:var(--radius-4);text-decoration:none;color:inherit;padding-left:var(--spacer-4);padding-right:var(--spacer-4);">
+                  <span class="truncate" style="font-size:var(--body-base-font-size);color:var(--text-secondary);">2026年6月</span>
+                  <span class="whitespace-nowrap shrink-0" style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);">12</span>
+                </a>
+                <a href="#" class="flex items-center justify-between py-1.5 transition-colors duration-150 hover:bg-[var(--bg-overlay-l1)]" style="border-radius:var(--radius-4);text-decoration:none;color:inherit;padding-left:var(--spacer-4);padding-right:var(--spacer-4);">
+                  <span class="truncate" style="font-size:var(--body-base-font-size);color:var(--text-secondary);">2026年5月</span>
+                  <span class="whitespace-nowrap shrink-0" style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);">18</span>
+                </a>
+                <a href="#" class="flex items-center justify-between py-1.5 transition-colors duration-150 hover:bg-[var(--bg-overlay-l1)]" style="border-radius:var(--radius-4);text-decoration:none;color:inherit;padding-left:var(--spacer-4);padding-right:var(--spacer-4);">
+                  <span class="truncate" style="font-size:var(--body-base-font-size);color:var(--text-secondary);">2026年4月</span>
+                  <span class="whitespace-nowrap shrink-0" style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);">9</span>
+                </a>
+                <a href="#" class="flex items-center justify-between py-1.5 transition-colors duration-150 hover:bg-[var(--bg-overlay-l1)]" style="border-radius:var(--radius-4);text-decoration:none;color:inherit;padding-left:var(--spacer-4);padding-right:var(--spacer-4);">
+                  <span class="truncate" style="font-size:var(--body-base-font-size);color:var(--text-secondary);">2026年3月</span>
+                  <span class="whitespace-nowrap shrink-0" style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);">15</span>
+                </a>
+                <a href="#" class="flex items-center justify-between py-1.5 transition-colors duration-150 hover:bg-[var(--bg-overlay-l1)]" style="border-radius:var(--radius-4);text-decoration:none;color:inherit;padding-left:var(--spacer-4);padding-right:var(--spacer-4);">
+                  <span class="truncate" style="font-size:var(--body-base-font-size);color:var(--text-secondary);">2026年2月</span>
+                  <span class="whitespace-nowrap shrink-0" style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);">11</span>
+                </a>
+              </div>
+            </div>
+
+          </aside>
+
+        </div>
+      </section>
+
+      <!-- ===== Footer ===== -->
+      <footer class="w-full mt-auto py-8 border-t" style="background:var(--bg-base-secondary);border-color:var(--border-neutral-l1);">
+        <div class="max-w-6xl mx-auto px-6 flex items-center justify-between">
+          <span class="whitespace-nowrap" style="font-size:var(--body-sm-font-size);color:var(--text-secondary);">Knowledge Core &middot; 用 AI 构建个人知识体系</span>
+          <span class="whitespace-nowrap" style="font-size:var(--body-sm-font-size);color:var(--text-tertiary);">Powered by Markdown + AI</span>
+        </div>
       </footer>
+
     </main>
     <script>lucide.createIcons();</script>
 </body>

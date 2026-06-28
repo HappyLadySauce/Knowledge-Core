@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="light">
+<html class="light" lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Knowledge Core - 首页</title>
+    <title>Knowledge Core</title>
     <style id="theme-vars">
 /**
  * TraeWork design library tokens
@@ -879,174 +879,300 @@
       }
     </style>
 </head>
-<body class="min-h-screen font-sans antialiased">
-    <main class="flex flex-col min-h-screen">
+<body style="padding: 0;">
+    <main style="min-height: 100vh;">
 
-      <!-- ===== Top Navbar ===== -->
-      <nav class="w-full sticky top-0 z-50 border-b" style="background:var(--bg-base-default);border-color:var(--border-neutral-l1);">
-        <div class="max-w-6xl mx-auto flex items-center justify-between px-6 h-12">
-          <!-- Left: Logo -->
-          <a href="#" class="font-bold whitespace-nowrap" style="font-family:var(--heading-xs-font-family);font-size:var(--heading-xs-font-size);font-weight:var(--heading-xs-font-weight);color:var(--text-default);line-height:var(--heading-xs-line-height);">Knowledge Core</a>
-          <!-- Center: Nav links -->
-          <div class="flex items-center gap-6">
-            <a href="#" class="whitespace-nowrap relative pb-0.5" style="font-family:var(--body-base-strong-font-family);font-size:var(--body-base-strong-font-size);font-weight:var(--body-base-strong-font-weight);color:var(--text-brand);line-height:var(--body-base-strong-line-height);border-bottom:2px solid var(--text-brand);">首页</a>
-            <a href="#" data-dom-id="nav-knowledge" class="whitespace-nowrap pb-0.5" style="font-family:var(--body-base-strong-font-family);font-size:var(--body-base-strong-font-size);font-weight:var(--body-base-strong-font-weight);color:var(--text-secondary);line-height:var(--body-base-strong-line-height);">知识目录</a>
-            <a href="#" data-dom-id="nav-about" class="whitespace-nowrap pb-0.5" style="font-family:var(--body-base-strong-font-family);font-size:var(--body-base-strong-font-size);font-weight:var(--body-base-strong-font-weight);color:var(--text-secondary);line-height:var(--body-base-strong-line-height);">关于</a>
-          </div>
-          <!-- Right: Search + Admin -->
-          <div class="flex items-center gap-3">
-            <button class="ds-btn ds-btn--ghost ds-btn--icon ds-btn--sm" aria-label="搜索">
-              <span data-icon style="width:16px;height:16px;mask-image:url('../assets/icons/dl_builtin_trae_work/Search.svg');"></span>
-            </button>
-            <a href="#" class="ds-btn ds-btn--link ds-btn--sm" style="color:var(--text-tertiary);">管理后台</a>
-          </div>
-        </div>
-      </nav>
-
-      <!-- ===== Hero Section ===== -->
-      <section class="w-full relative" style="background:var(--bg-base-secondary);min-height:320px;">
-        <div class="absolute inset-0" style="background-image:url('../assets/hero-knowledge-network.jpg');background-size:cover;background-position:center;"></div>
-        <div class="absolute inset-0" style="background:linear-gradient(135deg, rgba(75,63,227,0.85) 0%, rgba(63,49,198,0.72) 100%);"></div>
-        <div class="relative max-w-6xl mx-auto px-6 flex items-center" style="min-height:320px;">
-          <div class="flex flex-col gap-4 py-12">
-            <span class="ds-tag ds-tag--brand whitespace-nowrap" style="width:fit-content;">个人知识库</span>
-            <h1 class="whitespace-nowrap" style="font-family:var(--heading-display-font-family);font-size:clamp(32px,5vw,52px);font-weight:var(--heading-display-font-weight);line-height:var(--heading-display-line-height);letter-spacing:var(--heading-display-letter-spacing);color:var(--text-onbrand);text-wrap:balance;word-break:keep-all;overflow-wrap:break-word;">Knowledge Core</h1>
-            <p class="max-w-xl" style="font-family:var(--body-lg-font-family);font-size:var(--body-lg-font-size);font-weight:var(--body-lg-font-weight);line-height:var(--body-lg-line-height);color:var(--text-onbrand);opacity:0.9;">一个懂你过去、整理你现在、陪你走向未来的个人 AI 成长知识库</p>
-            <div class="flex items-center gap-2 mt-1" style="font-family:var(--body-base-font-family);font-size:var(--body-base-font-size);font-weight:var(--body-base-font-weight);line-height:var(--body-base-line-height);color:var(--text-onbrand);opacity:0.8;">
-              <span class="metric-value whitespace-nowrap">128</span><span>篇文章</span>
-              <span style="margin:0 var(--spacer-4);">·</span>
-              <span class="metric-value whitespace-nowrap">15</span><span>个分类</span>
-              <span style="margin:0 var(--spacer-4);">·</span>
-              <span class="metric-value whitespace-nowrap">47</span><span>个标签</span>
+        <!-- ===== Top Navbar ===== -->
+        <nav style="position: sticky; top: 0; z-index: 50; width: 100%; background: var(--bg-base-default); border-bottom: 1px solid var(--border-neutral-l1);">
+            <div style="max-width: 1200px; margin: 0 auto; padding: 0 var(--spacer-24); height: 56px; display: flex; align-items: center; justify-content: space-between;">
+                <div style="font-size: var(--heading-xs-font-size); font-weight: var(--heading-xs-font-weight); color: var(--text-default); letter-spacing: var(--heading-xs-letter-spacing); white-space: nowrap;">Knowledge Core</div>
+                <div style="display: flex; align-items: center; gap: var(--spacer-24);">
+                    <a href="#" style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); color: var(--text-brand); line-height: var(--body-base-line-height); white-space: nowrap;">首页</a>
+                    <a href="#" data-dom-id="nav-knowledge" style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); color: var(--text-secondary); line-height: var(--body-base-line-height); white-space: nowrap;">文库</a>
+                    <a href="#" style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); color: var(--text-secondary); line-height: var(--body-base-line-height); white-space: nowrap;">友链</a>
+                    <a href="#" data-dom-id="nav-about" style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); color: var(--text-secondary); line-height: var(--body-base-line-height); white-space: nowrap;">关于</a>
+                </div>
+                <button class="ds-btn ds-btn--ghost ds-btn--icon" style="width: 36px; height: 36px;" aria-label="Search">
+                    <span data-icon style="display: inline-block; width: var(--icon-size-20); height: var(--icon-size-20); mask-image: url('../assets/icons/dl_builtin_trae_work/Search.svg'); background-color: currentColor; mask-size: contain; mask-repeat: no-repeat; mask-position: center;"></span>
+                </button>
             </div>
-            <div class="mt-4">
-              <a href="#" data-dom-id="nav-knowledge" class="ds-btn ds-btn--brand ds-btn--lg" style="height:36px;padding:0 var(--spacer-20);font-size:var(--body-base-strong-font-size);">浏览知识库</a>
+        </nav>
+
+        <!-- ===== Hero Section ===== -->
+        <section style="width: 100%; min-height: 320px; position: relative; display: flex; align-items: center; background-image: url('../assets/hero-bg.jpg'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+            <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 100%);"></div>
+            <div style="position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: var(--spacer-48) var(--spacer-24); width: 100%;">
+                <span style="display: inline-block; font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height); color: var(--text-white); opacity: 0.85; margin-bottom: var(--spacer-12); letter-spacing: var(--body-sm-letter-spacing);">个人知识库</span>
+                <h1 style="font-family: var(--heading-display-sm-font-family); font-size: clamp(32px, 5vw, var(--heading-display-sm-font-size)); font-weight: var(--heading-display-sm-font-weight); line-height: var(--heading-display-sm-line-height); color: var(--text-white); letter-spacing: var(--heading-display-sm-letter-spacing); margin-bottom: var(--spacer-12); text-wrap: balance; word-break: keep-all; overflow-wrap: break-word;">Knowledge Core</h1>
+                <p style="font-size: var(--body-base-font-size); line-height: var(--body-base-line-height); color: var(--text-white); opacity: 0.8; max-width: 520px; margin-bottom: var(--spacer-20); letter-spacing: var(--body-base-letter-spacing);">一个懂你过去、整理你现在、陪你走向未来的个人 AI 成长知识库</p>
+                <div style="display: flex; align-items: center; gap: var(--spacer-16); flex-wrap: wrap;">
+                    <a href="#" class="ds-btn ds-btn--brand ds-btn--lg" style="height: 36px; padding: 0 var(--spacer-20); font-size: var(--body-base-font-size); border-radius: var(--radius-8); text-decoration: none; white-space: nowrap;">浏览知识库</a>
+                    <span style="font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height); color: var(--text-white); opacity: 0.6; white-space: nowrap;">128 篇文章 · 15 个分类 · 47 个标签</span>
+                </div>
             </div>
-          </div>
+        </section>
+
+        <!-- ===== Category Navigation Tabs ===== -->
+        <div style="width: 100%; background: var(--bg-base-default); border-bottom: 1px solid var(--border-neutral-l1);">
+            <div style="max-width: 1200px; margin: 0 auto; padding: 0 var(--spacer-24);">
+                <div style="display: flex; align-items: center; gap: var(--spacer-24); overflow-x: auto;">
+                    <span style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); color: var(--text-brand); padding: var(--spacer-12) 0; white-space: nowrap; border-bottom: 2px solid var(--bg-brand); margin-bottom: -1px;">全部</span>
+                    <span style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); color: var(--text-tertiary); padding: var(--spacer-12) 0; white-space: nowrap; cursor: pointer;">技术</span>
+                    <span style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); color: var(--text-tertiary); padding: var(--spacer-12) 0; white-space: nowrap; cursor: pointer;">生活</span>
+                    <span style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); color: var(--text-tertiary); padding: var(--spacer-12) 0; white-space: nowrap; cursor: pointer;">阅读</span>
+                    <span style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); color: var(--text-tertiary); padding: var(--spacer-12) 0; white-space: nowrap; cursor: pointer;">项目</span>
+                    <span style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); color: var(--text-tertiary); padding: var(--spacer-12) 0; white-space: nowrap; cursor: pointer;">学习笔记</span>
+                    <span style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); color: var(--text-tertiary); padding: var(--spacer-12) 0; white-space: nowrap; cursor: pointer;">运维</span>
+                </div>
+            </div>
         </div>
-      </section>
 
-      <!-- ===== Featured Articles ===== -->
-      <section class="w-full py-12" style="background:var(--bg-base-default);">
-        <div class="max-w-6xl mx-auto px-6">
-          <div class="flex items-center justify-between mb-8">
-            <h2 class="truncate" style="font-family:var(--heading-md-font-family);font-size:var(--heading-md-font-size);font-weight:var(--heading-md-font-weight);line-height:var(--heading-md-line-height);color:var(--text-default);">精选文章</h2>
-            <a href="#" class="ds-btn ds-btn--link ds-btn--sm flex items-center gap-1" style="color:var(--text-brand);">
-              <span>查看全部</span>
-              <span data-icon style="width:14px;height:14px;mask-image:url('../assets/icons/dl_builtin_trae_work/Right.svg');color:var(--text-brand);"></span>
-            </a>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- ===== Main Content ===== -->
+        <div style="max-width: 1200px; margin: 0 auto; padding: var(--spacer-24);">
+                <div class="main-layout" style="display: grid; grid-template-columns: 1fr minmax(260px, 320px); gap: var(--spacer-24); align-items: start;">
 
-            <!-- Card 1 -->
-            <a href="#" data-dom-id="featured-note-click" class="flex flex-col gap-3 p-5 transition-shadow duration-150 hover:shadow-md" style="background:var(--bg-base-secondary);border-radius:var(--radius-8);border:1px solid var(--border-neutral-l1);text-decoration:none;color:inherit;">
-              <h3 class="truncate" style="font-family:var(--heading-sm-font-family);font-size:var(--heading-sm-font-size);font-weight:var(--heading-sm-font-weight);line-height:var(--heading-sm-line-height);color:var(--text-default);">深度学习入门笔记</h3>
-              <p class="line-clamp-2" style="font-family:var(--body-base-font-family);font-size:var(--body-base-font-size);font-weight:var(--body-base-font-weight);line-height:var(--body-base-line-height);color:var(--text-secondary);">本文介绍了深度学习的核心概念，包括神经网络、反向传播...</p>
-              <div class="flex items-center gap-2 mt-auto flex-nowrap overflow-x-auto">
-                <span class="ds-tag ds-tag--brand whitespace-nowrap shrink-0">tech/ai</span>
-                <span class="whitespace-nowrap shrink-0" style="font-family:var(--body-sm-font-family);font-size:var(--body-sm-font-size);color:var(--text-tertiary);line-height:var(--body-sm-line-height);">2026-06-15</span>
-              </div>
-              <div class="flex items-center gap-2 flex-nowrap overflow-x-auto">
-                <span class="ds-tag whitespace-nowrap shrink-0">ai</span>
-                <span class="ds-tag whitespace-nowrap shrink-0">deep-learning</span>
-              </div>
-            </a>
+                    <!-- Left: Article Card Grid -->
+                    <div class="article-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--spacer-20);">
 
-            <!-- Card 2 -->
-            <a href="#" data-dom-id="featured-note-click" class="flex flex-col gap-3 p-5 transition-shadow duration-150 hover:shadow-md" style="background:var(--bg-base-secondary);border-radius:var(--radius-8);border:1px solid var(--border-neutral-l1);text-decoration:none;color:inherit;">
-              <h3 class="truncate" style="font-family:var(--heading-sm-font-family);font-size:var(--heading-sm-font-size);font-weight:var(--heading-sm-font-weight);line-height:var(--heading-sm-line-height);color:var(--text-default);">React Hooks 完全指南</h3>
-              <p class="line-clamp-2" style="font-family:var(--body-base-font-family);font-size:var(--body-base-font-size);font-weight:var(--body-base-font-weight);line-height:var(--body-base-line-height);color:var(--text-secondary);">全面介绍 React Hooks 的使用方法、最佳实践...</p>
-              <div class="flex items-center gap-2 mt-auto flex-nowrap overflow-x-auto">
-                <span class="ds-tag ds-tag--brand whitespace-nowrap shrink-0">tech/frontend</span>
-                <span class="whitespace-nowrap shrink-0" style="font-family:var(--body-sm-font-family);font-size:var(--body-sm-font-size);color:var(--text-tertiary);line-height:var(--body-sm-line-height);">2026-06-20</span>
-              </div>
-              <div class="flex items-center gap-2 flex-nowrap overflow-x-auto">
-                <span class="ds-tag whitespace-nowrap shrink-0">react</span>
-                <span class="ds-tag whitespace-nowrap shrink-0">typescript</span>
-              </div>
-            </a>
+                        <!-- Card 1: 深度学习入门笔记 -->
+                        <a href="#" data-dom-id="featured-note-click" style="display: flex; flex-direction: column; background: var(--bg-base-default); border: 1px solid var(--border-neutral-l1); border-radius: var(--radius-8); overflow: hidden; text-decoration: none; color: inherit; transition: border-color 0.12s ease;">
+                            <img src="../assets/cover-deep-learning.jpg" alt="" style="width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; border-radius: var(--radius-8) var(--radius-8) 0 0;">
+                            <div style="padding: var(--spacer-16); display: flex; flex-direction: column; gap: var(--spacer-8); flex: 1; min-width: 0;">
+                                <h3 style="font-size: var(--heading-xs-font-size); font-weight: 600; line-height: var(--heading-xs-line-height); color: var(--text-default); letter-spacing: var(--heading-xs-letter-spacing); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">深度学习入门笔记</h3>
+                                <p class="line-clamp-2" style="font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height); color: var(--text-secondary); letter-spacing: var(--body-sm-letter-spacing); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">系统整理深度学习核心概念，从神经网络基础到反向传播算法，配合 PyTorch 实践案例。</p>
+                                <div style="display: flex; align-items: center; gap: var(--spacer-6); flex-wrap: wrap; margin-top: auto;">
+                                    <span class="ds-tag" style="font-size: var(--body-xs-font-size); height: 20px; padding: 0 var(--spacer-6);">ai</span>
+                                    <span class="ds-tag" style="font-size: var(--body-xs-font-size); height: 20px; padding: 0 var(--spacer-6);">deep-learning</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: var(--spacer-12); font-size: var(--body-xs-font-size); color: var(--text-tertiary); line-height: var(--body-xs-line-height); margin-top: var(--spacer-4);">
+                                    <span>tech/ai</span>
+                                    <span>2026-06-15</span>
+                                    <span>3.2k 字</span>
+                                </div>
+                            </div>
+                        </a>
 
-            <!-- Card 3 -->
-            <a href="#" data-dom-id="featured-note-click" class="flex flex-col gap-3 p-5 transition-shadow duration-150 hover:shadow-md" style="background:var(--bg-base-secondary);border-radius:var(--radius-8);border:1px solid var(--border-neutral-l1);text-decoration:none;color:inherit;">
-              <h3 class="truncate" style="font-family:var(--heading-sm-font-family);font-size:var(--heading-sm-font-size);font-weight:var(--heading-sm-font-weight);line-height:var(--heading-sm-line-height);color:var(--text-default);">思考快与慢 — 读书笔记</h3>
-              <p class="line-clamp-2" style="font-family:var(--body-base-font-family);font-size:var(--body-base-font-size);font-weight:var(--body-base-font-weight);line-height:var(--body-base-line-height);color:var(--text-secondary);">Daniel Kahneman 的经典著作，系统1和系统2的...</p>
-              <div class="flex items-center gap-2 mt-auto flex-nowrap overflow-x-auto">
-                <span class="ds-tag ds-tag--brand whitespace-nowrap shrink-0">reading</span>
-                <span class="whitespace-nowrap shrink-0" style="font-family:var(--body-sm-font-family);font-size:var(--body-sm-font-size);color:var(--text-tertiary);line-height:var(--body-sm-line-height);">2026-06-10</span>
-              </div>
-              <div class="flex items-center gap-2 flex-nowrap overflow-x-auto">
-                <span class="ds-tag whitespace-nowrap shrink-0">心理学</span>
-                <span class="ds-tag whitespace-nowrap shrink-0">读书笔记</span>
-              </div>
-            </a>
+                        <!-- Card 2: React Hooks 完全指南 -->
+                        <a href="#" data-dom-id="featured-note-click" style="display: flex; flex-direction: column; background: var(--bg-base-default); border: 1px solid var(--border-neutral-l1); border-radius: var(--radius-8); overflow: hidden; text-decoration: none; color: inherit; transition: border-color 0.12s ease;">
+                            <img src="../assets/cover-react-hooks.jpg" alt="" style="width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; border-radius: var(--radius-8) var(--radius-8) 0 0;">
+                            <div style="padding: var(--spacer-16); display: flex; flex-direction: column; gap: var(--spacer-8); flex: 1; min-width: 0;">
+                                <h3 style="font-size: var(--heading-xs-font-size); font-weight: 600; line-height: var(--heading-xs-line-height); color: var(--text-default); letter-spacing: var(--heading-xs-letter-spacing); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">React Hooks 完全指南</h3>
+                                <p class="line-clamp-2" style="font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height); color: var(--text-secondary); letter-spacing: var(--body-sm-letter-spacing); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">深入理解 React Hooks 机制，涵盖 useState、useEffect、useContext 等核心 Hook 的最佳实践。</p>
+                                <div style="display: flex; align-items: center; gap: var(--spacer-6); flex-wrap: wrap; margin-top: auto;">
+                                    <span class="ds-tag" style="font-size: var(--body-xs-font-size); height: 20px; padding: 0 var(--spacer-6);">react</span>
+                                    <span class="ds-tag" style="font-size: var(--body-xs-font-size); height: 20px; padding: 0 var(--spacer-6);">typescript</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: var(--spacer-12); font-size: var(--body-xs-font-size); color: var(--text-tertiary); line-height: var(--body-xs-line-height); margin-top: var(--spacer-4);">
+                                    <span>tech/frontend</span>
+                                    <span>2026-06-20</span>
+                                    <span>5.8k 字</span>
+                                </div>
+                            </div>
+                        </a>
 
-          </div>
+                        <!-- Card 3: Go 并发编程实战 -->
+                        <a href="#" data-dom-id="featured-note-click" style="display: flex; flex-direction: column; background: var(--bg-base-default); border: 1px solid var(--border-neutral-l1); border-radius: var(--radius-8); overflow: hidden; text-decoration: none; color: inherit; transition: border-color 0.12s ease;">
+                            <img src="../assets/cover-go-concurrency.jpg" alt="" style="width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; border-radius: var(--radius-8) var(--radius-8) 0 0;">
+                            <div style="padding: var(--spacer-16); display: flex; flex-direction: column; gap: var(--spacer-8); flex: 1; min-width: 0;">
+                                <h3 style="font-size: var(--heading-xs-font-size); font-weight: 600; line-height: var(--heading-xs-line-height); color: var(--text-default); letter-spacing: var(--heading-xs-letter-spacing); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Go 并发编程实战</h3>
+                                <p class="line-clamp-2" style="font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height); color: var(--text-secondary); letter-spacing: var(--body-sm-letter-spacing); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">Goroutine、Channel、select、sync 包全面讲解，附带高并发服务器实战案例。</p>
+                                <div style="display: flex; align-items: center; gap: var(--spacer-6); flex-wrap: wrap; margin-top: auto;">
+                                    <span class="ds-tag" style="font-size: var(--body-xs-font-size); height: 20px; padding: 0 var(--spacer-6);">go</span>
+                                    <span class="ds-tag" style="font-size: var(--body-xs-font-size); height: 20px; padding: 0 var(--spacer-6);">并发</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: var(--spacer-12); font-size: var(--body-xs-font-size); color: var(--text-tertiary); line-height: var(--body-xs-line-height); margin-top: var(--spacer-4);">
+                                    <span>tech/backend</span>
+                                    <span>2026-06-18</span>
+                                    <span>4.1k 字</span>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- Card 4: 思考快与慢 -->
+                        <a href="#" data-dom-id="featured-note-click" style="display: flex; flex-direction: column; background: var(--bg-base-default); border: 1px solid var(--border-neutral-l1); border-radius: var(--radius-8); overflow: hidden; text-decoration: none; color: inherit; transition: border-color 0.12s ease;">
+                            <img src="../assets/cover-thinking-fast-slow.jpg" alt="" style="width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; border-radius: var(--radius-8) var(--radius-8) 0 0;">
+                            <div style="padding: var(--spacer-16); display: flex; flex-direction: column; gap: var(--spacer-8); flex: 1; min-width: 0;">
+                                <h3 style="font-size: var(--heading-xs-font-size); font-weight: 600; line-height: var(--heading-xs-line-height); color: var(--text-default); letter-spacing: var(--heading-xs-letter-spacing); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">思考快与慢 — 读书笔记</h3>
+                                <p class="line-clamp-2" style="font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height); color: var(--text-secondary); letter-spacing: var(--body-sm-letter-spacing); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">Daniel Kahneman 经典著作精读，系统一与系统二思维模式深度剖析与应用。</p>
+                                <div style="display: flex; align-items: center; gap: var(--spacer-6); flex-wrap: wrap; margin-top: auto;">
+                                    <span class="ds-tag" style="font-size: var(--body-xs-font-size); height: 20px; padding: 0 var(--spacer-6);">心理学</span>
+                                    <span class="ds-tag" style="font-size: var(--body-xs-font-size); height: 20px; padding: 0 var(--spacer-6);">读书笔记</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: var(--spacer-12); font-size: var(--body-xs-font-size); color: var(--text-tertiary); line-height: var(--body-xs-line-height); margin-top: var(--spacer-4);">
+                                    <span>reading</span>
+                                    <span>2026-06-10</span>
+                                    <span>6.3k 字</span>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- Card 5: 2026 年度目标规划 -->
+                        <a href="#" data-dom-id="featured-note-click" style="display: flex; flex-direction: column; background: var(--bg-base-default); border: 1px solid var(--border-neutral-l1); border-radius: var(--radius-8); overflow: hidden; text-decoration: none; color: inherit; transition: border-color 0.12s ease;">
+                            <img src="../assets/cover-goals-2026.jpg" alt="" style="width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; border-radius: var(--radius-8) var(--radius-8) 0 0;">
+                            <div style="padding: var(--spacer-16); display: flex; flex-direction: column; gap: var(--spacer-8); flex: 1; min-width: 0;">
+                                <h3 style="font-size: var(--heading-xs-font-size); font-weight: 600; line-height: var(--heading-xs-line-height); color: var(--text-default); letter-spacing: var(--heading-xs-letter-spacing); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">2026 年度目标规划</h3>
+                                <p class="line-clamp-2" style="font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height); color: var(--text-secondary); letter-spacing: var(--body-sm-letter-spacing); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">技术成长、阅读计划、健康管理、副业探索 — 全方位年度规划与季度复盘。</p>
+                                <div style="display: flex; align-items: center; gap: var(--spacer-6); flex-wrap: wrap; margin-top: auto;">
+                                    <span class="ds-tag" style="font-size: var(--body-xs-font-size); height: 20px; padding: 0 var(--spacer-6);">目标</span>
+                                    <span class="ds-tag" style="font-size: var(--body-xs-font-size); height: 20px; padding: 0 var(--spacer-6);">规划</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: var(--spacer-12); font-size: var(--body-xs-font-size); color: var(--text-tertiary); line-height: var(--body-xs-line-height); margin-top: var(--spacer-4);">
+                                    <span>life</span>
+                                    <span>2026-01-01</span>
+                                    <span>2.4k 字</span>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- Card 6: PyTorch 实战笔记 -->
+                        <a href="#" data-dom-id="featured-note-click" style="display: flex; flex-direction: column; background: var(--bg-base-default); border: 1px solid var(--border-neutral-l1); border-radius: var(--radius-8); overflow: hidden; text-decoration: none; color: inherit; transition: border-color 0.12s ease;">
+                            <img src="../assets/cover-pytorch.jpg" alt="" style="width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; border-radius: var(--radius-8) var(--radius-8) 0 0;">
+                            <div style="padding: var(--spacer-16); display: flex; flex-direction: column; gap: var(--spacer-8); flex: 1; min-width: 0;">
+                                <h3 style="font-size: var(--heading-xs-font-size); font-weight: 600; line-height: var(--heading-xs-line-height); color: var(--text-default); letter-spacing: var(--heading-xs-letter-spacing); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">PyTorch 实战笔记</h3>
+                                <p class="line-clamp-2" style="font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height); color: var(--text-secondary); letter-spacing: var(--body-sm-letter-spacing); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">从张量操作到模型部署，涵盖 CNN、RNN、Transformer 的 PyTorch 实战代码。</p>
+                                <div style="display: flex; align-items: center; gap: var(--spacer-6); flex-wrap: wrap; margin-top: auto;">
+                                    <span class="ds-tag" style="font-size: var(--body-xs-font-size); height: 20px; padding: 0 var(--spacer-6);">pytorch</span>
+                                    <span class="ds-tag" style="font-size: var(--body-xs-font-size); height: 20px; padding: 0 var(--spacer-6);">实战</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: var(--spacer-12); font-size: var(--body-xs-font-size); color: var(--text-tertiary); line-height: var(--body-xs-line-height); margin-top: var(--spacer-4);">
+                                    <span>tech/ai</span>
+                                    <span>2026-06-25</span>
+                                    <span>7.5k 字</span>
+                                </div>
+                            </div>
+                        </a>
+
+                    </div>
+
+                    <!-- Right: Sidebar -->
+                    <div style="display: flex; flex-direction: column; gap: var(--spacer-20);">
+
+                        <!-- Author Profile Card -->
+                        <div style="background: var(--bg-base-default); border: 1px solid var(--border-neutral-l1); border-radius: var(--radius-8); padding: var(--spacer-20); display: flex; flex-direction: column; align-items: center; gap: var(--spacer-12);">
+                            <img src="../assets/author-portrait.jpg" alt="Author" style="width: 64px; height: 64px; border-radius: var(--radius-full); object-fit: cover;">
+                            <div style="text-align: center;">
+                                <div style="font-size: var(--heading-xs-font-size); font-weight: var(--heading-xs-font-weight); color: var(--text-default); line-height: var(--heading-xs-line-height); letter-spacing: var(--heading-xs-letter-spacing);">Knowledge Explorer</div>
+                                <p style="font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height); color: var(--text-tertiary); letter-spacing: var(--body-sm-letter-spacing); margin-top: var(--spacer-4); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">热爱技术，乐于分享，终身学习者</p>
+                            </div>
+                        </div>
+
+                        <!-- Categories Card -->
+                        <div style="background: var(--bg-base-default); border: 1px solid var(--border-neutral-l1); border-radius: var(--radius-8); padding: var(--spacer-16); display: flex; flex-direction: column; gap: var(--spacer-12);">
+                            <h3 style="font-size: var(--heading-xs-font-size); font-weight: var(--heading-xs-font-weight); color: var(--text-default); line-height: var(--heading-xs-line-height); letter-spacing: var(--heading-xs-letter-spacing);">分类</h3>
+                            <div style="display: flex; flex-direction: column; gap: var(--spacer-8);">
+                                <div style="display: flex; align-items: center; justify-content: space-between; font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height);">
+                                    <span style="color: var(--text-secondary);">技术</span>
+                                    <span style="color: var(--text-tertiary); font-family: var(--font-family-metric); font-variant-numeric: tabular-nums;">42</span>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height);">
+                                    <span style="color: var(--text-secondary);">生活</span>
+                                    <span style="color: var(--text-tertiary); font-family: var(--font-family-metric); font-variant-numeric: tabular-nums;">18</span>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height);">
+                                    <span style="color: var(--text-secondary);">阅读</span>
+                                    <span style="color: var(--text-tertiary); font-family: var(--font-family-metric); font-variant-numeric: tabular-nums;">25</span>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height);">
+                                    <span style="color: var(--text-secondary);">项目</span>
+                                    <span style="color: var(--text-tertiary); font-family: var(--font-family-metric); font-variant-numeric: tabular-nums;">15</span>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height);">
+                                    <span style="color: var(--text-secondary);">学习笔记</span>
+                                    <span style="color: var(--text-tertiary); font-family: var(--font-family-metric); font-variant-numeric: tabular-nums;">20</span>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height);">
+                                    <span style="color: var(--text-secondary);">运维</span>
+                                    <span style="color: var(--text-tertiary); font-family: var(--font-family-metric); font-variant-numeric: tabular-nums;">8</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tags Cloud Card -->
+                        <div style="background: var(--bg-base-default); border: 1px solid var(--border-neutral-l1); border-radius: var(--radius-8); padding: var(--spacer-16); display: flex; flex-direction: column; gap: var(--spacer-12);">
+                            <h3 style="font-size: var(--heading-xs-font-size); font-weight: var(--heading-xs-font-weight); color: var(--text-default); line-height: var(--heading-xs-line-height); letter-spacing: var(--heading-xs-letter-spacing);">标签</h3>
+                            <div style="display: flex; flex-wrap: wrap; gap: var(--spacer-6);">
+                                <span class="ds-tag ds-tag--brand">Python</span>
+                                <span class="ds-tag">Go</span>
+                                <span class="ds-tag">React</span>
+                                <span class="ds-tag ds-tag--brand">AI</span>
+                                <span class="ds-tag">Docker</span>
+                                <span class="ds-tag">K8s</span>
+                                <span class="ds-tag">TypeScript</span>
+                                <span class="ds-tag">数据库</span>
+                                <span class="ds-tag ds-tag--brand">深度学习</span>
+                                <span class="ds-tag">前端</span>
+                                <span class="ds-tag">后端</span>
+                                <span class="ds-tag">读书笔记</span>
+                            </div>
+                        </div>
+
+                        <!-- Archives Card -->
+                        <div style="background: var(--bg-base-default); border: 1px solid var(--border-neutral-l1); border-radius: var(--radius-8); padding: var(--spacer-16); display: flex; flex-direction: column; gap: var(--spacer-12);">
+                            <h3 style="font-size: var(--heading-xs-font-size); font-weight: var(--heading-xs-font-weight); color: var(--text-default); line-height: var(--heading-xs-line-height); letter-spacing: var(--heading-xs-letter-spacing);">归档</h3>
+                            <div style="display: flex; flex-direction: column; gap: var(--spacer-8);">
+                                <div style="display: flex; align-items: center; justify-content: space-between; font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height);">
+                                    <span style="color: var(--text-secondary);">2026 年 6 月</span>
+                                    <span style="color: var(--text-tertiary); font-family: var(--font-family-metric); font-variant-numeric: tabular-nums;">8</span>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height);">
+                                    <span style="color: var(--text-secondary);">2026 年 5 月</span>
+                                    <span style="color: var(--text-tertiary); font-family: var(--font-family-metric); font-variant-numeric: tabular-nums;">12</span>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height);">
+                                    <span style="color: var(--text-secondary);">2026 年 4 月</span>
+                                    <span style="color: var(--text-tertiary); font-family: var(--font-family-metric); font-variant-numeric: tabular-nums;">6</span>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height);">
+                                    <span style="color: var(--text-secondary);">2026 年 3 月</span>
+                                    <span style="color: var(--text-tertiary); font-family: var(--font-family-metric); font-variant-numeric: tabular-nums;">9</span>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height);">
+                                    <span style="color: var(--text-secondary);">2026 年 1 月</span>
+                                    <span style="color: var(--text-tertiary); font-family: var(--font-family-metric); font-variant-numeric: tabular-nums;">4</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Site Stats Card -->
+                        <div style="background: var(--bg-base-default); border: 1px solid var(--border-neutral-l1); border-radius: var(--radius-8); padding: var(--spacer-16); display: flex; flex-direction: column; gap: var(--spacer-12);">
+                            <h3 style="font-size: var(--heading-xs-font-size); font-weight: var(--heading-xs-font-weight); color: var(--text-default); line-height: var(--heading-xs-line-height); letter-spacing: var(--heading-xs-letter-spacing);">站点统计</h3>
+                            <div style="display: flex; flex-direction: column; gap: var(--spacer-8);">
+                                <div style="display: flex; align-items: center; justify-content: space-between; font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height);">
+                                    <span style="color: var(--text-secondary);">文章总数</span>
+                                    <span style="color: var(--text-tertiary); font-family: var(--font-family-metric); font-variant-numeric: tabular-nums;">128</span>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height);">
+                                    <span style="color: var(--text-secondary);">总字数</span>
+                                    <span style="color: var(--text-tertiary); font-family: var(--font-family-metric); font-variant-numeric: tabular-nums;">386k</span>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height);">
+                                    <span style="color: var(--text-secondary);">运行天数</span>
+                                    <span style="color: var(--text-tertiary); font-family: var(--font-family-metric); font-variant-numeric: tabular-nums;">285</span>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height);">
+                                    <span style="color: var(--text-secondary);">最后更新</span>
+                                    <span style="color: var(--text-tertiary); font-family: var(--font-family-metric); font-variant-numeric: tabular-nums;">06-25</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
         </div>
-      </section>
 
-      <!-- ===== Category Overview ===== -->
-      <section class="w-full py-12" style="background:var(--bg-base-secondary);">
-        <div class="max-w-6xl mx-auto px-6">
-          <div class="flex items-center justify-between mb-8">
-            <h2 class="truncate" style="font-family:var(--heading-md-font-family);font-size:var(--heading-md-font-size);font-weight:var(--heading-md-font-weight);line-height:var(--heading-md-line-height);color:var(--text-default);">知识分类</h2>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-
-            <!-- Category 1: 技术 -->
-            <a href="#" data-dom-id="featured-note-click" class="flex items-center gap-3 p-4 transition-shadow duration-150 hover:shadow-md" style="background:var(--bg-base-default);border:1px solid var(--border-neutral-l1);border-radius:var(--radius-8);text-decoration:none;color:inherit;">
-              <span data-icon style="width:20px;height:20px;mask-image:url('../assets/icons/dl_builtin_trae_work/code.svg');color:var(--icon-brand);flex-shrink:0;"></span>
-              <span class="flex-1 min-w-0 truncate" style="font-family:var(--body-base-strong-font-family);font-size:var(--body-base-strong-font-size);font-weight:var(--body-base-strong-font-weight);line-height:var(--body-base-strong-line-height);color:var(--text-default);">技术</span>
-              <span class="metric-value whitespace-nowrap shrink-0" style="font-family:var(--body-sm-font-family);font-size:var(--body-sm-font-size);color:var(--text-tertiary);">42 篇</span>
-            </a>
-
-            <!-- Category 2: 生活 -->
-            <a href="#" data-dom-id="featured-note-click" class="flex items-center gap-3 p-4 transition-shadow duration-150 hover:shadow-md" style="background:var(--bg-base-default);border:1px solid var(--border-neutral-l1);border-radius:var(--radius-8);text-decoration:none;color:inherit;">
-              <span data-icon style="width:20px;height:20px;mask-image:url('../assets/icons/dl_builtin_trae_work/calendar.svg');color:var(--icon-brand);flex-shrink:0;"></span>
-              <span class="flex-1 min-w-0 truncate" style="font-family:var(--body-base-strong-font-family);font-size:var(--body-base-strong-font-size);font-weight:var(--body-base-strong-font-weight);line-height:var(--body-base-strong-line-height);color:var(--text-default);">生活</span>
-              <span class="metric-value whitespace-nowrap shrink-0" style="font-family:var(--body-sm-font-family);font-size:var(--body-sm-font-size);color:var(--text-tertiary);">18 篇</span>
-            </a>
-
-            <!-- Category 3: 阅读 -->
-            <a href="#" data-dom-id="featured-note-click" class="flex items-center gap-3 p-4 transition-shadow duration-150 hover:shadow-md" style="background:var(--bg-base-default);border:1px solid var(--border-neutral-l1);border-radius:var(--radius-8);text-decoration:none;color:inherit;">
-              <span data-icon style="width:20px;height:20px;mask-image:url('../assets/icons/dl_builtin_trae_work/artifacts-text-document-filled.svg');color:var(--icon-brand);flex-shrink:0;"></span>
-              <span class="flex-1 min-w-0 truncate" style="font-family:var(--body-base-strong-font-family);font-size:var(--body-base-strong-font-size);font-weight:var(--body-base-strong-font-weight);line-height:var(--body-base-strong-line-height);color:var(--text-default);">阅读</span>
-              <span class="metric-value whitespace-nowrap shrink-0" style="font-family:var(--body-sm-font-family);font-size:var(--body-sm-font-size);color:var(--text-tertiary);">15 篇</span>
-            </a>
-
-            <!-- Category 4: 项目 -->
-            <a href="#" data-dom-id="featured-note-click" class="flex items-center gap-3 p-4 transition-shadow duration-150 hover:shadow-md" style="background:var(--bg-base-default);border:1px solid var(--border-neutral-l1);border-radius:var(--radius-8);text-decoration:none;color:inherit;">
-              <span data-icon style="width:20px;height:20px;mask-image:url('../assets/icons/dl_builtin_trae_work/Folder.svg');color:var(--icon-brand);flex-shrink:0;"></span>
-              <span class="flex-1 min-w-0 truncate" style="font-family:var(--body-base-strong-font-family);font-size:var(--body-base-strong-font-size);font-weight:var(--body-base-strong-font-weight);line-height:var(--body-base-strong-line-height);color:var(--text-default);">项目</span>
-              <span class="metric-value whitespace-nowrap shrink-0" style="font-family:var(--body-sm-font-family);font-size:var(--body-sm-font-size);color:var(--text-tertiary);">23 篇</span>
-            </a>
-
-            <!-- Category 5: 学习笔记 -->
-            <a href="#" data-dom-id="featured-note-click" class="flex items-center gap-3 p-4 transition-shadow duration-150 hover:shadow-md" style="background:var(--bg-base-default);border:1px solid var(--border-neutral-l1);border-radius:var(--radius-8);text-decoration:none;color:inherit;">
-              <span data-icon style="width:20px;height:20px;mask-image:url('../assets/icons/dl_builtin_trae_work/DocFile.svg');color:var(--icon-brand);flex-shrink:0;"></span>
-              <span class="flex-1 min-w-0 truncate" style="font-family:var(--body-base-strong-font-family);font-size:var(--body-base-strong-font-size);font-weight:var(--body-base-strong-font-weight);line-height:var(--body-base-strong-line-height);color:var(--text-default);">学习笔记</span>
-              <span class="metric-value whitespace-nowrap shrink-0" style="font-family:var(--body-sm-font-family);font-size:var(--body-sm-font-size);color:var(--text-tertiary);">30 篇</span>
-            </a>
-
-            <!-- Category 6: 随想 -->
-            <a href="#" data-dom-id="featured-note-click" class="flex items-center gap-3 p-4 transition-shadow duration-150 hover:shadow-md" style="background:var(--bg-base-default);border:1px solid var(--border-neutral-l1);border-radius:var(--radius-8);text-decoration:none;color:inherit;">
-              <span data-icon style="width:20px;height:20px;mask-image:url('../assets/icons/dl_builtin_trae_work/Star.svg');color:var(--icon-brand);flex-shrink:0;"></span>
-              <span class="flex-1 min-w-0 truncate" style="font-family:var(--body-base-strong-font-family);font-size:var(--body-base-strong-font-size);font-weight:var(--body-base-strong-font-weight);line-height:var(--body-base-strong-line-height);color:var(--text-default);">随想</span>
-              <span class="metric-value whitespace-nowrap shrink-0" style="font-family:var(--body-sm-font-family);font-size:var(--body-sm-font-size);color:var(--text-tertiary);">12 篇</span>
-            </a>
-
-          </div>
-        </div>
-      </section>
-
-      <!-- ===== Footer ===== -->
-      <footer class="w-full mt-auto py-8 border-t" style="background:var(--bg-base-secondary);border-color:var(--border-neutral-l1);">
-        <div class="max-w-6xl mx-auto px-6 flex items-center justify-between">
-          <span class="whitespace-nowrap" style="font-family:var(--body-sm-font-family);font-size:var(--body-sm-font-size);font-weight:var(--body-sm-font-weight);line-height:var(--body-sm-line-height);color:var(--text-secondary);">Knowledge Core · 用 AI 构建个人知识体系</span>
-          <span class="whitespace-nowrap" style="font-family:var(--body-sm-font-family);font-size:var(--body-sm-font-size);font-weight:var(--body-sm-font-weight);line-height:var(--body-sm-line-height);color:var(--text-tertiary);">Powered by Markdown + AI</span>
-        </div>
-      </footer>
+        <!-- ===== Footer ===== -->
+        <footer style="width: 100%; border-top: 1px solid var(--border-neutral-l1); background: var(--bg-base-default);">
+            <div style="max-width: 1200px; margin: 0 auto; padding: var(--spacer-24); text-align: center;">
+                <span style="font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height); color: var(--text-tertiary); letter-spacing: var(--body-sm-letter-spacing);">Knowledge Core · 用 AI 构建个人知识体系</span>
+            </div>
+        </footer>
 
     </main>
-    <script>lucide.createIcons();</script>
+    <style type="text/tailwindcss">
+      @media (max-width: 768px) {
+        .main-layout { grid-template-columns: 1fr !important; }
+        .article-grid { grid-template-columns: 1fr !important; }
+      }
+    </style>
 </body>
 </html>
