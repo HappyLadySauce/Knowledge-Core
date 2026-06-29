@@ -308,6 +308,113 @@ GET /api/admin/dashboard/trends    # 趋势数据（articles, visits, users, ?da
 GET /api/admin/dashboard/top-articles?limit=10&period=7d  # 热门文章
 ```
 
+## 标签与分类管理
+
+### 数据模型
+
+```go
+type Category struct {
+    ID       uint   `json:"id"`
+    Name     string `json:"name" gorm:"uniqueIndex"`
+    Slug     string `json:"slug" gorm:"uniqueIndex"` // URL 友好标识
+    ParentID uint   `json:"parent_id"`               // 支持层级分类
+    Sort     int    `json:"sort"`                    // 排序权重
+}
+
+type Tag struct {
+    ID   uint   `json:"id"`
+    Name string `json:"name" gorm:"uniqueIndex"`
+    Slug string `json:"slug" gorm:"uniqueIndex"`
+}
+```
+
+### 管理功能
+
+| 操作 | 分类 | 标签 |
+|---|---|---|
+| 创建 | 仅管理员 | 仅管理员 |
+| 编辑 | 仅管理员 | 仅管理员 |
+| 删除 | 仅管理员（级联解除关联） | 仅管理员 |
+| 合并 | 仅管理员（将 A 合入 B） | 仅管理员 |
+| 重命名 | 仅管理员（自动更新 slug） | 仅管理员 |
+
+### API 路由
+
+```
+# 分类
+GET    /api/admin/categories          # 分类列表（树形）
+POST   /api/admin/categories          # 创建分类
+PUT    /api/admin/categories/:id      # 更新分类
+DELETE /api/admin/categories/:id      # 删除分类
+PUT    /api/admin/categories/merge    # 合并分类
+
+# 标签
+GET    /api/admin/tags                # 标签列表
+POST   /api/admin/tags                # 创建标签
+PUT    /api/admin/tags/:id            # 更新标签
+DELETE /api/admin/tags/:id            # 删除标签
+PUT    /api/admin/tags/merge          # 合并标签
+```
+
+## 文章编辑器
+
+### 编辑器功能
+
+- 所见即所得 Markdown 编辑器（左右分栏：左侧编辑，右侧实时预览）
+- 支持 frontmatter 编辑（分类、标签、标题、发布状态）
+- 工具栏：加粗、斜体、标题(H1-H3)、代码块、链接、图片、引用、列表、表格
+- 自动保存草稿（每 30 秒）
+- AI 辅助：AI 生成摘要、AI 推荐标签、AI 续写（调用后台设置中的 AI 服务）
+- 发布/草稿状态切换
+
+### 数据模型扩展
+
+```go
+// Article 新增字段
+Status   string `json:"status"`    // "draft" | "published"
+AuthorID uint   `json:"author_id"` // 作者（管理员 ID）
+```
+
+### API 路由
+
+```
+POST   /api/admin/articles              # 创建文章（草稿）
+PUT    /api/admin/articles/:id          # 更新文章
+PUT    /api/admin/articles/:id/publish  # 发布文章
+PUT    /api/admin/articles/:id/unpublish # 取消发布
+DELETE /api/admin/articles/:id          # 删除文章
+POST   /api/admin/articles/:id/ai-summary  # AI 生成摘要
+POST   /api/admin/articles/:id/ai-tags     # AI 推荐标签
+```
+
+## 导出功能
+
+### 支持的导出格式
+
+| 格式 | 说明 | 批量 |
+|---|---|---|
+| Markdown (.md) | 原始 Markdown + frontmatter | 支持 |
+| PDF | 渲染后的文章（含样式） | 单篇 |
+| JSON | 结构化数据（frontmatter + content） | 支持 |
+| ZIP | 批量打包为 Markdown 文件集合 | 支持 |
+
+### API 路由
+
+```
+GET    /api/admin/export/markdown/:id    # 导出单篇 Markdown
+GET    /api/admin/export/pdf/:id         # 导出单篇 PDF
+GET    /api/admin/export/json/:id        # 导出单篇 JSON
+POST   /api/admin/export/batch           # 批量导出（JSON body: article_ids + format）
+GET    /api/admin/export/download/:task_id # 下载导出文件
+```
+
+### 导出流程
+
+1. 用户选择文章（单篇或勾选多篇）
+2. 选择导出格式
+3. 后端生成文件，返回下载链接
+4. 批量导出返回 ZIP 文件
+
 ## MVP 范围（第一阶段）
 
 ### 必做（最小闭环）
@@ -322,6 +429,9 @@ GET /api/admin/dashboard/top-articles?limit=10&period=7d  # 热门文章
 8. 文章评论系统（前台浏览 + 管理员审核）
 9. 后台设置（站点配置、AI API、SEO）
 10. 数据看板（访问量、文章趋势、用户增长）
+11. 标签与分类管理（后台 CRUD + 合并）
+12. 文章编辑器（Markdown 分栏编辑 + AI 辅助 + 草稿/发布）
+13. 导出功能（Markdown/PDF/JSON/ZIP）
 
 ### 暂不做（后续阶段）
 

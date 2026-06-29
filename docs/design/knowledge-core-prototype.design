@@ -174,6 +174,75 @@
       }
     },
     {
+      "id": "page-tag-category-mgmt",
+      "title": "标签分类管理",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1751130000000,
+      "canvasData": {
+        "x": 1860,
+        "y": 4915,
+        "group": 2
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/tag-category-mgmt.html",
+        "interactions": [
+          {
+            "domId": "back-to-library",
+            "targetPageId": "page-note-library",
+            "hideEdge": true,
+            "transitionLabel": "返回"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-article-editor",
+      "title": "文章编辑器",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1751130000000,
+      "canvasData": {
+        "x": 2480,
+        "y": 4915,
+        "group": 2
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/article-editor.html",
+        "interactions": [
+          {
+            "domId": "back-to-library",
+            "targetPageId": "page-note-library",
+            "hideEdge": true,
+            "transitionLabel": "返回"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-export",
+      "title": "导出功能",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1751130000000,
+      "canvasData": {
+        "x": 3100,
+        "y": 4915,
+        "group": 2
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/export.html",
+        "interactions": [
+          {
+            "domId": "back-to-library",
+            "targetPageId": "page-note-library",
+            "hideEdge": true,
+            "transitionLabel": "返回"
+          }
+        ]
+      }
+    },
+    {
       "id": "page-note-library",
       "title": "笔记库首页",
       "type": "page",
