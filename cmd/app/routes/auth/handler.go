@@ -26,15 +26,14 @@ func NewController(sc *svc.ServiceContext) *Controller {
 // Init 注册认证路由。
 func Init(ctx context.Context, sc *svc.ServiceContext) {
 	_ = ctx
-	service := auth.NewService(sc.DB, sc.Config.JWT)
-	RegisterRoutes(router.V1(), service, sc)
+	RegisterRoutes(router.V1(), auth.NewService(sc.DB, sc.Config.JWT), sc)
 }
 
 // RegisterRoutes attaches auth and admin routes to the API group.
 // RegisterRoutes 将认证与 admin 路由挂载到 API 分组。
 func RegisterRoutes(group *gin.RouterGroup, service auth.AuthService, sc *svc.ServiceContext) {
 	_ = sc
-	controller := &Controller{service: service}
+	controller := NewController(sc)
 	authGroup := group.Group("/auth")
 	authGroup.POST("/register", controller.Register)
 	authGroup.POST("/login", controller.Login)

@@ -34,7 +34,7 @@ func Init(ctx context.Context, sc *svc.ServiceContext) {
 // RegisterRoutes attaches user profile and admin user management routes.
 // RegisterRoutes 挂载用户资料与 admin 用户管理路由。
 func RegisterRoutes(group *gin.RouterGroup, service internaluser.UserService, sc *svc.ServiceContext) {
-	controller := &Controller{service: service}
+	controller := NewController(sc)
 	userGroup := group.Group("/users", middleware.AuthMiddleware(sc))
 	userGroup.GET("/me", controller.Me)
 	userGroup.PUT("/me", controller.UpdateMe)
