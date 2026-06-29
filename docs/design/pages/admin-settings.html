@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>个人资料</title>
+    <title>设置</title>
     <style id="theme-vars">
 /**
  * TraeWork design library tokens
@@ -880,129 +880,288 @@
     </style>
 </head>
 <body class="min-h-screen font-sans antialiased">
-    <main>
-
-        <!-- ===== Top Navbar ===== -->
-        <nav style="position: sticky; top: 0; z-index: 50; width: 100%; background: var(--bg-base-default); border-bottom: 1px solid var(--border-neutral-l1);">
-            <div style="max-width: 1200px; margin: 0 auto; padding: 0 var(--spacer-24); height: 56px; display: flex; align-items: center; justify-content: space-between;">
-                <div style="font-size: var(--heading-xs-font-size); font-weight: var(--heading-xs-font-weight); color: var(--text-default); letter-spacing: var(--heading-xs-letter-spacing); white-space: nowrap;">Knowledge Core</div>
-                <div style="display: flex; align-items: center; gap: var(--spacer-24);">
-                    <a href="#" style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); color: var(--text-secondary); line-height: var(--body-base-line-height); white-space: nowrap; text-decoration: none;">首页</a>
-                    <a href="#" style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); color: var(--text-secondary); line-height: var(--body-base-line-height); white-space: nowrap; text-decoration: none;">文库</a><a href="#" style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); color: var(--text-secondary); line-height: var(--body-base-line-height); white-space: nowrap; text-decoration: none;">关于</a>
+    <main class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="flex flex-col w-60 shrink-0 border-r py-4 px-3" style="background:var(--bg-base-default);border-color:var(--border-neutral-l1);">
+            <!-- Logo -->
+            <div class="flex items-center gap-2 px-3 mb-6">
+                <span data-icon style="width:var(--icon-size-20);height:var(--icon-size-20);mask-image:url('../assets/icons/dl_builtin_trae_work/explorer-file-workspace.svg');"></span>
+                <span class="truncate" style="font-family:var(--font-family-heading);font-size:var(--heading-sm-font-size);font-weight:var(--heading-sm-font-weight);line-height:var(--heading-sm-line-height);color:var(--text-default);">Knowledge Core</span>
+            </div>
+            <!-- Navigation -->
+            <nav class="flex flex-col gap-0.5 mb-4">
+                <a href="#" class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="color:var(--text-secondary);">
+                    <span data-icon style="width:var(--icon-size-16);height:var(--icon-size-16);mask-image:url('../assets/icons/dl_builtin_trae_work/design-library.svg');"></span>
+                    <span class="truncate" style="font-size:var(--body-base-font-size);line-height:var(--body-base-line-height);">数据看板</span>
+                </a>
+                <a href="#" class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="color:var(--text-secondary);">
+                    <span data-icon style="width:var(--icon-size-16);height:var(--icon-size-16);mask-image:url('../assets/icons/dl_builtin_trae_work/DocFile.svg');"></span>
+                    <span class="truncate" style="font-size:var(--body-base-font-size);line-height:var(--body-base-line-height);">笔记库</span>
+                </a>
+                <a href="#" class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="color:var(--text-secondary);">
+                    <span data-icon style="width:var(--icon-size-16);height:var(--icon-size-16);mask-image:url('../assets/icons/dl_builtin_trae_work/search.svg');"></span>
+                    <span class="truncate" style="font-size:var(--body-base-font-size);line-height:var(--body-base-line-height);">搜索</span>
+                </a>
+                <a href="#" class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="color:var(--text-secondary);">
+                    <span data-icon style="width:var(--icon-size-16);height:var(--icon-size-16);mask-image:url('../assets/icons/dl_builtin_trae_work/Expand_filetree.svg');"></span>
+                    <span class="truncate" style="font-size:var(--body-base-font-size);line-height:var(--body-base-line-height);">导入</span>
+                </a>
+                <a href="#" class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="color:var(--text-secondary);">
+                    <span data-icon style="width:var(--icon-size-16);height:var(--icon-size-16);mask-image:url('../assets/icons/dl_builtin_trae_work/user-small.svg');"></span>
+                    <span class="truncate" style="font-size:var(--body-base-font-size);line-height:var(--body-base-line-height);">用户管理</span>
+                </a>
+                <a href="#" class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="color:var(--text-secondary);">
+                    <span data-icon style="width:var(--icon-size-16);height:var(--icon-size-16);mask-image:url('../assets/icons/dl_builtin_trae_work/chat.svg');"></span>
+                    <span class="truncate" style="font-size:var(--body-base-font-size);line-height:var(--body-base-line-height);">评论审核</span>
+                </a>
+                <a href="#" class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background:var(--bg-overlay-l1);color:var(--text-default);">
+                    <span data-icon style="width:var(--icon-size-16);height:var(--icon-size-16);mask-image:url('../assets/icons/dl_builtin_trae_work/settings.svg');"></span>
+                    <span class="truncate" style="font-size:var(--body-base-font-size);line-height:var(--body-base-line-height);font-weight:var(--font-weight-medium);">设置</span>
+                </a>
+            </nav>
+            <!-- Divider -->
+            <div class="mx-3 mb-3" style="height:1px;background:var(--border-neutral-l1);"></div>
+            <!-- Category Tree -->
+            <div class="px-3 mb-3">
+                <div class="flex items-center justify-between mb-2">
+                    <span style="font-size:var(--body-md-font-size);font-weight:var(--font-weight-medium);color:var(--text-tertiary);">分类目录</span>
+                    <span data-icon style="width:var(--icon-size-12);height:var(--icon-size-12);mask-image:url('../assets/icons/dl_builtin_trae_work/Collapse_filetree.svg');color:var(--icon-tertiary);"></span>
                 </div>
-                <div style="display: flex; align-items: center; gap: var(--spacer-12);">
-                    <img src="../assets/author-portrait.jpg" alt="头像" style="width: 28px; height: 28px; border-radius: var(--radius-full); object-fit: cover;" aria-hidden="true">
-                    <a href="#" data-dom-id="goto-login" style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); color: var(--text-secondary); line-height: var(--body-base-line-height); white-space: nowrap; text-decoration: none;">退出登录</a>
+                <div class="flex flex-col gap-1">
+                    <div class="flex items-center gap-1.5 px-2 py-1 rounded" style="color:var(--text-secondary);">
+                        <span data-icon style="width:var(--icon-size-14);height:var(--icon-size-14);mask-image:url('../assets/icons/dl_builtin_trae_work/explorer-folder-closed.svg');color:var(--icon-secondary);"></span>
+                        <span class="truncate" style="font-size:var(--body-sm-font-size);line-height:var(--body-sm-line-height);">技术笔记</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 px-2 py-1 rounded" style="color:var(--text-secondary);">
+                        <span data-icon style="width:var(--icon-size-14);height:var(--icon-size-14);mask-image:url('../assets/icons/dl_builtin_trae_work/explorer-folder-closed.svg');color:var(--icon-secondary);"></span>
+                        <span class="truncate" style="font-size:var(--body-sm-font-size);line-height:var(--body-sm-line-height);">生活记录</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 px-2 py-1 rounded" style="color:var(--text-secondary);">
+                        <span data-icon style="width:var(--icon-size-14);height:var(--icon-size-14);mask-image:url('../assets/icons/dl_builtin_trae_work/explorer-folder-closed.svg');color:var(--icon-secondary);"></span>
+                        <span class="truncate" style="font-size:var(--body-sm-font-size);line-height:var(--body-sm-line-height);">读书笔记</span>
+                    </div>
                 </div>
             </div>
-        </nav>
-
-        <!-- ===== Main Content ===== -->
-        <div style="max-width: 680px; margin: 0 auto; padding: var(--spacer-32) var(--spacer-16);">
-
-            <!-- ===== Profile Header Card ===== -->
-            <section style="background: var(--bg-base-default); border: 1px solid var(--border-neutral-l1); border-radius: var(--radius-12); padding: var(--spacer-32); display: flex; flex-direction: column; align-items: center; gap: var(--spacer-16);">
-                <div style="position: relative; width: 80px; height: 80px; flex-shrink: 0;">
-                    <img src="../assets/author-portrait.jpg" alt="头像" style="width: 80px; height: 80px; border-radius: var(--radius-full); object-fit: cover;">
-                    <button class="ds-btn ds-btn--ghost ds-btn--icon" style="position: absolute; bottom: 0; right: 0; width: 28px; height: 28px; background: var(--bg-overlay-l1); border: 1px solid var(--border-neutral-l1); border-radius: var(--radius-full); cursor: pointer;" aria-label="更换头像">
-                        <span data-icon style="width: var(--icon-size-14); height: var(--icon-size-14); mask-image: url('../assets/icons/dl_builtin_trae_work/camera.svg');"></span>
-                    </button>
+            <!-- Divider -->
+            <div class="mx-3 mb-3" style="height:1px;background:var(--border-neutral-l1);"></div>
+            <!-- Tag Cloud -->
+            <div class="px-3">
+                <span style="font-size:var(--body-md-font-size);font-weight:var(--font-weight-medium);color:var(--text-tertiary);">标签</span>
+                <div class="flex flex-wrap gap-1 mt-2">
+                    <span class="ds-tag" style="font-size:var(--body-xs-font-size);height:20px;padding:0 6px;">AI</span>
+                    <span class="ds-tag" style="font-size:var(--body-xs-font-size);height:20px;padding:0 6px;">React</span>
+                    <span class="ds-tag" style="font-size:var(--body-xs-font-size);height:20px;padding:0 6px;">设计</span>
+                    <span class="ds-tag" style="font-size:var(--body-xs-font-size);height:20px;padding:0 6px;">工具</span>
+                    <span class="ds-tag" style="font-size:var(--body-xs-font-size);height:20px;padding:0 6px;">成长</span>
+                    <span class="ds-tag" style="font-size:var(--body-xs-font-size);height:20px;padding:0 6px;">思考</span>
                 </div>
-                <div style="display: flex; flex-direction: column; align-items: center; gap: var(--spacer-8); text-align: center;">
-                    <h1 style="font-family: var(--heading-lg-font-family); font-size: var(--heading-lg-font-size); font-weight: var(--heading-lg-font-weight); line-height: var(--heading-lg-line-height); color: var(--text-default); letter-spacing: var(--heading-lg-letter-spacing); margin: 0;">HappyLadySauce</h1>
-                    <span class="ds-tag ds-tag--brand" style="height: 22px; padding: 0 var(--spacer-10); border-radius: var(--radius-full); font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height); background: var(--bg-brand); color: var(--text-onbrand); border: none;">管理员</span>
-                </div>
-                <div style="display: flex; flex-direction: column; align-items: center; gap: var(--spacer-6); text-align: center;">
-                    <div style="display: flex; align-items: center; gap: var(--spacer-6);">
-                        <span data-icon style="width: var(--icon-size-14); height: var(--icon-size-14); mask-image: url('../assets/icons/dl_builtin_trae_work/email.svg'); color: var(--icon-tertiary);" aria-hidden="true"></span>
-                        <span style="font-size: var(--body-base-font-size); line-height: var(--body-base-line-height); color: var(--text-secondary); letter-spacing: var(--body-base-letter-spacing);">admin@happyladysauce.cn</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: var(--spacer-6);">
-                        <span data-icon style="width: var(--icon-size-14); height: var(--icon-size-14); mask-image: url('../assets/icons/dl_builtin_trae_work/calendar.svg'); color: var(--icon-tertiary);" aria-hidden="true"></span>
-                        <span style="font-size: var(--body-base-font-size); line-height: var(--body-base-line-height); color: var(--text-tertiary); letter-spacing: var(--body-base-letter-spacing);">注册于 2026-01-01</span>
-                    </div>
-                </div>
-                <button class="ds-btn ds-btn--secondary ds-btn--md">
-                    <span data-icon style="width: var(--icon-size-16); height: var(--icon-size-16); mask-image: url('../assets/icons/dl_builtin_trae_work/edit.svg');"></span>
-                    编辑资料
-                </button>
-            </section>
+            </div>
+        </aside>
 
-            <!-- ===== Personal Info Section ===== -->
-            <section style="background: var(--bg-base-default); border: 1px solid var(--border-neutral-l1); border-radius: var(--radius-12); padding: var(--spacer-24); margin-top: var(--spacer-16);">
-                <h2 style="font-family: var(--heading-sm-font-family); font-size: var(--heading-sm-font-size); font-weight: var(--heading-sm-font-weight); line-height: var(--heading-sm-line-height); color: var(--text-default); letter-spacing: var(--heading-sm-letter-spacing); margin-bottom: var(--spacer-20);">个人信息</h2>
-                <div style="display: flex; flex-direction: column; gap: var(--spacer-16);">
-                    <div style="display: flex; flex-direction: column; gap: var(--spacer-6);">
-                        <label style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); line-height: var(--body-base-line-height); color: var(--text-default);">用户名</label>
-                        <div class="ds-input">
-                            <span data-icon style="width: var(--icon-size-16); height: var(--icon-size-16); mask-image: url('../assets/icons/dl_builtin_trae_work/user-small.svg'); color: var(--icon-secondary);" aria-hidden="true"></span>
-                            <input type="text" value="HappyLadySauce">
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col min-w-0" style="background:var(--bg-base-secondary);">
+            <!-- Top Bar -->
+            <header class="flex items-center justify-between px-6 py-4 shrink-0" style="background:var(--bg-base-default);border-bottom:1px solid var(--border-neutral-l1);">
+                <div class="flex items-center gap-3">
+                    <!-- Breadcrumb -->
+                    <nav class="ds-breadcrumb" style="font-size:var(--body-md-font-size);line-height:var(--body-md-line-height);">
+                        <a href="#" data-dom-id="back-to-library" style="font-size:var(--body-md-font-size);line-height:var(--body-md-line-height);">后台</a>
+                        <span class="ds-breadcrumb__sep">/</span>
+                        <span class="ds-breadcrumb__current" style="font-size:var(--body-md-font-size);line-height:var(--body-md-line-height);">设置</span>
+                    </nav>
+                    <!-- Title -->
+                    <h1 style="font-family:var(--font-family-heading);font-size:var(--heading-md-font-size);font-weight:var(--heading-md-font-weight);line-height:var(--heading-md-line-height);color:var(--text-default);white-space:nowrap;">设置</h1>
+                </div>
+                <!-- Save Button -->
+                <button class="ds-btn ds-btn--brand ds-btn--lg">保存设置</button>
+            </header>
+
+            <!-- Content -->
+            <div class="flex-1 overflow-y-auto px-6 py-6">
+                <div class="mx-auto" style="max-width:800px;">
+
+                    <!-- Section 1: 基本设置 -->
+                    <section class="rounded-xl p-6" style="background:var(--bg-base-default);border-radius:var(--radius-12);">
+                        <h2 class="flex items-center gap-2 mb-6" style="font-family:var(--font-family-heading);font-size:var(--heading-sm-font-size);font-weight:var(--heading-sm-font-weight);line-height:var(--heading-sm-line-height);color:var(--text-default);">
+                            <span data-icon style="width:var(--icon-size-20);height:var(--icon-size-20);mask-image:url('../assets/icons/dl_builtin_trae_work/settings.svg');color:var(--icon-secondary);"></span>
+                            基本设置
+                        </h2>
+                        <div class="flex flex-col gap-5">
+                            <!-- 站点名称 -->
+                            <div class="flex flex-col gap-1.5">
+                                <label style="font-size:var(--body-base-font-size);font-weight:var(--font-weight-medium);line-height:var(--body-base-line-height);color:var(--text-default);">站点名称</label>
+                                <div class="ds-input">
+                                    <input type="text" value="Knowledge Core">
+                                </div>
+                            </div>
+                            <!-- 站点描述 -->
+                            <div class="flex flex-col gap-1.5">
+                                <label style="font-size:var(--body-base-font-size);font-weight:var(--font-weight-medium);line-height:var(--body-base-line-height);color:var(--text-default);">站点描述</label>
+                                <textarea class="ds-textarea" style="min-height:48px;" rows="2">一个懂你过去、整理你现在、陪你走向未来的个人 AI 成长知识库</textarea>
+                            </div>
+                            <!-- 站点地址 -->
+                            <div class="flex flex-col gap-1.5">
+                                <label style="font-size:var(--body-base-font-size);font-weight:var(--font-weight-medium);line-height:var(--body-base-line-height);color:var(--text-default);">站点地址</label>
+                                <div class="ds-input">
+                                    <input type="text" value="https://www.happyladysauce.cn">
+                                </div>
+                            </div>
+                            <!-- 管理员邮箱 -->
+                            <div class="flex flex-col gap-1.5">
+                                <label style="font-size:var(--body-base-font-size);font-weight:var(--font-weight-medium);line-height:var(--body-base-line-height);color:var(--text-default);">管理员邮箱</label>
+                                <div class="ds-input">
+                                    <input type="text" value="admin@happyladysauce.cn">
+                                </div>
+                            </div>
+                            <!-- 允许注册 -->
+                            <div class="flex items-center justify-between">
+                                <label style="font-size:var(--body-base-font-size);font-weight:var(--font-weight-medium);line-height:var(--body-base-line-height);color:var(--text-default);">允许注册</label>
+                                <label class="ds-switch">
+                                    <input type="checkbox" checked>
+                                    <span class="ds-switch__thumb"></span>
+                                </label>
+                            </div>
                         </div>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: var(--spacer-6);">
-                        <label style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); line-height: var(--body-base-line-height); color: var(--text-default);">邮箱</label>
-                        <div class="ds-input">
-                            <span data-icon style="width: var(--icon-size-16); height: var(--icon-size-16); mask-image: url('../assets/icons/dl_builtin_trae_work/email.svg'); color: var(--icon-secondary);" aria-hidden="true"></span>
-                            <input type="email" value="admin@happyladysauce.cn">
-                        </div>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: var(--spacer-6);">
-                        <label style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); line-height: var(--body-base-line-height); color: var(--text-default);">个人简介</label>
-                        <textarea class="ds-textarea" rows="2" style="min-height: 56px;">全栈开发者 / 终身学习者</textarea>
-                    </div>
-                    <div style="display: flex; justify-content: flex-end; padding-top: var(--spacer-8);">
-                        <button class="ds-btn ds-btn--brand ds-btn--md">保存修改</button>
-                    </div>
-                </div>
-            </section>
+                    </section>
 
-            <!-- ===== Password Section ===== -->
-            <section style="background: var(--bg-base-default); border: 1px solid var(--border-neutral-l1); border-radius: var(--radius-12); padding: var(--spacer-24); margin-top: var(--spacer-16);">
-                <h2 style="font-family: var(--heading-sm-font-family); font-size: var(--heading-sm-font-size); font-weight: var(--heading-sm-font-weight); line-height: var(--heading-sm-line-height); color: var(--text-default); letter-spacing: var(--heading-sm-letter-spacing); margin-bottom: var(--spacer-20);">修改密码</h2>
-                <div style="display: flex; flex-direction: column; gap: var(--spacer-16);">
-                    <div style="display: flex; flex-direction: column; gap: var(--spacer-6);">
-                        <label style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); line-height: var(--body-base-line-height); color: var(--text-default);">当前密码</label>
-                        <div class="ds-input">
-                            <span data-icon style="width: var(--icon-size-16); height: var(--icon-size-16); mask-image: url('../assets/icons/dl_builtin_trae_work/lock.svg'); color: var(--icon-secondary);" aria-hidden="true"></span>
-                            <input type="password" placeholder="输入当前密码">
+                    <!-- Section 2: 评论设置 -->
+                    <section class="rounded-xl p-6 mt-4" style="background:var(--bg-base-default);border-radius:var(--radius-12);">
+                        <h2 class="flex items-center gap-2 mb-6" style="font-family:var(--font-family-heading);font-size:var(--heading-sm-font-size);font-weight:var(--heading-sm-font-weight);line-height:var(--heading-sm-line-height);color:var(--text-default);">
+                            <span data-icon style="width:var(--icon-size-20);height:var(--icon-size-20);mask-image:url('../assets/icons/dl_builtin_trae_work/chat.svg');color:var(--icon-secondary);"></span>
+                            评论设置
+                        </h2>
+                        <div class="flex flex-col gap-5">
+                            <!-- 开启评论审核 -->
+                            <div class="flex items-center justify-between">
+                                <label style="font-size:var(--body-base-font-size);font-weight:var(--font-weight-medium);line-height:var(--body-base-line-height);color:var(--text-default);">开启评论审核</label>
+                                <label class="ds-switch">
+                                    <input type="checkbox" checked>
+                                    <span class="ds-switch__thumb"></span>
+                                </label>
+                            </div>
+                            <!-- 每页评论数 -->
+                            <div class="flex flex-col gap-1.5">
+                                <label style="font-size:var(--body-base-font-size);font-weight:var(--font-weight-medium);line-height:var(--body-base-line-height);color:var(--text-default);">每页评论数</label>
+                                <div class="ds-input" style="max-width:120px;">
+                                    <input type="number" value="20">
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: var(--spacer-6);">
-                        <label style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); line-height: var(--body-base-line-height); color: var(--text-default);">新密码</label>
-                        <div class="ds-input">
-                            <span data-icon style="width: var(--icon-size-16); height: var(--icon-size-16); mask-image: url('../assets/icons/dl_builtin_trae_work/lock.svg'); color: var(--icon-secondary);" aria-hidden="true"></span>
-                            <input type="password" placeholder="输入新密码">
-                        </div>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: var(--spacer-6);">
-                        <label style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); line-height: var(--body-base-line-height); color: var(--text-default);">确认新密码</label>
-                        <div class="ds-input">
-                            <span data-icon style="width: var(--icon-size-16); height: var(--icon-size-16); mask-image: url('../assets/icons/dl_builtin_trae_work/lock.svg'); color: var(--icon-secondary);" aria-hidden="true"></span>
-                            <input type="password" placeholder="再次输入新密码">
-                        </div>
-                    </div>
-                    <div style="display: flex; justify-content: flex-end; padding-top: var(--spacer-8);">
-                        <button class="ds-btn ds-btn--brand ds-btn--md">更新密码</button>
-                    </div>
-                </div>
-            </section>
+                    </section>
 
-            <!-- ===== Danger Zone ===== -->
-            <section style="background: var(--bg-base-default); border: 1px solid var(--border-neutral-l1); border-left: 3px solid var(--bg-brand); border-radius: var(--radius-12); padding: var(--spacer-24); margin-top: var(--spacer-16);">
-                <h2 style="font-family: var(--heading-sm-font-family); font-size: var(--heading-sm-font-size); font-weight: var(--heading-sm-font-weight); line-height: var(--heading-sm-line-height); color: var(--text-default); letter-spacing: var(--heading-sm-letter-spacing); margin-bottom: var(--spacer-16);">危险操作</h2>
-                <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <div>
-                        <p style="font-size: var(--body-base-font-size); line-height: var(--body-base-line-height); color: var(--text-secondary); margin: 0; max-width: 360px;">退出登录后需要重新输入账号密码才能访问个人资料。</p>
-                    </div>
-                    <button class="ds-btn ds-btn--secondary ds-btn--md" data-dom-id="goto-login" style="flex-shrink: 0;">
-                        <span data-icon style="width: var(--icon-size-16); height: var(--icon-size-16); mask-image: url('../assets/icons/dl_builtin_trae_work/logout.svg');"></span>
-                        退出登录
-                    </button>
-                </div>
-            </section>
+                    <!-- Section 3: 外观设置 -->
+                    <section class="rounded-xl p-6 mt-4" style="background:var(--bg-base-default);border-radius:var(--radius-12);">
+                        <h2 class="flex items-center gap-2 mb-6" style="font-family:var(--font-family-heading);font-size:var(--heading-sm-font-size);font-weight:var(--heading-sm-font-weight);line-height:var(--heading-sm-line-height);color:var(--text-default);">
+                            <span data-icon style="width:var(--icon-size-20);height:var(--icon-size-20);mask-image:url('../assets/icons/dl_builtin_trae_work/eye.svg');color:var(--icon-secondary);"></span>
+                            外观设置
+                        </h2>
+                        <div class="flex flex-col gap-5">
+                            <!-- 每页文章数 -->
+                            <div class="flex flex-col gap-1.5">
+                                <label style="font-size:var(--body-base-font-size);font-weight:var(--font-weight-medium);line-height:var(--body-base-line-height);color:var(--text-default);">每页文章数</label>
+                                <div class="ds-input" style="max-width:120px;">
+                                    <input type="number" value="12">
+                                </div>
+                            </div>
+                            <!-- 主题 -->
+                            <div class="flex flex-col gap-1.5">
+                                <label style="font-size:var(--body-base-font-size);font-weight:var(--font-weight-medium);line-height:var(--body-base-line-height);color:var(--text-default);">主题</label>
+                                <div class="flex gap-3">
+                                    <label class="ds-check">
+                                        <input type="radio" name="theme" checked>
+                                        <span class="ds-radio__dot" style="border-radius:var(--radius-full);"></span>
+                                        <span style="font-size:var(--body-base-font-size);line-height:var(--body-base-line-height);">浅色</span>
+                                    </label>
+                                    <label class="ds-check">
+                                        <input type="radio" name="theme">
+                                        <span class="ds-radio__dot" style="border-radius:var(--radius-full);"></span>
+                                        <span style="font-size:var(--body-base-font-size);line-height:var(--body-base-line-height);">深色</span>
+                                    </label>
+                                    <label class="ds-check">
+                                        <input type="radio" name="theme">
+                                        <span class="ds-radio__dot" style="border-radius:var(--radius-full);"></span>
+                                        <span style="font-size:var(--body-base-font-size);line-height:var(--body-base-line-height);">跟随系统</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
 
+                    <!-- Section 4: AI 设置 -->
+                    <section class="rounded-xl p-6 mt-4" style="background:var(--bg-base-default);border-radius:var(--radius-12);">
+                        <h2 class="flex items-center gap-2 mb-6" style="font-family:var(--font-family-heading);font-size:var(--heading-sm-font-size);font-weight:var(--heading-sm-font-weight);line-height:var(--heading-sm-line-height);color:var(--text-default);">
+                            <span data-icon style="width:var(--icon-size-20);height:var(--icon-size-20);mask-image:url('../assets/icons/dl_builtin_trae_work/code.svg');color:var(--icon-secondary);"></span>
+                            AI 设置
+                        </h2>
+                        <div class="flex flex-col gap-5">
+                            <!-- AI 服务商 -->
+                            <div class="flex flex-col gap-1.5">
+                                <label style="font-size:var(--body-base-font-size);font-weight:var(--font-weight-medium);line-height:var(--body-base-line-height);color:var(--text-default);">AI 服务商</label>
+                                <div class="ds-select-wrap">
+                                    <select class="ds-select">
+                                        <option selected>OpenAI</option>
+                                        <option>Anthropic</option>
+                                    </select>
+                                    <span data-icon style="width:var(--icon-size-16);height:var(--icon-size-16);mask-image:url('../assets/icons/dl_builtin_trae_work/Expand_filetree.svg');color:var(--icon-secondary);"></span>
+                                </div>
+                            </div>
+                            <!-- 模型名称 -->
+                            <div class="flex flex-col gap-1.5">
+                                <label style="font-size:var(--body-base-font-size);font-weight:var(--font-weight-medium);line-height:var(--body-base-line-height);color:var(--text-default);">模型名称</label>
+                                <div class="ds-input">
+                                    <input type="text" value="gpt-4o-mini">
+                                </div>
+                            </div>
+                            <!-- API Key -->
+                            <div class="flex flex-col gap-1.5">
+                                <label style="font-size:var(--body-base-font-size);font-weight:var(--font-weight-medium);line-height:var(--body-base-line-height);color:var(--text-default);">API Key</label>
+                                <div class="ds-input">
+                                    <span data-icon style="width:var(--icon-size-16);height:var(--icon-size-16);mask-image:url('../assets/icons/dl_builtin_trae_work/lock.svg');color:var(--icon-tertiary);flex-shrink:0;"></span>
+                                    <input type="password" value="sk-****************************a3f2">
+                                </div>
+                            </div>
+                            <!-- API 地址 -->
+                            <div class="flex flex-col gap-1.5">
+                                <label style="font-size:var(--body-base-font-size);font-weight:var(--font-weight-medium);line-height:var(--body-base-line-height);color:var(--text-default);">API 地址</label>
+                                <div class="ds-input">
+                                    <input type="text" value="https://api.openai.com/v1">
+                                </div>
+                            </div>
+                            <!-- Test Connection -->
+                            <div class="flex items-center gap-3">
+                                <button class="ds-btn ds-btn--secondary ds-btn--md">
+                                    <span data-icon style="width:var(--icon-size-14);height:var(--icon-size-14);mask-image:url('../assets/icons/dl_builtin_trae_work/check.svg');"></span>
+                                    测试连接
+                                </button>
+                                <span class="flex items-center gap-1.5" style="font-size:var(--body-sm-font-size);line-height:var(--body-sm-line-height);color:var(--status-success-default);">
+                                    <span data-icon style="width:var(--icon-size-14);height:var(--icon-size-14);mask-image:url('../assets/icons/dl_builtin_trae_work/check.svg');"></span>
+                                    连接成功 · 响应时间 320ms
+                                </span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section 5: 危险操作 -->
+                    <section class="rounded-xl p-6 mt-4" style="background:var(--bg-base-default);border-radius:var(--radius-12);border:1px solid var(--border-neutral-l1);border-left:3px solid var(--status-error-default);">
+                        <h2 class="flex items-center gap-2 mb-2" style="font-family:var(--font-family-heading);font-size:var(--heading-sm-font-size);font-weight:var(--heading-sm-font-weight);line-height:var(--heading-sm-line-height);color:var(--text-default);">
+                            危险操作
+                        </h2>
+                        <p class="mb-5" style="font-size:var(--body-base-font-size);line-height:var(--body-base-line-height);color:var(--text-tertiary);">以下操作不可撤销，请谨慎执行</p>
+                        <div class="flex flex-wrap gap-3">
+                            <button class="ds-btn ds-btn--tertiary ds-btn--md" style="border:1px solid var(--border-neutral-l1);color:var(--text-secondary);">清除缓存</button>
+                            <button class="ds-btn ds-btn--tertiary ds-btn--md" style="border:1px solid var(--border-neutral-l1);color:var(--text-secondary);">重建索引</button>
+                            <button class="ds-btn ds-btn--tertiary ds-btn--md" style="border:1px solid var(--border-neutral-l1);color:var(--text-secondary);">重置设置</button>
+                        </div>
+                    </section>
+
+                    <!-- Bottom Save -->
+                    <div class="flex justify-end mt-6 mb-4">
+                        <button class="ds-btn ds-btn--brand ds-btn--lg">保存设置</button>
+                    </div>
+
+                </div>
+            </div>
         </div>
-
     </main>
     <script>lucide.createIcons();</script>
 </body>

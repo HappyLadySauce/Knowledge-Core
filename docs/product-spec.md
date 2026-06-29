@@ -244,8 +244,69 @@ DELETE /api/admin/comments/:id             # 删除评论（仅 admin）
 
 - 文章阅读页底部显示评论列表（按时间倒序）
 - 每条评论显示：头像、用户名、时间、内容、操作
-- 管理员评论显示"作者"标签
+- 管理员评论显示“作者”标签
 - 未登录用户显示登录提示，隐藏输入框
+
+## 后台设置
+
+### 设置项
+
+```go
+type SiteSettings struct {
+    SiteName        string `json:"site_name"`         // 站点名称
+    SiteDescription string `json:"site_description"` // 站点描述
+    SiteURL         string `json:"site_url"`          // 站点地址
+    AdminEmail      string `json:"admin_email"`      // 管理员邮箱
+    AllowRegister   bool   `json:"allow_register"`   // 是否允许注册
+    CommentModerate bool   `json:"comment_moderate"`  // 是否开启评论审核
+    PostsPerPage    int    `json:"posts_per_page"`    // 每页文章数
+    Theme           string `json:"theme"`             // 主题: "light" | "dark" | "auto"
+    AIProvider      string `json:"ai_provider"`       // AI 服务商: "openai" | "anthropic"
+    AIModel         string `json:"ai_model"`          // 模型名称
+    APIKey          string `json:"-"`                 // API Key（前端掩码显示）
+    APIBaseURL      string `json:"api_base_url"`     // 自定义 API 地址
+}
+```
+
+### API 路由
+
+```
+GET  /api/admin/settings           # 获取设置（仅 admin，API Key 脱敏）
+PUT  /api/admin/settings           # 更新设置（仅 admin）
+POST /api/admin/settings/test-ai   # 测试 AI 连接（仅 admin）
+```
+
+### 设置页面分区
+
+| 分区 | 内容 |
+|---|---|
+| 基本设置 | 站点名称、描述、URL、管理员邮箱、开关注册 |
+| 评论设置 | 是否开启审核、每页评论数 |
+| 外观设置 | 每页文章数、主题选择 |
+| AI 设置 | 服务商选择、模型名称、API Key（掩码）、API 地址、测试连接按钮 |
+
+## 数据看板
+
+### 统计指标
+
+| 指标 | 说明 | 时间维度 |
+|---|---|---|
+| 总访问量 | PV/UV | 今日 / 7日 / 30日 |
+| 文章总数 | 已发布文章 | 累计 |
+| 评论总数 | 已通过评论 | 累计 / 今日新增 |
+| 用户总数 | 注册用户 | 累计 / 今日新增 |
+| 热门文章 Top 10 | 按浏览量排序 | 7日 / 30日 / 全部 |
+| 文章趋势 | 每日新增文章折线图 | 近 30 天 |
+| 访问趋势 | 每日 PV 折线图 | 近 30 天 |
+| 用户增长 | 每日新注册用户 | 近 30 天 |
+
+### API 路由
+
+```
+GET /api/admin/dashboard/overview   # 总览统计
+GET /api/admin/dashboard/trends    # 趋势数据（articles, visits, users, ?days=30）
+GET /api/admin/dashboard/top-articles?limit=10&period=7d  # 热门文章
+```
 
 ## MVP 范围（第一阶段）
 
@@ -259,6 +320,8 @@ DELETE /api/admin/comments/:id             # 删除评论（仅 admin）
 6. 管理员后台权限控制
 7. 前台用户个人中心
 8. 文章评论系统（前台浏览 + 管理员审核）
+9. 后台设置（站点配置、AI API、SEO）
+10. 数据看板（访问量、文章趋势、用户增长）
 
 ### 暂不做（后续阶段）
 
@@ -271,6 +334,7 @@ DELETE /api/admin/comments/:id             # 删除评论（仅 admin）
 - 邮箱验证
 - 嵌套回复（楼中楼）
 - 评论点赞/举报
+- 友链功能
 
 ## 设计原则
 

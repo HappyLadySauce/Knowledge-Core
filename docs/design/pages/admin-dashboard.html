@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>个人资料</title>
+    <title>数据看板</title>
     <style id="theme-vars">
 /**
  * TraeWork design library tokens
@@ -880,129 +880,447 @@
     </style>
 </head>
 <body class="min-h-screen font-sans antialiased">
-    <main>
-
-        <!-- ===== Top Navbar ===== -->
-        <nav style="position: sticky; top: 0; z-index: 50; width: 100%; background: var(--bg-base-default); border-bottom: 1px solid var(--border-neutral-l1);">
-            <div style="max-width: 1200px; margin: 0 auto; padding: 0 var(--spacer-24); height: 56px; display: flex; align-items: center; justify-content: space-between;">
-                <div style="font-size: var(--heading-xs-font-size); font-weight: var(--heading-xs-font-weight); color: var(--text-default); letter-spacing: var(--heading-xs-letter-spacing); white-space: nowrap;">Knowledge Core</div>
-                <div style="display: flex; align-items: center; gap: var(--spacer-24);">
-                    <a href="#" style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); color: var(--text-secondary); line-height: var(--body-base-line-height); white-space: nowrap; text-decoration: none;">首页</a>
-                    <a href="#" style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); color: var(--text-secondary); line-height: var(--body-base-line-height); white-space: nowrap; text-decoration: none;">文库</a><a href="#" style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); color: var(--text-secondary); line-height: var(--body-base-line-height); white-space: nowrap; text-decoration: none;">关于</a>
-                </div>
-                <div style="display: flex; align-items: center; gap: var(--spacer-12);">
-                    <img src="../assets/author-portrait.jpg" alt="头像" style="width: 28px; height: 28px; border-radius: var(--radius-full); object-fit: cover;" aria-hidden="true">
-                    <a href="#" data-dom-id="goto-login" style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); color: var(--text-secondary); line-height: var(--body-base-line-height); white-space: nowrap; text-decoration: none;">退出登录</a>
-                </div>
-            </div>
-        </nav>
-
-        <!-- ===== Main Content ===== -->
-        <div style="max-width: 680px; margin: 0 auto; padding: var(--spacer-32) var(--spacer-16);">
-
-            <!-- ===== Profile Header Card ===== -->
-            <section style="background: var(--bg-base-default); border: 1px solid var(--border-neutral-l1); border-radius: var(--radius-12); padding: var(--spacer-32); display: flex; flex-direction: column; align-items: center; gap: var(--spacer-16);">
-                <div style="position: relative; width: 80px; height: 80px; flex-shrink: 0;">
-                    <img src="../assets/author-portrait.jpg" alt="头像" style="width: 80px; height: 80px; border-radius: var(--radius-full); object-fit: cover;">
-                    <button class="ds-btn ds-btn--ghost ds-btn--icon" style="position: absolute; bottom: 0; right: 0; width: 28px; height: 28px; background: var(--bg-overlay-l1); border: 1px solid var(--border-neutral-l1); border-radius: var(--radius-full); cursor: pointer;" aria-label="更换头像">
-                        <span data-icon style="width: var(--icon-size-14); height: var(--icon-size-14); mask-image: url('../assets/icons/dl_builtin_trae_work/camera.svg');"></span>
-                    </button>
-                </div>
-                <div style="display: flex; flex-direction: column; align-items: center; gap: var(--spacer-8); text-align: center;">
-                    <h1 style="font-family: var(--heading-lg-font-family); font-size: var(--heading-lg-font-size); font-weight: var(--heading-lg-font-weight); line-height: var(--heading-lg-line-height); color: var(--text-default); letter-spacing: var(--heading-lg-letter-spacing); margin: 0;">HappyLadySauce</h1>
-                    <span class="ds-tag ds-tag--brand" style="height: 22px; padding: 0 var(--spacer-10); border-radius: var(--radius-full); font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height); background: var(--bg-brand); color: var(--text-onbrand); border: none;">管理员</span>
-                </div>
-                <div style="display: flex; flex-direction: column; align-items: center; gap: var(--spacer-6); text-align: center;">
-                    <div style="display: flex; align-items: center; gap: var(--spacer-6);">
-                        <span data-icon style="width: var(--icon-size-14); height: var(--icon-size-14); mask-image: url('../assets/icons/dl_builtin_trae_work/email.svg'); color: var(--icon-tertiary);" aria-hidden="true"></span>
-                        <span style="font-size: var(--body-base-font-size); line-height: var(--body-base-line-height); color: var(--text-secondary); letter-spacing: var(--body-base-letter-spacing);">admin@happyladysauce.cn</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: var(--spacer-6);">
-                        <span data-icon style="width: var(--icon-size-14); height: var(--icon-size-14); mask-image: url('../assets/icons/dl_builtin_trae_work/calendar.svg'); color: var(--icon-tertiary);" aria-hidden="true"></span>
-                        <span style="font-size: var(--body-base-font-size); line-height: var(--body-base-line-height); color: var(--text-tertiary); letter-spacing: var(--body-base-letter-spacing);">注册于 2026-01-01</span>
-                    </div>
-                </div>
-                <button class="ds-btn ds-btn--secondary ds-btn--md">
-                    <span data-icon style="width: var(--icon-size-16); height: var(--icon-size-16); mask-image: url('../assets/icons/dl_builtin_trae_work/edit.svg');"></span>
-                    编辑资料
-                </button>
-            </section>
-
-            <!-- ===== Personal Info Section ===== -->
-            <section style="background: var(--bg-base-default); border: 1px solid var(--border-neutral-l1); border-radius: var(--radius-12); padding: var(--spacer-24); margin-top: var(--spacer-16);">
-                <h2 style="font-family: var(--heading-sm-font-family); font-size: var(--heading-sm-font-size); font-weight: var(--heading-sm-font-weight); line-height: var(--heading-sm-line-height); color: var(--text-default); letter-spacing: var(--heading-sm-letter-spacing); margin-bottom: var(--spacer-20);">个人信息</h2>
-                <div style="display: flex; flex-direction: column; gap: var(--spacer-16);">
-                    <div style="display: flex; flex-direction: column; gap: var(--spacer-6);">
-                        <label style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); line-height: var(--body-base-line-height); color: var(--text-default);">用户名</label>
-                        <div class="ds-input">
-                            <span data-icon style="width: var(--icon-size-16); height: var(--icon-size-16); mask-image: url('../assets/icons/dl_builtin_trae_work/user-small.svg'); color: var(--icon-secondary);" aria-hidden="true"></span>
-                            <input type="text" value="HappyLadySauce">
-                        </div>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: var(--spacer-6);">
-                        <label style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); line-height: var(--body-base-line-height); color: var(--text-default);">邮箱</label>
-                        <div class="ds-input">
-                            <span data-icon style="width: var(--icon-size-16); height: var(--icon-size-16); mask-image: url('../assets/icons/dl_builtin_trae_work/email.svg'); color: var(--icon-secondary);" aria-hidden="true"></span>
-                            <input type="email" value="admin@happyladysauce.cn">
-                        </div>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: var(--spacer-6);">
-                        <label style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); line-height: var(--body-base-line-height); color: var(--text-default);">个人简介</label>
-                        <textarea class="ds-textarea" rows="2" style="min-height: 56px;">全栈开发者 / 终身学习者</textarea>
-                    </div>
-                    <div style="display: flex; justify-content: flex-end; padding-top: var(--spacer-8);">
-                        <button class="ds-btn ds-btn--brand ds-btn--md">保存修改</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ===== Password Section ===== -->
-            <section style="background: var(--bg-base-default); border: 1px solid var(--border-neutral-l1); border-radius: var(--radius-12); padding: var(--spacer-24); margin-top: var(--spacer-16);">
-                <h2 style="font-family: var(--heading-sm-font-family); font-size: var(--heading-sm-font-size); font-weight: var(--heading-sm-font-weight); line-height: var(--heading-sm-line-height); color: var(--text-default); letter-spacing: var(--heading-sm-letter-spacing); margin-bottom: var(--spacer-20);">修改密码</h2>
-                <div style="display: flex; flex-direction: column; gap: var(--spacer-16);">
-                    <div style="display: flex; flex-direction: column; gap: var(--spacer-6);">
-                        <label style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); line-height: var(--body-base-line-height); color: var(--text-default);">当前密码</label>
-                        <div class="ds-input">
-                            <span data-icon style="width: var(--icon-size-16); height: var(--icon-size-16); mask-image: url('../assets/icons/dl_builtin_trae_work/lock.svg'); color: var(--icon-secondary);" aria-hidden="true"></span>
-                            <input type="password" placeholder="输入当前密码">
-                        </div>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: var(--spacer-6);">
-                        <label style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); line-height: var(--body-base-line-height); color: var(--text-default);">新密码</label>
-                        <div class="ds-input">
-                            <span data-icon style="width: var(--icon-size-16); height: var(--icon-size-16); mask-image: url('../assets/icons/dl_builtin_trae_work/lock.svg'); color: var(--icon-secondary);" aria-hidden="true"></span>
-                            <input type="password" placeholder="输入新密码">
-                        </div>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: var(--spacer-6);">
-                        <label style="font-size: var(--body-base-font-size); font-weight: var(--font-weight-medium); line-height: var(--body-base-line-height); color: var(--text-default);">确认新密码</label>
-                        <div class="ds-input">
-                            <span data-icon style="width: var(--icon-size-16); height: var(--icon-size-16); mask-image: url('../assets/icons/dl_builtin_trae_work/lock.svg'); color: var(--icon-secondary);" aria-hidden="true"></span>
-                            <input type="password" placeholder="再次输入新密码">
-                        </div>
-                    </div>
-                    <div style="display: flex; justify-content: flex-end; padding-top: var(--spacer-8);">
-                        <button class="ds-btn ds-btn--brand ds-btn--md">更新密码</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ===== Danger Zone ===== -->
-            <section style="background: var(--bg-base-default); border: 1px solid var(--border-neutral-l1); border-left: 3px solid var(--bg-brand); border-radius: var(--radius-12); padding: var(--spacer-24); margin-top: var(--spacer-16);">
-                <h2 style="font-family: var(--heading-sm-font-family); font-size: var(--heading-sm-font-size); font-weight: var(--heading-sm-font-weight); line-height: var(--heading-sm-line-height); color: var(--text-default); letter-spacing: var(--heading-sm-letter-spacing); margin-bottom: var(--spacer-16);">危险操作</h2>
-                <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <div>
-                        <p style="font-size: var(--body-base-font-size); line-height: var(--body-base-line-height); color: var(--text-secondary); margin: 0; max-width: 360px;">退出登录后需要重新输入账号密码才能访问个人资料。</p>
-                    </div>
-                    <button class="ds-btn ds-btn--secondary ds-btn--md" data-dom-id="goto-login" style="flex-shrink: 0;">
-                        <span data-icon style="width: var(--icon-size-16); height: var(--icon-size-16); mask-image: url('../assets/icons/dl_builtin_trae_work/logout.svg');"></span>
-                        退出登录
-                    </button>
-                </div>
-            </section>
-
+    <main class="flex min-h-screen">
+      <!-- Sidebar -->
+      <aside class="flex flex-col w-[240px] shrink-0 border-r p-4 gap-2" style="border-color: var(--border-neutral-l1); background: var(--bg-base-default);">
+        <!-- Logo -->
+        <div class="flex items-center gap-2 px-2 py-2 mb-2">
+          <span data-icon style="width: 20px; height: 20px; mask-image: url('../assets/icons/dl_builtin_trae_work/design-library.svg'); color: var(--bg-brand);"></span>
+          <span class="font-semibold whitespace-nowrap" style="font-family: var(--font-family-heading); font-size: var(--heading-sm-font-size); font-weight: var(--heading-sm-font-weight); color: var(--text-default);">Knowledge Core</span>
         </div>
 
+        <!-- Navigation -->
+        <div class="ds-menu__group-label">管理</div>
+        <div class="ds-menu__item" style="background: var(--bg-brand-popup); color: var(--text-brand);">
+          <span data-icon style="width: 16px; height: 16px; mask-image: url('../assets/icons/dl_builtin_trae_work/chevron_up_large.svg');"></span>
+          数据看板
+        </div>
+        <div class="ds-menu__item">
+          <span data-icon style="width: 16px; height: 16px; mask-image: url('../assets/icons/dl_builtin_trae_work/DocFile.svg');"></span>
+          笔记库
+        </div>
+        <div class="ds-menu__item">
+          <span data-icon style="width: 16px; height: 16px; mask-image: url('../assets/icons/dl_builtin_trae_work/Search.svg');"></span>
+          搜索
+        </div>
+        <div class="ds-menu__item">
+          <span data-icon style="width: 16px; height: 16px; mask-image: url('../assets/icons/dl_builtin_trae_work/add.svg');"></span>
+          导入
+        </div>
+        <div class="ds-menu__divider"></div>
+        <div class="ds-menu__group-label">系统</div>
+        <div class="ds-menu__item">
+          <span data-icon style="width: 16px; height: 16px; mask-image: url('../assets/icons/dl_builtin_trae_work/user-small.svg');"></span>
+          用户管理
+        </div>
+        <div class="ds-menu__item">
+          <span data-icon style="width: 16px; height: 16px; mask-image: url('../assets/icons/dl_builtin_trae_work/chat.svg');"></span>
+          评论审核
+        </div>
+        <div class="ds-menu__item">
+          <span data-icon style="width: 16px; height: 16px; mask-image: url('../assets/icons/dl_builtin_trae_work/settings.svg');"></span>
+          设置
+        </div>
+
+        <div class="ds-menu__divider"></div>
+
+        <!-- Category tree -->
+        <div class="ds-menu__group-label">分类</div>
+        <div class="ds-menu__item">
+          <span data-icon style="width: 16px; height: 16px; mask-image: url('../assets/icons/dl_builtin_trae_work/Collapse_filetree.svg');"></span>
+          <span class="truncate">技术</span>
+        </div>
+        <div class="ds-menu__item" style="padding-left: 32px;">
+          <span data-icon style="width: 16px; height: 16px; mask-image: url('../assets/icons/dl_builtin_trae_work/explorer-file-workspace.svg');"></span>
+          <span class="truncate">前端</span>
+        </div>
+        <div class="ds-menu__item" style="padding-left: 32px;">
+          <span data-icon style="width: 16px; height: 16px; mask-image: url('../assets/icons/dl_builtin_trae_work/explorer-file-workspace.svg');"></span>
+          <span class="truncate">后端</span>
+        </div>
+        <div class="ds-menu__item" style="padding-left: 32px;">
+          <span data-icon style="width: 16px; height: 16px; mask-image: url('../assets/icons/dl_builtin_trae_work/explorer-file-workspace.svg');"></span>
+          <span class="truncate">AI</span>
+        </div>
+        <div class="ds-menu__item">
+          <span data-icon style="width: 16px; height: 16px; mask-image: url('../assets/icons/dl_builtin_trae_work/Collapse_filetree.svg');"></span>
+          <span class="truncate">读书</span>
+        </div>
+
+        <div class="ds-menu__divider"></div>
+
+        <!-- Tag cloud -->
+        <div class="ds-menu__group-label">标签</div>
+        <div class="flex flex-wrap gap-1 px-2">
+          <span class="ds-tag">Python</span>
+          <span class="ds-tag">React</span>
+          <span class="ds-tag">Go</span>
+          <span class="ds-tag">AI</span>
+          <span class="ds-tag">Web</span>
+          <span class="ds-tag">读书笔记</span>
+          <span class="ds-tag">DevOps</span>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col min-w-0 overflow-auto">
+        <!-- Top Bar -->
+        <header class="flex items-center justify-between px-6 py-4 border-b shrink-0" style="border-color: var(--border-neutral-l1);">
+          <div class="flex items-center gap-3 min-w-0">
+            <nav class="ds-breadcrumb shrink-0">
+              <a href="#" data-dom-id="back-to-library">后台</a>
+              <span class="ds-breadcrumb__sep">/</span>
+              <span class="ds-breadcrumb__current">数据看板</span>
+            </nav>
+            <h1 class="truncate" style="font-family: var(--font-family-heading); font-size: var(--heading-lg-font-size); font-weight: var(--heading-lg-font-weight); line-height: var(--heading-lg-line-height); color: var(--text-default);">数据看板</h1>
+          </div>
+          <div class="ds-tabs shrink-0">
+            <button class="ds-tab">今日</button>
+            <button class="ds-tab is-active">7天</button>
+            <button class="ds-tab">30天</button>
+          </div>
+        </header>
+
+        <!-- Content -->
+        <div class="flex-1 overflow-auto p-6 flex flex-col gap-6" style="background: var(--bg-base-secondary);">
+
+          <!-- KPI Cards Row -->
+          <div class="grid grid-cols-4 gap-4">
+            <!-- 总访问量 -->
+            <div class="rounded-lg p-5 flex flex-col gap-2" style="background: var(--bg-base-default); border-radius: var(--radius-8); border-left: 4px solid var(--bg-brand);">
+              <div class="flex items-center gap-2">
+                <span class="whitespace-nowrap" style="font-family: var(--body-base-font-family); font-size: var(--body-base-font-size); line-height: var(--body-base-line-height); color: var(--text-tertiary);">总访问量</span>
+              </div>
+              <div class="flex items-end gap-2">
+                <span class="whitespace-nowrap" style="font-family: var(--font-family-heading); font-size: var(--heading-xl-font-size); font-weight: var(--heading-xl-font-weight); line-height: var(--heading-xl-line-height); color: var(--text-default);">12,847</span>
+                <span class="whitespace-nowrap" style="font-family: var(--body-sm-font-family); font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height); color: var(--text-tertiary); padding-bottom: 2px;">PV</span>
+              </div>
+              <div class="flex items-center gap-1" style="color: var(--status-success-default);">
+                <span data-icon style="width: 14px; height: 14px; mask-image: url('../assets/icons/dl_builtin_trae_work/chevron_up_large.svg');"></span>
+                <span class="whitespace-nowrap" style="font-family: var(--body-sm-font-family); font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height); font-weight: var(--body-sm-strong-font-weight);">+12.5%</span>
+              </div>
+            </div>
+
+            <!-- 文章总数 -->
+            <div class="rounded-lg p-5 flex flex-col gap-2" style="background: var(--bg-base-default); border-radius: var(--radius-8); border-left: 4px solid var(--accent-blue);">
+              <div class="flex items-center gap-2">
+                <span class="whitespace-nowrap" style="font-family: var(--body-base-font-family); font-size: var(--body-base-font-size); line-height: var(--body-base-line-height); color: var(--text-tertiary);">文章总数</span>
+              </div>
+              <div class="flex items-end gap-2">
+                <span class="whitespace-nowrap" style="font-family: var(--font-family-heading); font-size: var(--heading-xl-font-size); font-weight: var(--heading-xl-font-weight); line-height: var(--heading-xl-line-height); color: var(--text-default);">128</span>
+                <span class="whitespace-nowrap" style="font-family: var(--body-sm-font-family); font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height); color: var(--text-tertiary); padding-bottom: 2px;">已发布</span>
+              </div>
+              <div class="flex items-center gap-1" style="color: var(--status-success-default);">
+                <span data-icon style="width: 14px; height: 14px; mask-image: url('../assets/icons/dl_builtin_trae_work/chevron_up_large.svg');"></span>
+                <span class="whitespace-nowrap" style="font-family: var(--body-sm-font-family); font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height); font-weight: var(--body-sm-strong-font-weight);">+3 本周</span>
+              </div>
+            </div>
+
+            <!-- 评论总数 -->
+            <div class="rounded-lg p-5 flex flex-col gap-2" style="background: var(--bg-base-default); border-radius: var(--radius-8); border-left: 4px solid var(--accent-teal);">
+              <div class="flex items-center gap-2">
+                <span class="whitespace-nowrap" style="font-family: var(--body-base-font-family); font-size: var(--body-base-font-size); line-height: var(--body-base-line-height); color: var(--text-tertiary);">评论总数</span>
+              </div>
+              <div class="flex items-end gap-2">
+                <span class="whitespace-nowrap" style="font-family: var(--font-family-heading); font-size: var(--heading-xl-font-size); font-weight: var(--heading-xl-font-weight); line-height: var(--heading-xl-line-height); color: var(--text-default);">342</span>
+                <span class="whitespace-nowrap" style="font-family: var(--body-sm-font-family); font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height); color: var(--text-tertiary); padding-bottom: 2px;">已通过</span>
+              </div>
+              <div class="flex items-center gap-1" style="color: var(--status-success-default);">
+                <span data-icon style="width: 14px; height: 14px; mask-image: url('../assets/icons/dl_builtin_trae_work/chevron_up_large.svg');"></span>
+                <span class="whitespace-nowrap" style="font-family: var(--body-sm-font-family); font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height); font-weight: var(--body-sm-strong-font-weight);">+18 本周</span>
+              </div>
+            </div>
+
+            <!-- 用户总数 -->
+            <div class="rounded-lg p-5 flex flex-col gap-2" style="background: var(--bg-base-default); border-radius: var(--radius-8); border-left: 4px solid var(--accent-amber);">
+              <div class="flex items-center gap-2">
+                <span class="whitespace-nowrap" style="font-family: var(--body-base-font-family); font-size: var(--body-base-font-size); line-height: var(--body-base-line-height); color: var(--text-tertiary);">用户总数</span>
+              </div>
+              <div class="flex items-end gap-2">
+                <span class="whitespace-nowrap" style="font-family: var(--font-family-heading); font-size: var(--heading-xl-font-size); font-weight: var(--heading-xl-font-weight); line-height: var(--heading-xl-line-height); color: var(--text-default);">56</span>
+                <span class="whitespace-nowrap" style="font-family: var(--body-sm-font-family); font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height); color: var(--text-tertiary); padding-bottom: 2px;">注册用户</span>
+              </div>
+              <div class="flex items-center gap-1" style="color: var(--status-success-default);">
+                <span data-icon style="width: 14px; height: 14px; mask-image: url('../assets/icons/dl_builtin_trae_work/chevron_up_large.svg');"></span>
+                <span class="whitespace-nowrap" style="font-family: var(--body-sm-font-family); font-size: var(--body-sm-font-size); line-height: var(--body-sm-line-height); font-weight: var(--body-sm-strong-font-weight);">+5 本周</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts Row -->
+          <div class="grid grid-cols-2 gap-4">
+            <!-- 访问趋势 -->
+            <div class="p-5" style="background: var(--bg-base-default); border-radius: var(--radius-8); border: 1px solid var(--border-neutral-l1);">
+              <h3 class="mb-4" style="font-family: var(--font-family-default); font-size: var(--heading-xs-font-size); font-weight: var(--heading-xs-font-weight); line-height: var(--heading-xs-line-height); color: var(--text-default);">访问趋势</h3>
+              <svg viewBox="0 0 560 200" width="100%" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                  <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="var(--bg-brand)" stop-opacity="0.15"/>
+                    <stop offset="100%" stop-color="var(--bg-brand)" stop-opacity="0.01"/>
+                  </linearGradient>
+                </defs>
+                <!-- Grid lines -->
+                <line x1="40" y1="10" x2="540" y2="10" stroke="var(--border-neutral-l1)" stroke-dasharray="4,4"/>
+                <line x1="40" y1="55" x2="540" y2="55" stroke="var(--border-neutral-l1)" stroke-dasharray="4,4"/>
+                <line x1="40" y1="100" x2="540" y2="100" stroke="var(--border-neutral-l1)" stroke-dasharray="4,4"/>
+                <line x1="40" y1="145" x2="540" y2="145" stroke="var(--border-neutral-l1)" stroke-dasharray="4,4"/>
+                <line x1="40" y1="175" x2="540" y2="175" stroke="var(--border-neutral-l1)"/>
+                <!-- Y-axis labels -->
+                <text x="30" y="14" text-anchor="end" fill="var(--text-tertiary)" font-size="10" font-family="var(--font-family-metric)">800</text>
+                <text x="30" y="59" text-anchor="end" fill="var(--text-tertiary)" font-size="10" font-family="var(--font-family-metric)">600</text>
+                <text x="30" y="104" text-anchor="end" fill="var(--text-tertiary)" font-size="10" font-family="var(--font-family-metric)">400</text>
+                <text x="30" y="149" text-anchor="end" fill="var(--text-tertiary)" font-size="10" font-family="var(--font-family-metric)">200</text>
+                <text x="30" y="179" text-anchor="end" fill="var(--text-tertiary)" font-size="10" font-family="var(--font-family-metric)">0</text>
+                <!-- X-axis labels -->
+                <text x="60" y="195" text-anchor="middle" fill="var(--text-tertiary)" font-size="10" font-family="var(--font-family-metric)">06-01</text>
+                <text x="150" y="195" text-anchor="middle" fill="var(--text-tertiary)" font-size="10" font-family="var(--font-family-metric)">06-06</text>
+                <text x="240" y="195" text-anchor="middle" fill="var(--text-tertiary)" font-size="10" font-family="var(--font-family-metric)">06-11</text>
+                <text x="330" y="195" text-anchor="middle" fill="var(--text-tertiary)" font-size="10" font-family="var(--font-family-metric)">06-16</text>
+                <text x="420" y="195" text-anchor="middle" fill="var(--text-tertiary)" font-size="10" font-family="var(--font-family-metric)">06-21</text>
+                <text x="510" y="195" text-anchor="middle" fill="var(--text-tertiary)" font-size="10" font-family="var(--font-family-metric)">06-26</text>
+                <!-- Area fill -->
+                <polygon points="60,145 105,120 150,130 195,100 240,110 285,85 330,75 375,60 420,50 465,40 510,20 510,175 60,175" fill="url(#areaGrad)"/>
+                <!-- Line -->
+                <polyline points="60,145 105,120 150,130 195,100 240,110 285,85 330,75 375,60 420,50 465,40 510,20" fill="none" stroke="var(--bg-brand)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- Data points -->
+                <circle cx="60" cy="145" r="3" fill="var(--bg-brand)"/>
+                <circle cx="150" cy="130" r="3" fill="var(--bg-brand)"/>
+                <circle cx="240" cy="110" r="3" fill="var(--bg-brand)"/>
+                <circle cx="330" cy="75" r="3" fill="var(--bg-brand)"/>
+                <circle cx="420" cy="50" r="3" fill="var(--bg-brand)"/>
+                <circle cx="510" cy="20" r="3" fill="var(--bg-brand)"/>
+              </svg>
+            </div>
+
+            <!-- 文章发布趋势 -->
+            <div class="p-5" style="background: var(--bg-base-default); border-radius: var(--radius-8); border: 1px solid var(--border-neutral-l1);">
+              <h3 class="mb-4" style="font-family: var(--font-family-default); font-size: var(--heading-xs-font-size); font-weight: var(--heading-xs-font-weight); line-height: var(--heading-xs-line-height); color: var(--text-default);">文章发布</h3>
+              <svg viewBox="0 0 560 200" width="100%" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                  <linearGradient id="areaGrad2" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="var(--accent-blue)" stop-opacity="0.15"/>
+                    <stop offset="100%" stop-color="var(--accent-blue)" stop-opacity="0.01"/>
+                  </linearGradient>
+                </defs>
+                <!-- Grid lines -->
+                <line x1="40" y1="10" x2="540" y2="10" stroke="var(--border-neutral-l1)" stroke-dasharray="4,4"/>
+                <line x1="40" y1="55" x2="540" y2="55" stroke="var(--border-neutral-l1)" stroke-dasharray="4,4"/>
+                <line x1="40" y1="100" x2="540" y2="100" stroke="var(--border-neutral-l1)" stroke-dasharray="4,4"/>
+                <line x1="40" y1="145" x2="540" y2="145" stroke="var(--border-neutral-l1)" stroke-dasharray="4,4"/>
+                <line x1="40" y1="175" x2="540" y2="175" stroke="var(--border-neutral-l1)"/>
+                <!-- Y-axis labels -->
+                <text x="30" y="14" text-anchor="end" fill="var(--text-tertiary)" font-size="10" font-family="var(--font-family-metric)">4</text>
+                <text x="30" y="59" text-anchor="end" fill="var(--text-tertiary)" font-size="10" font-family="var(--font-family-metric)">3</text>
+                <text x="30" y="104" text-anchor="end" fill="var(--text-tertiary)" font-size="10" font-family="var(--font-family-metric)">2</text>
+                <text x="30" y="149" text-anchor="end" fill="var(--text-tertiary)" font-size="10" font-family="var(--font-family-metric)">1</text>
+                <text x="30" y="179" text-anchor="end" fill="var(--text-tertiary)" font-size="10" font-family="var(--font-family-metric)">0</text>
+                <!-- X-axis labels -->
+                <text x="60" y="195" text-anchor="middle" fill="var(--text-tertiary)" font-size="10" font-family="var(--font-family-metric)">06-01</text>
+                <text x="150" y="195" text-anchor="middle" fill="var(--text-tertiary)" font-size="10" font-family="var(--font-family-metric)">06-06</text>
+                <text x="240" y="195" text-anchor="middle" fill="var(--text-tertiary)" font-size="10" font-family="var(--font-family-metric)">06-11</text>
+                <text x="330" y="195" text-anchor="middle" fill="var(--text-tertiary)" font-size="10" font-family="var(--font-family-metric)">06-16</text>
+                <text x="420" y="195" text-anchor="middle" fill="var(--text-tertiary)" font-size="10" font-family="var(--font-family-metric)">06-21</text>
+                <text x="510" y="195" text-anchor="middle" fill="var(--text-tertiary)" font-size="10" font-family="var(--font-family-metric)">06-26</text>
+                <!-- Area fill (volatile data) -->
+                <polygon points="60,120 105,100 150,145 195,55 240,80 285,120 330,100 375,55 420,145 465,120 510,55 510,175 60,175" fill="url(#areaGrad2)"/>
+                <!-- Line -->
+                <polyline points="60,120 105,100 150,145 195,55 240,80 285,120 330,100 375,55 420,145 465,120 510,55" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- Data points -->
+                <circle cx="60" cy="120" r="3" fill="var(--accent-blue)"/>
+                <circle cx="150" cy="145" r="3" fill="var(--accent-blue)"/>
+                <circle cx="240" cy="80" r="3" fill="var(--accent-blue)"/>
+                <circle cx="330" cy="100" r="3" fill="var(--accent-blue)"/>
+                <circle cx="420" cy="145" r="3" fill="var(--accent-blue)"/>
+                <circle cx="510" cy="55" r="3" fill="var(--accent-blue)"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Bottom Row -->
+          <div class="grid grid-cols-2 gap-4">
+            <!-- 热门文章 Top 5 -->
+            <div class="p-5" style="background: var(--bg-base-default); border-radius: var(--radius-8); border: 1px solid var(--border-neutral-l1);">
+              <h3 class="mb-4" style="font-family: var(--font-family-default); font-size: var(--heading-xs-font-size); font-weight: var(--heading-xs-font-weight); line-height: var(--heading-xs-line-height); color: var(--text-default);">热门文章</h3>
+
+              <!-- Article 1 -->
+              <div class="flex items-center gap-3 py-3" style="border-bottom: 1px solid var(--border-neutral-l1);">
+                <span class="shrink-0 flex items-center justify-center" style="width: 20px; height: 20px; border-radius: var(--radius-4); background: var(--bg-brand); color: var(--text-onbrand); font-family: var(--font-family-metric); font-size: var(--body-xs-font-size); font-weight: var(--body-xs-strong-font-weight);">1</span>
+                <div class="flex-1 min-w-0 flex flex-col gap-1">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="truncate" style="font-family: var(--body-base-font-family); font-size: var(--body-base-font-size); font-weight: var(--body-base-strong-font-weight); color: var(--text-default);">深度学习入门笔记</span>
+                    <span class="whitespace-nowrap shrink-0" style="font-family: var(--font-family-metric); font-size: var(--body-sm-font-size); color: var(--text-tertiary);">2,340</span>
+                  </div>
+                  <div class="w-full h-1 rounded-full" style="background: var(--bg-overlay-l2);">
+                    <div class="h-full rounded-full" style="width: 100%; background: var(--bg-brand);"></div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="ds-tag">tech/ai</span>
+                    <span class="flex items-center gap-1 whitespace-nowrap" style="font-family: var(--body-sm-font-family); font-size: var(--body-xs-font-size); color: var(--text-tertiary);">
+                      <span data-icon style="width: 12px; height: 12px; mask-image: url('../assets/icons/dl_builtin_trae_work/eye.svg');"></span>
+                      次浏览
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Article 2 -->
+              <div class="flex items-center gap-3 py-3" style="border-bottom: 1px solid var(--border-neutral-l1);">
+                <span class="shrink-0 flex items-center justify-center" style="width: 20px; height: 20px; border-radius: var(--radius-4); background: var(--bg-brand); color: var(--text-onbrand); font-family: var(--font-family-metric); font-size: var(--body-xs-font-size); font-weight: var(--body-xs-strong-font-weight);">2</span>
+                <div class="flex-1 min-w-0 flex flex-col gap-1">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="truncate" style="font-family: var(--body-base-font-family); font-size: var(--body-base-font-size); font-weight: var(--body-base-strong-font-weight); color: var(--text-default);">React Hooks 完全指南</span>
+                    <span class="whitespace-nowrap shrink-0" style="font-family: var(--font-family-metric); font-size: var(--body-sm-font-size); color: var(--text-tertiary);">1,890</span>
+                  </div>
+                  <div class="w-full h-1 rounded-full" style="background: var(--bg-overlay-l2);">
+                    <div class="h-full rounded-full" style="width: 80%; background: var(--bg-brand);"></div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="ds-tag">tech/frontend</span>
+                    <span class="flex items-center gap-1 whitespace-nowrap" style="font-family: var(--body-sm-font-family); font-size: var(--body-xs-font-size); color: var(--text-tertiary);">
+                      <span data-icon style="width: 12px; height: 12px; mask-image: url('../assets/icons/dl_builtin_trae_work/eye.svg');"></span>
+                      次浏览
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Article 3 -->
+              <div class="flex items-center gap-3 py-3" style="border-bottom: 1px solid var(--border-neutral-l1);">
+                <span class="shrink-0 flex items-center justify-center" style="width: 20px; height: 20px; border-radius: var(--radius-4); background: var(--bg-brand); color: var(--text-onbrand); font-family: var(--font-family-metric); font-size: var(--body-xs-font-size); font-weight: var(--body-xs-strong-font-weight);">3</span>
+                <div class="flex-1 min-w-0 flex flex-col gap-1">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="truncate" style="font-family: var(--body-base-font-family); font-size: var(--body-base-font-size); font-weight: var(--body-base-strong-font-weight); color: var(--text-default);">Go 并发编程实战</span>
+                    <span class="whitespace-nowrap shrink-0" style="font-family: var(--font-family-metric); font-size: var(--body-sm-font-size); color: var(--text-tertiary);">1,560</span>
+                  </div>
+                  <div class="w-full h-1 rounded-full" style="background: var(--bg-overlay-l2);">
+                    <div class="h-full rounded-full" style="width: 66%; background: var(--bg-brand);"></div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="ds-tag">tech/backend</span>
+                    <span class="flex items-center gap-1 whitespace-nowrap" style="font-family: var(--body-sm-font-family); font-size: var(--body-xs-font-size); color: var(--text-tertiary);">
+                      <span data-icon style="width: 12px; height: 12px; mask-image: url('../assets/icons/dl_builtin_trae_work/eye.svg');"></span>
+                      次浏览
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Article 4 -->
+              <div class="flex items-center gap-3 py-3" style="border-bottom: 1px solid var(--border-neutral-l1);">
+                <span class="shrink-0 flex items-center justify-center" style="width: 20px; height: 20px; border-radius: var(--radius-4); background: var(--bg-overlay-l3); color: var(--text-default); font-family: var(--font-family-metric); font-size: var(--body-xs-font-size); font-weight: var(--body-xs-strong-font-weight);">4</span>
+                <div class="flex-1 min-w-0 flex flex-col gap-1">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="truncate" style="font-family: var(--body-base-font-family); font-size: var(--body-base-font-size); font-weight: var(--body-base-strong-font-weight); color: var(--text-default);">思考快与慢 — 读书笔记</span>
+                    <span class="whitespace-nowrap shrink-0" style="font-family: var(--font-family-metric); font-size: var(--body-sm-font-size); color: var(--text-tertiary);">1,230</span>
+                  </div>
+                  <div class="w-full h-1 rounded-full" style="background: var(--bg-overlay-l2);">
+                    <div class="h-full rounded-full" style="width: 52%; background: var(--bg-brand);"></div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="ds-tag">reading</span>
+                    <span class="flex items-center gap-1 whitespace-nowrap" style="font-family: var(--body-sm-font-family); font-size: var(--body-xs-font-size); color: var(--text-tertiary);">
+                      <span data-icon style="width: 12px; height: 12px; mask-image: url('../assets/icons/dl_builtin_trae_work/eye.svg');"></span>
+                      次浏览
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Article 5 -->
+              <div class="flex items-center gap-3 py-3">
+                <span class="shrink-0 flex items-center justify-center" style="width: 20px; height: 20px; border-radius: var(--radius-4); background: var(--bg-overlay-l3); color: var(--text-default); font-family: var(--font-family-metric); font-size: var(--body-xs-font-size); font-weight: var(--body-xs-strong-font-weight);">5</span>
+                <div class="flex-1 min-w-0 flex flex-col gap-1">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="truncate" style="font-family: var(--body-base-font-family); font-size: var(--body-base-font-size); font-weight: var(--body-base-strong-font-weight); color: var(--text-default);">PyTorch 实战笔记</span>
+                    <span class="whitespace-nowrap shrink-0" style="font-family: var(--font-family-metric); font-size: var(--body-sm-font-size); color: var(--text-tertiary);">980</span>
+                  </div>
+                  <div class="w-full h-1 rounded-full" style="background: var(--bg-overlay-l2);">
+                    <div class="h-full rounded-full" style="width: 42%; background: var(--bg-brand);"></div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="ds-tag">tech/ai</span>
+                    <span class="flex items-center gap-1 whitespace-nowrap" style="font-family: var(--body-sm-font-family); font-size: var(--body-xs-font-size); color: var(--text-tertiary);">
+                      <span data-icon style="width: 12px; height: 12px; mask-image: url('../assets/icons/dl_builtin_trae_work/eye.svg');"></span>
+                      次浏览
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 最近注册用户 -->
+            <div class="p-5" style="background: var(--bg-base-default); border-radius: var(--radius-8); border: 1px solid var(--border-neutral-l1);">
+              <h3 class="mb-4" style="font-family: var(--font-family-default); font-size: var(--heading-xs-font-size); font-weight: var(--heading-xs-font-weight); line-height: var(--heading-xs-line-height); color: var(--text-default);">最近注册</h3>
+
+              <!-- User 1 -->
+              <div class="flex items-center gap-3 py-3" style="border-bottom: 1px solid var(--border-neutral-l1);">
+                <span class="ds-avatar ds-avatar--sm">赵</span>
+                <div class="flex-1 min-w-0">
+                  <div class="truncate" style="font-family: var(--body-base-font-family); font-size: var(--body-base-font-size); font-weight: var(--body-base-strong-font-weight); color: var(--text-default);">赵六</div>
+                  <div class="truncate" style="font-family: var(--body-sm-font-family); font-size: var(--body-sm-font-size); color: var(--text-tertiary);">zhaoliu@...</div>
+                </div>
+                <div class="flex items-center gap-1 whitespace-nowrap" style="color: var(--text-tertiary);">
+                  <span data-icon style="width: 12px; height: 12px; mask-image: url('../assets/icons/dl_builtin_trae_work/calendar.svg');"></span>
+                  <span style="font-family: var(--body-sm-font-family); font-size: var(--body-sm-font-size);">2026-06-28</span>
+                </div>
+              </div>
+
+              <!-- User 2 -->
+              <div class="flex items-center gap-3 py-3" style="border-bottom: 1px solid var(--border-neutral-l1);">
+                <span class="ds-avatar ds-avatar--sm">王</span>
+                <div class="flex-1 min-w-0">
+                  <div class="truncate" style="font-family: var(--body-base-font-family); font-size: var(--body-base-font-size); font-weight: var(--body-base-strong-font-weight); color: var(--text-default);">王五</div>
+                  <div class="truncate" style="font-family: var(--body-sm-font-family); font-size: var(--body-sm-font-size); color: var(--text-tertiary);">wangwu@...</div>
+                </div>
+                <div class="flex items-center gap-1 whitespace-nowrap" style="color: var(--text-tertiary);">
+                  <span data-icon style="width: 12px; height: 12px; mask-image: url('../assets/icons/dl_builtin_trae_work/calendar.svg');"></span>
+                  <span style="font-family: var(--body-sm-font-family); font-size: var(--body-sm-font-size);">2026-06-25</span>
+                </div>
+              </div>
+
+              <!-- User 3 -->
+              <div class="flex items-center gap-3 py-3" style="border-bottom: 1px solid var(--border-neutral-l1);">
+                <span class="ds-avatar ds-avatar--sm">李</span>
+                <div class="flex-1 min-w-0">
+                  <div class="truncate" style="font-family: var(--body-base-font-family); font-size: var(--body-base-font-size); font-weight: var(--body-base-strong-font-weight); color: var(--text-default);">李四</div>
+                  <div class="truncate" style="font-family: var(--body-sm-font-family); font-size: var(--body-sm-font-size); color: var(--text-tertiary);">lisi@...</div>
+                </div>
+                <div class="flex items-center gap-1 whitespace-nowrap" style="color: var(--text-tertiary);">
+                  <span data-icon style="width: 12px; height: 12px; mask-image: url('../assets/icons/dl_builtin_trae_work/calendar.svg');"></span>
+                  <span style="font-family: var(--body-sm-font-family); font-size: var(--body-sm-font-size);">2026-06-20</span>
+                </div>
+              </div>
+
+              <!-- User 4 -->
+              <div class="flex items-center gap-3 py-3" style="border-bottom: 1px solid var(--border-neutral-l1);">
+                <span class="ds-avatar ds-avatar--sm">张</span>
+                <div class="flex-1 min-w-0">
+                  <div class="truncate" style="font-family: var(--body-base-font-family); font-size: var(--body-base-font-size); font-weight: var(--body-base-strong-font-weight); color: var(--text-default);">张三</div>
+                  <div class="truncate" style="font-family: var(--body-sm-font-family); font-size: var(--body-sm-font-size); color: var(--text-tertiary);">zhangsan@...</div>
+                </div>
+                <div class="flex items-center gap-1 whitespace-nowrap" style="color: var(--text-tertiary);">
+                  <span data-icon style="width: 12px; height: 12px; mask-image: url('../assets/icons/dl_builtin_trae_work/calendar.svg');"></span>
+                  <span style="font-family: var(--body-sm-font-family); font-size: var(--body-sm-font-size);">2026-06-15</span>
+                </div>
+              </div>
+
+              <!-- User 5 -->
+              <div class="flex items-center gap-3 py-3">
+                <span class="ds-avatar ds-avatar--sm">孙</span>
+                <div class="flex-1 min-w-0">
+                  <div class="truncate" style="font-family: var(--body-base-font-family); font-size: var(--body-base-font-size); font-weight: var(--body-base-strong-font-weight); color: var(--text-default);">孙七</div>
+                  <div class="truncate" style="font-family: var(--body-sm-font-family); font-size: var(--body-sm-font-size); color: var(--text-tertiary);">sunqi@...</div>
+                </div>
+                <div class="flex items-center gap-1 whitespace-nowrap" style="color: var(--text-tertiary);">
+                  <span data-icon style="width: 12px; height: 12px; mask-image: url('../assets/icons/dl_builtin_trae_work/calendar.svg');"></span>
+                  <span style="font-family: var(--body-sm-font-family); font-size: var(--body-sm-font-size);">2026-06-10</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
     </main>
     <script>lucide.createIcons();</script>
 </body>
