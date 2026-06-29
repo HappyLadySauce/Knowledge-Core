@@ -8,8 +8,8 @@ import (
 
 	"k8s.io/component-base/cli"
 
+	_ "github.com/HappyLadySauce/Knowledge-Core/api/swagger/docs" // Register embedded Swagger spec for gin-swagger UI.
 	"github.com/HappyLadySauce/Knowledge-Core/cmd/app"
-	// _ "github.com/HappyLadySauce/Knowledge-Core/api/swagger/docs" // Register embedded Swagger spec for gin-swagger UI.
 )
 
 // @title       Knowledge Core HTTP API
@@ -17,6 +17,10 @@ import (
 // @description REST API for Knowledge Core (v1). JSON envelope: code (HTTP-style), message, data. 中文：Knowledge Core REST API（v1）；响应为 code、message、data 的 JSON 包装。
 // @BasePath    /
 // @schemes     http https
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Use the format: Bearer {access_token}
 
 const (
 	basename = "Knowledge-Core"

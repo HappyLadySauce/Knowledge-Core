@@ -34,7 +34,7 @@ func Init(ctx context.Context, sc *svc.ServiceContext) {
 // RegisterRoutes attaches user profile and admin user management routes.
 // RegisterRoutes 挂载用户资料与 admin 用户管理路由。
 func RegisterRoutes(group *gin.RouterGroup, service internaluser.UserService, sc *svc.ServiceContext) {
-	controller := NewController(sc)
+	controller := &Controller{service: service}
 	userGroup := group.Group("/users", middleware.AuthMiddleware(sc))
 	userGroup.GET("/me", controller.Me)
 	userGroup.PUT("/me", controller.UpdateMe)
@@ -48,6 +48,17 @@ func RegisterRoutes(group *gin.RouterGroup, service internaluser.UserService, sc
 	adminGroup.PUT("/users/:id/password", controller.ResetPassword)
 }
 
+// Me returns the current authenticated user.
+// Me 返回当前认证用户。
+// @Summary Get current user
+// @Description Return the authenticated user's public profile.
+// @Tags Users
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} common.SwaggerResponse{data=v1.UserResponse}
+// @Failure 401 {object} common.SwaggerErrorResponse
+// @Failure 500 {object} common.SwaggerErrorResponse
+// @Router /api/v1/users/me [get]
 func (h *Controller) Me(c *gin.Context) {
 	actor, ok := middleware.UserFromContext(c)
 	if !ok {
@@ -62,6 +73,21 @@ func (h *Controller) Me(c *gin.Context) {
 	common.OK(c, toUserResponse(currentUser))
 }
 
+// UpdateMe updates the current authenticated user's profile.
+// UpdateMe 更新当前认证用户资料。
+// @Summary Update current user
+// @Description Update username, email, avatar, or bio for the authenticated user.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body v1.UpdateMeRequest true "Profile update request"
+// @Success 200 {object} common.SwaggerResponse{data=v1.UserResponse}
+// @Failure 400 {object} common.SwaggerErrorResponse
+// @Failure 401 {object} common.SwaggerErrorResponse
+// @Failure 409 {object} common.SwaggerErrorResponse
+// @Failure 500 {object} common.SwaggerErrorResponse
+// @Router /api/v1/users/me [put]
 func (h *Controller) UpdateMe(c *gin.Context) {
 	actor, ok := middleware.UserFromContext(c)
 	if !ok {
@@ -86,6 +112,20 @@ func (h *Controller) UpdateMe(c *gin.Context) {
 	common.OK(c, toUserResponse(currentUser))
 }
 
+// ChangePassword changes the current authenticated user's password.
+// ChangePassword 修改当前认证用户密码。
+// @Summary Change current user password
+// @Description Verify the old password, set a new password, and revoke existing refresh tokens.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body v1.ChangePasswordRequest true "Password change request"
+// @Success 200 {object} common.SwaggerResponse
+// @Failure 400 {object} common.SwaggerErrorResponse
+// @Failure 401 {object} common.SwaggerErrorResponse
+// @Failure 500 {object} common.SwaggerErrorResponse
+// @Router /api/v1/users/me/password [put]
 func (h *Controller) ChangePassword(c *gin.Context) {
 	actor, ok := middleware.UserFromContext(c)
 	if !ok {
@@ -107,6 +147,24 @@ func (h *Controller) ChangePassword(c *gin.Context) {
 	common.OK[any](c, nil)
 }
 
+// ListUsers returns paginated users for admin management.
+// ListUsers 返回 admin 管理用的分页用户列表。
+// @Summary List users
+// @Description List users with optional role, status, and keyword filters. Admin only.
+// @Tags Admin Users
+// @Produce json
+// @Security BearerAuth
+// @Param page query int false "Page number" default(1)
+// @Param page_size query int false "Page size" default(20)
+// @Param role query string false "Role filter" Enums(admin,user)
+// @Param status query string false "Status filter" Enums(active,disabled)
+// @Param keyword query string false "Keyword filter for username or email"
+// @Success 200 {object} common.SwaggerResponse{data=v1.ListUsersResponse}
+// @Failure 400 {object} common.SwaggerErrorResponse
+// @Failure 401 {object} common.SwaggerErrorResponse
+// @Failure 403 {object} common.SwaggerErrorResponse
+// @Failure 500 {object} common.SwaggerErrorResponse
+// @Router /api/v1/admin/users [get]
 func (h *Controller) ListUsers(c *gin.Context) {
 	actor, ok := middleware.UserFromContext(c)
 	if !ok {
@@ -132,6 +190,21 @@ func (h *Controller) ListUsers(c *gin.Context) {
 	common.OK(c, toListUsersResponse(result))
 }
 
+// GetUser returns one user by id for admin management.
+// GetUser 返回 admin 管理用的单个用户。
+// @Summary Get user
+// @Description Get one user by id. Admin only.
+// @Tags Admin Users
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "User ID"
+// @Success 200 {object} common.SwaggerResponse{data=v1.UserResponse}
+// @Failure 400 {object} common.SwaggerErrorResponse
+// @Failure 401 {object} common.SwaggerErrorResponse
+// @Failure 403 {object} common.SwaggerErrorResponse
+// @Failure 404 {object} common.SwaggerErrorResponse
+// @Failure 500 {object} common.SwaggerErrorResponse
+// @Router /api/v1/admin/users/{id} [get]
 func (h *Controller) GetUser(c *gin.Context) {
 	actor, ok := middleware.UserFromContext(c)
 	if !ok {
@@ -150,6 +223,24 @@ func (h *Controller) GetUser(c *gin.Context) {
 	common.OK(c, toUserResponse(currentUser))
 }
 
+// UpdateUser updates one user for admin management.
+// UpdateUser 更新 admin 管理的单个用户。
+// @Summary Update user
+// @Description Update username, email, avatar, bio, status, or role. Admin only.
+// @Tags Admin Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "User ID"
+// @Param request body v1.AdminUpdateUserRequest true "Admin user update request"
+// @Success 200 {object} common.SwaggerResponse{data=v1.UserResponse}
+// @Failure 400 {object} common.SwaggerErrorResponse
+// @Failure 401 {object} common.SwaggerErrorResponse
+// @Failure 403 {object} common.SwaggerErrorResponse
+// @Failure 404 {object} common.SwaggerErrorResponse
+// @Failure 409 {object} common.SwaggerErrorResponse
+// @Failure 500 {object} common.SwaggerErrorResponse
+// @Router /api/v1/admin/users/{id} [patch]
 func (h *Controller) UpdateUser(c *gin.Context) {
 	actor, ok := middleware.UserFromContext(c)
 	if !ok {
@@ -180,6 +271,21 @@ func (h *Controller) UpdateUser(c *gin.Context) {
 	common.OK(c, toUserResponse(currentUser))
 }
 
+// DeleteUser disables one user for admin management.
+// DeleteUser 禁用 admin 管理的单个用户。
+// @Summary Delete user
+// @Description Soft-delete a user by setting status to disabled and revoking refresh tokens. Admin only.
+// @Tags Admin Users
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "User ID"
+// @Success 200 {object} common.SwaggerResponse
+// @Failure 400 {object} common.SwaggerErrorResponse
+// @Failure 401 {object} common.SwaggerErrorResponse
+// @Failure 403 {object} common.SwaggerErrorResponse
+// @Failure 404 {object} common.SwaggerErrorResponse
+// @Failure 500 {object} common.SwaggerErrorResponse
+// @Router /api/v1/admin/users/{id} [delete]
 func (h *Controller) DeleteUser(c *gin.Context) {
 	actor, ok := middleware.UserFromContext(c)
 	if !ok {
@@ -197,6 +303,23 @@ func (h *Controller) DeleteUser(c *gin.Context) {
 	common.OK[any](c, nil)
 }
 
+// ResetPassword resets one user's password for admin management.
+// ResetPassword 重置 admin 管理的单个用户密码。
+// @Summary Reset user password
+// @Description Reset another user's password and revoke that user's refresh tokens. Admin only.
+// @Tags Admin Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "User ID"
+// @Param request body v1.AdminResetPasswordRequest true "Admin password reset request"
+// @Success 200 {object} common.SwaggerResponse
+// @Failure 400 {object} common.SwaggerErrorResponse
+// @Failure 401 {object} common.SwaggerErrorResponse
+// @Failure 403 {object} common.SwaggerErrorResponse
+// @Failure 404 {object} common.SwaggerErrorResponse
+// @Failure 500 {object} common.SwaggerErrorResponse
+// @Router /api/v1/admin/users/{id}/password [put]
 func (h *Controller) ResetPassword(c *gin.Context) {
 	actor, ok := middleware.UserFromContext(c)
 	if !ok {
