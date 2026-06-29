@@ -7,5 +7,6 @@ func (o *Options) Validate() error {
 	err = errors.Join(err, o.InsecureServing.Validate())
 	err = errors.Join(err, o.SQLite.Validate())
 	err = errors.Join(err, o.JWT.Validate())
+	err = errors.Join(err, o.Library.Validate())
 	return err
 }

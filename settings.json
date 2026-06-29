@@ -8,5 +8,8 @@
     "secret": "${KNOWLEDGE_CORE_JWT_SECRET}",
     "access-ttl": "${KNOWLEDGE_CORE_JWT_ACCESS_TTL}",
     "refresh-ttl": "${KNOWLEDGE_CORE_JWT_REFRESH_TTL}"
+  },
+  "library": {
+    "path": "${KNOWLEDGE_CORE_LIBRARY_PATH}"
   }
 }

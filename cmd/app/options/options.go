@@ -14,6 +14,7 @@ type Options struct {
 	InsecureServing *options.InsecureServingOptions `mapstructure:"insecure"`
 	SQLite          *options.SQLiteOptions          `mapstructure:"sqlite"`
 	JWT             *options.JWTOptions             `mapstructure:"jwt"`
+	Library         *options.LibraryOptions         `mapstructure:"library"`
 }
 
 func NewOptions(basename string) *Options {
@@ -22,6 +23,7 @@ func NewOptions(basename string) *Options {
 		InsecureServing: options.NewInsecureServingOptions(),
 		SQLite:          options.NewSQLiteOptions(),
 		JWT:             options.NewJWTOptions(),
+		Library:         options.NewLibraryOptions(),
 	}
 }
 
@@ -43,6 +45,9 @@ func (o *Options) AddFlags(fs *pflag.FlagSet) *flag.NamedFlagSets {
 
 	jwtFS := nfs.FlagSet("JWT")
 	o.JWT.AddFlags(jwtFS)
+
+	libraryFS := nfs.FlagSet("Library")
+	o.Library.AddFlags(libraryFS)
 
 	// Merge all named flag sets into the root command FlagSet.
 	// 将所有命名标志集合并到根命令的 FlagSet。

@@ -94,6 +94,7 @@ var KNOWLEDGE_COREEnvBindings = map[string]string{
 	"jwt.secret":               "KNOWLEDGE_CORE_JWT_SECRET",
 	"jwt.access-ttl":           "KNOWLEDGE_CORE_JWT_ACCESS_TTL",
 	"jwt.refresh-ttl":          "KNOWLEDGE_CORE_JWT_REFRESH_TTL",
+	"library.path":             "KNOWLEDGE_CORE_LIBRARY_PATH",
 }
 
 // loadViperConfig loads configuration with priority: --config > cwd > ~/basename/.

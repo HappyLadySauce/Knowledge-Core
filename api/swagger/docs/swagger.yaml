@@ -42,6 +42,31 @@ definitions:
       username:
         type: string
     type: object
+  v1.CategoryResponse:
+    properties:
+      children:
+        items:
+          $ref: '#/definitions/v1.CategoryResponse'
+        type: array
+      created_at:
+        type: string
+      document_count:
+        type: integer
+      id:
+        type: integer
+      name:
+        type: string
+      parent_id:
+        type: integer
+      path:
+        type: string
+      slug:
+        type: string
+      sort:
+        type: integer
+      updated_at:
+        type: string
+    type: object
   v1.ChangePasswordRequest:
     properties:
       new_password:
@@ -51,6 +76,135 @@ definitions:
     required:
     - new_password
     - old_password
+    type: object
+  v1.CreateCategoryRequest:
+    properties:
+      name:
+        type: string
+      parent_id:
+        type: integer
+      slug:
+        type: string
+      sort:
+        type: integer
+    type: object
+  v1.CreateDocumentRequest:
+    properties:
+      category_id:
+        type: integer
+      confidence:
+        type: number
+      content:
+        type: string
+      cover_url:
+        type: string
+      slug:
+        type: string
+      source:
+        type: string
+      status:
+        type: string
+      summary:
+        type: string
+      tag_ids:
+        items:
+          type: integer
+        type: array
+      title:
+        type: string
+    type: object
+  v1.CreateTagRequest:
+    properties:
+      name:
+        type: string
+      slug:
+        type: string
+    type: object
+  v1.DocumentCategoryResponse:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      path:
+        type: string
+      slug:
+        type: string
+    type: object
+  v1.DocumentResponse:
+    properties:
+      author_id:
+        type: integer
+      category:
+        $ref: '#/definitions/v1.DocumentCategoryResponse'
+      category_id:
+        type: integer
+      confidence:
+        type: number
+      content:
+        type: string
+      cover_url:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      published_at:
+        type: string
+      slug:
+        type: string
+      source:
+        type: string
+      status:
+        type: string
+      summary:
+        type: string
+      tags:
+        items:
+          $ref: '#/definitions/v1.DocumentTagResponse'
+        type: array
+      title:
+        type: string
+      updated_at:
+        type: string
+      word_count:
+        type: integer
+    type: object
+  v1.DocumentTagResponse:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      slug:
+        type: string
+    type: object
+  v1.ListCategoriesResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/v1.CategoryResponse'
+        type: array
+    type: object
+  v1.ListDocumentsResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/v1.DocumentResponse'
+        type: array
+      page:
+        type: integer
+      page_size:
+        type: integer
+      total:
+        type: integer
+    type: object
+  v1.ListTagsResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/v1.TagResponse'
+        type: array
     type: object
   v1.ListUsersResponse:
     properties:
@@ -101,6 +255,21 @@ definitions:
     - password
     - username
     type: object
+  v1.TagResponse:
+    properties:
+      created_at:
+        type: string
+      document_count:
+        type: integer
+      id:
+        type: integer
+      name:
+        type: string
+      slug:
+        type: string
+      updated_at:
+        type: string
+    type: object
   v1.TokenResponse:
     properties:
       access_token:
@@ -116,6 +285,42 @@ definitions:
       user:
         $ref: '#/definitions/v1.UserResponse'
     type: object
+  v1.UpdateCategoryRequest:
+    properties:
+      name:
+        type: string
+      parent_id:
+        type: integer
+      slug:
+        type: string
+      sort:
+        type: integer
+    type: object
+  v1.UpdateDocumentRequest:
+    properties:
+      category_id:
+        type: integer
+      confidence:
+        type: number
+      content:
+        type: string
+      cover_url:
+        type: string
+      slug:
+        type: string
+      source:
+        type: string
+      status:
+        type: string
+      summary:
+        type: string
+      tag_ids:
+        items:
+          type: integer
+        type: array
+      title:
+        type: string
+    type: object
   v1.UpdateMeRequest:
     properties:
       avatar:
@@ -125,6 +330,13 @@ definitions:
       email:
         type: string
       username:
+        type: string
+    type: object
+  v1.UpdateTagRequest:
+    properties:
+      name:
+        type: string
+      slug:
         type: string
     type: object
   v1.UserResponse:
@@ -155,6 +367,624 @@ info:
   title: Knowledge Core HTTP API
   version: "1.0"
 paths:
+  /api/v1/admin/categories:
+    get:
+      description: List categories as a tree. Admin only.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.SwaggerResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/v1.ListCategoriesResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List categories
+      tags:
+      - Admin Categories
+    post:
+      consumes:
+      - application/json
+      description: Create a category. Admin only.
+      parameters:
+      - description: Category create request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.CreateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.SwaggerResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/v1.CategoryResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create category
+      tags:
+      - Admin Categories
+  /api/v1/admin/categories/{id}:
+    delete:
+      description: Delete an empty leaf category. Admin only.
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.SwaggerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete category
+      tags:
+      - Admin Categories
+    patch:
+      consumes:
+      - application/json
+      description: Update a category. Admin only.
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Category update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.UpdateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.SwaggerResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/v1.CategoryResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update category
+      tags:
+      - Admin Categories
+  /api/v1/admin/documents:
+    get:
+      description: List all documents for admin management.
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: Keyword
+        in: query
+        name: q
+        type: string
+      - description: Category slug or path
+        in: query
+        name: category
+        type: string
+      - description: Tag slug or name
+        in: query
+        name: tag
+        type: string
+      - description: Status
+        enum:
+        - draft
+        - published
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.SwaggerResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/v1.ListDocumentsResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List documents
+      tags:
+      - Admin Documents
+    post:
+      consumes:
+      - application/json
+      description: Create a Markdown document and index metadata. Admin only.
+      parameters:
+      - description: Document create request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.CreateDocumentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.SwaggerResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/v1.DocumentResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create document
+      tags:
+      - Admin Documents
+  /api/v1/admin/documents/{id}:
+    delete:
+      description: Delete document metadata and Markdown file. Admin only.
+      parameters:
+      - description: Document ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.SwaggerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete document
+      tags:
+      - Admin Documents
+    get:
+      description: Get a document by id. Admin only.
+      parameters:
+      - description: Document ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.SwaggerResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/v1.DocumentResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get document
+      tags:
+      - Admin Documents
+    patch:
+      consumes:
+      - application/json
+      description: Update document metadata, content, tags, category, or status. Admin
+        only.
+      parameters:
+      - description: Document ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Document update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.UpdateDocumentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.SwaggerResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/v1.DocumentResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update document
+      tags:
+      - Admin Documents
+  /api/v1/admin/tags:
+    get:
+      description: List tags ordered by usage. Admin only.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.SwaggerResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/v1.ListTagsResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List tags
+      tags:
+      - Admin Tags
+    post:
+      consumes:
+      - application/json
+      description: Create a tag. Admin only.
+      parameters:
+      - description: Tag create request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.CreateTagRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.SwaggerResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/v1.TagResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create tag
+      tags:
+      - Admin Tags
+  /api/v1/admin/tags/{id}:
+    delete:
+      description: Delete a tag and clear document tag links. Admin only.
+      parameters:
+      - description: Tag ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.SwaggerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete tag
+      tags:
+      - Admin Tags
+    patch:
+      consumes:
+      - application/json
+      description: Update a tag. Admin only.
+      parameters:
+      - description: Tag ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Tag update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.UpdateTagRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.SwaggerResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/v1.TagResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update tag
+      tags:
+      - Admin Tags
   /api/v1/admin/users:
     get:
       description: List users with optional role, status, and keyword filters. Admin
@@ -567,6 +1397,136 @@ paths:
       summary: Register user
       tags:
       - Auth
+  /api/v1/categories:
+    get:
+      description: List categories as a tree.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.SwaggerResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/v1.ListCategoriesResponse'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+      summary: List categories
+      tags:
+      - Categories
+  /api/v1/documents:
+    get:
+      description: List published documents with optional keyword, category, and tag
+        filters.
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: Keyword
+        in: query
+        name: q
+        type: string
+      - description: Category slug or path
+        in: query
+        name: category
+        type: string
+      - description: Tag slug or name
+        in: query
+        name: tag
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.SwaggerResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/v1.ListDocumentsResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+      summary: List published documents
+      tags:
+      - Documents
+  /api/v1/documents/{id}:
+    get:
+      description: Get a published document by id.
+      parameters:
+      - description: Document ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.SwaggerResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/v1.DocumentResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+      summary: Get published document
+      tags:
+      - Documents
+  /api/v1/tags:
+    get:
+      description: List tags ordered by usage.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.SwaggerResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/v1.ListTagsResponse'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+      summary: List tags
+      tags:
+      - Tags
   /api/v1/users/me:
     get:
       description: Return the authenticated user's public profile.

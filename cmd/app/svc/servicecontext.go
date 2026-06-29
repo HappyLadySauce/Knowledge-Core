@@ -34,6 +34,9 @@ func NewServiceContext(ctx context.Context, cfg *config.Config) (*ServiceContext
 	if cfg.JWT == nil {
 		return nil, fmt.Errorf("jwt config is nil")
 	}
+	if cfg.Library == nil {
+		return nil, fmt.Errorf("library config is nil")
+	}
 
 	db, err := openSQLite(ctx, cfg)
 	if err != nil {
@@ -98,7 +101,7 @@ func sqliteDSN(path string, busyTimeoutMS int) string {
 }
 
 func verifySchema(ctx context.Context, db *sql.DB) error {
-	requiredTables := []string{"users", "refresh_tokens"}
+	requiredTables := []string{"users", "refresh_tokens", "documents", "categories", "tags", "document_tags"}
 	for _, table := range requiredTables {
 		var name string
 		err := db.QueryRowContext(ctx, `

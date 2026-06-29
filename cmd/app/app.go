@@ -16,6 +16,8 @@ import (
 	"github.com/HappyLadySauce/Knowledge-Core/cmd/app/options"
 	"github.com/HappyLadySauce/Knowledge-Core/cmd/app/router"
 	authroute "github.com/HappyLadySauce/Knowledge-Core/cmd/app/routes/auth"
+	documentroute "github.com/HappyLadySauce/Knowledge-Core/cmd/app/routes/document"
+	taxonomyroute "github.com/HappyLadySauce/Knowledge-Core/cmd/app/routes/taxonomy"
 	userroute "github.com/HappyLadySauce/Knowledge-Core/cmd/app/routes/user"
 	"github.com/HappyLadySauce/Knowledge-Core/cmd/app/svc"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/config"
@@ -63,6 +65,7 @@ func run(ctx context.Context, opts *options.Options) error {
 		InsecureServing: opts.InsecureServing,
 		SQLite:          opts.SQLite,
 		JWT:             opts.JWT,
+		Library:         opts.Library,
 	}
 	config.Init(cfg)
 
@@ -131,5 +134,9 @@ func serve(ctx context.Context, opts *options.Options) error {
 func routesInit(ctx context.Context, sc *svc.ServiceContext) error {
 	authroute.Init(ctx, sc)
 	userroute.Init(ctx, sc)
+	taxonomyroute.Init(ctx, sc)
+	if err := documentroute.Init(ctx, sc); err != nil {
+		return err
+	}
 	return nil
 }
