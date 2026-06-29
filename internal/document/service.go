@@ -8,6 +8,8 @@ import (
 	"time"
 	"unicode"
 
+	"k8s.io/klog/v2"
+
 	apperrors "github.com/HappyLadySauce/Knowledge-Core/internal/errors"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/taxonomy"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/user"
@@ -17,6 +19,7 @@ type Service struct {
 	repo       *Repository
 	taxonomies *taxonomy.Repository
 	files      *fileStore
+	fileLocks  *pathLocker
 }
 
 func NewService(db *sql.DB, libraryRoot string) (*Service, error) {
@@ -28,6 +31,7 @@ func NewService(db *sql.DB, libraryRoot string) (*Service, error) {
 		repo:       NewRepository(db),
 		taxonomies: taxonomy.NewRepository(db),
 		files:      files,
+		fileLocks:  newPathLocker(),
 	}, nil
 }
 
@@ -61,10 +65,17 @@ func (s *Service) CreateAdmin(ctx context.Context, actor user.User, cmd CreateCo
 	if actor.Role != user.RoleAdmin {
 		return Detail{}, apperrors.Forbidden
 	}
+	slugLock := normalizeSlug(cmd.Slug, strings.TrimSpace(cmd.Title))
+	unlockSlug := s.fileLocks.lock("slug:" + slugLock)
+	defer unlockSlug()
+
 	normalized, categoryPath, tagNames, err := s.normalizeCreate(ctx, actor.ID, cmd)
 	if err != nil {
 		return Detail{}, err
 	}
+	unlock := s.fileLocks.lock(normalized.ContentPath)
+	defer unlock()
+
 	exists, err := s.repo.SlugExists(ctx, normalized.Slug, 0)
 	if err != nil {
 		return Detail{}, err
@@ -112,6 +123,9 @@ func (s *Service) UpdateAdmin(ctx context.Context, actor user.User, id int64, cm
 	if err != nil {
 		return Detail{}, err
 	}
+	unlock := s.fileLocks.lock(current.ContentPath, next.ContentPath)
+	defer unlock()
+
 	if next.Slug != current.Slug {
 		exists, err := s.repo.SlugExists(ctx, next.Slug, id)
 		if err != nil {
@@ -168,11 +182,21 @@ func (s *Service) DeleteAdmin(ctx context.Context, actor user.User, id int64) er
 	if err != nil {
 		return err
 	}
+	unlock := s.fileLocks.lock(current.ContentPath)
+	defer unlock()
+
+	restore, finalize, err := s.files.stageDelete(current.ContentPath)
+	if err != nil {
+		return apperrors.Wrap(apperrors.InternalError, err)
+	}
 	if err := s.repo.Delete(ctx, id); err != nil {
+		if restoreErr := restore(); restoreErr != nil {
+			return apperrors.Wrap(apperrors.InternalError, restoreErr)
+		}
 		return err
 	}
-	if err := s.files.remove(current.ContentPath); err != nil {
-		return apperrors.Wrap(apperrors.InternalError, err)
+	if err := finalize(); err != nil {
+		klog.ErrorS(err, "document staged file cleanup failed")
 	}
 	return nil
 }

@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 
 	_ "modernc.org/sqlite"
@@ -85,6 +86,138 @@ func TestDocumentServiceWritesMarkdownAndIndexesPublishedDocuments(t *testing.T)
 	}
 	if _, err := os.Stat(markdownPath); !os.IsNotExist(err) {
 		t.Fatalf("markdown file still exists or stat failed: %v", err)
+	}
+}
+
+func TestDocumentServiceSerializesSameSlugCreate(t *testing.T) {
+	ctx := context.Background()
+	db := newDocumentTestDB(t)
+	libraryRoot := t.TempDir()
+	taxonomies := taxonomy.NewService(db)
+	category, err := taxonomies.CreateCategory(ctx, taxonomy.CategoryCommand{Name: "Tech", Slug: "tech"})
+	if err != nil {
+		t.Fatalf("create category failed: %v", err)
+	}
+	service, err := NewService(db, libraryRoot)
+	if err != nil {
+		t.Fatalf("create document service failed: %v", err)
+	}
+	admin := user.User{ID: 1, Role: user.RoleAdmin}
+	cmd := CreateCommand{
+		Slug:       "same-slug",
+		Title:      "Same Slug",
+		Content:    "body",
+		CategoryID: category.ID,
+	}
+
+	type createResult struct {
+		detail Detail
+		err    error
+	}
+	results := make([]createResult, 2)
+	start := make(chan struct{})
+	var wg sync.WaitGroup
+	for i := range results {
+		wg.Add(1)
+		go func(index int) {
+			defer wg.Done()
+			<-start
+			detail, err := service.CreateAdmin(ctx, admin, cmd)
+			results[index] = createResult{detail: detail, err: err}
+		}(i)
+	}
+	close(start)
+	wg.Wait()
+
+	successes := 0
+	conflicts := 0
+	var created Detail
+	for _, result := range results {
+		if result.err == nil {
+			successes++
+			created = result.detail
+			continue
+		}
+		if errors.Is(result.err, apperrors.Conflict) {
+			conflicts++
+			continue
+		}
+		t.Fatalf("create error = %v, want nil or conflict", result.err)
+	}
+	if successes != 1 || conflicts != 1 {
+		t.Fatalf("successes=%d conflicts=%d, want 1 success and 1 conflict", successes, conflicts)
+	}
+	markdownPath := filepath.Join(libraryRoot, filepath.FromSlash(created.ContentPath))
+	if _, err := os.Stat(markdownPath); err != nil {
+		t.Fatalf("created markdown missing: %v", err)
+	}
+	list, err := service.ListAdmin(ctx, admin, ListQuery{PageSize: 10})
+	if err != nil {
+		t.Fatalf("list admin failed: %v", err)
+	}
+	if list.Total != 1 {
+		t.Fatalf("document total = %d, want 1", list.Total)
+	}
+}
+
+func TestDocumentCategoryFilterUsesPathOnly(t *testing.T) {
+	ctx := context.Background()
+	db := newDocumentTestDB(t)
+	libraryRoot := t.TempDir()
+	taxonomies := taxonomy.NewService(db)
+	tech, err := taxonomies.CreateCategory(ctx, taxonomy.CategoryCommand{Name: "Tech", Slug: "tech"})
+	if err != nil {
+		t.Fatalf("create tech category failed: %v", err)
+	}
+	life, err := taxonomies.CreateCategory(ctx, taxonomy.CategoryCommand{Name: "Life", Slug: "life"})
+	if err != nil {
+		t.Fatalf("create life category failed: %v", err)
+	}
+	aiTech, err := taxonomies.CreateCategory(ctx, taxonomy.CategoryCommand{Name: "AI", Slug: "ai", ParentID: &tech.ID})
+	if err != nil {
+		t.Fatalf("create tech ai category failed: %v", err)
+	}
+	aiLife, err := taxonomies.CreateCategory(ctx, taxonomy.CategoryCommand{Name: "AI", Slug: "ai", ParentID: &life.ID})
+	if err != nil {
+		t.Fatalf("create life ai category failed: %v", err)
+	}
+	service, err := NewService(db, libraryRoot)
+	if err != nil {
+		t.Fatalf("create document service failed: %v", err)
+	}
+	admin := user.User{ID: 1, Role: user.RoleAdmin}
+	if _, err := service.CreateAdmin(ctx, admin, CreateCommand{
+		Slug:       "tech-ai-doc",
+		Title:      "Tech AI",
+		Content:    "published body",
+		CategoryID: aiTech.ID,
+		Status:     StatusPublished,
+	}); err != nil {
+		t.Fatalf("create tech document failed: %v", err)
+	}
+	if _, err := service.CreateAdmin(ctx, admin, CreateCommand{
+		Slug:       "life-ai-doc",
+		Title:      "Life AI",
+		Content:    "published body",
+		CategoryID: aiLife.ID,
+		Status:     StatusPublished,
+	}); err != nil {
+		t.Fatalf("create life document failed: %v", err)
+	}
+
+	ambiguous, err := service.ListPublic(ctx, ListQuery{Category: "ai"})
+	if err != nil {
+		t.Fatalf("list ambiguous category failed: %v", err)
+	}
+	if ambiguous.Total != 0 {
+		t.Fatalf("ambiguous category total = %d, want 0", ambiguous.Total)
+	}
+	filtered, err := service.ListPublic(ctx, ListQuery{Category: "tech/ai"})
+	if err != nil {
+		t.Fatalf("list category path failed: %v", err)
+	}
+	if filtered.Total != 1 || filtered.Items[0].Slug != "tech-ai-doc" {
+		t.Fatalf("filtered result = %+v, want tech-ai-doc", filtered)
 	}
 }
 

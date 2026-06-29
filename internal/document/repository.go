@@ -215,8 +215,8 @@ func listWhere(query ListQuery) (string, []any) {
 		args = append(args, "%"+query.Q+"%")
 	}
 	if query.Category != "" {
-		parts = append(parts, "(c.path = ? OR c.slug = ?)")
-		args = append(args, query.Category, query.Category)
+		parts = append(parts, "c.path = ?")
+		args = append(args, query.Category)
 	}
 	if query.Tag != "" {
 		parts = append(parts, `EXISTS (

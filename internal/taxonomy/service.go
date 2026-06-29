@@ -15,6 +15,10 @@ func NewService(db *sql.DB) TaxonomyService {
 	return &Service{repo: NewRepository(db)}
 }
 
+func (s *Service) ListPublicCategories(ctx context.Context) ([]Category, error) {
+	return s.repo.ListPublicCategories(ctx)
+}
+
 func (s *Service) ListCategories(ctx context.Context) ([]Category, error) {
 	return s.repo.ListCategories(ctx)
 }
@@ -76,6 +80,7 @@ func (s *Service) UpdateCategory(ctx context.Context, id int64, cmd CategoryUpda
 	if err != nil {
 		return Category{}, err
 	}
+	cmd.ParentID = &nextParentID
 	return s.repo.UpdateCategory(ctx, id, cmd, path)
 }
 
@@ -104,6 +109,10 @@ func (s *Service) ListTags(ctx context.Context) ([]Tag, error) {
 	return s.repo.ListTags(ctx)
 }
 
+func (s *Service) ListPublicTags(ctx context.Context) ([]Tag, error) {
+	return s.repo.ListPublicTags(ctx)
+}
+
 func (s *Service) CreateTag(ctx context.Context, cmd TagCommand) (Tag, error) {
 	cmd.Name = normalizeName(cmd.Name)
 	cmd.Slug = normalizeInputSlug(cmd.Slug, cmd.Name)
@@ -118,6 +127,9 @@ func (s *Service) UpdateTag(ctx context.Context, id int64, cmd TagUpdateCommand)
 		return Tag{}, apperrors.InvalidRequest
 	}
 	if _, err := s.repo.GetTagByID(ctx, id); err != nil {
+		return Tag{}, err
+	}
+	if err := s.ensureTagUnused(ctx, id); err != nil {
 		return Tag{}, err
 	}
 	nextName := ""
@@ -153,6 +165,9 @@ func (s *Service) DeleteTag(ctx context.Context, id int64) error {
 	if _, err := s.repo.GetTagByID(ctx, id); err != nil {
 		return err
 	}
+	if err := s.ensureTagUnused(ctx, id); err != nil {
+		return err
+	}
 	return s.repo.DeleteTag(ctx, id)
 }
 
@@ -181,6 +196,17 @@ func (s *Service) ensureCategoryPathChangeAllowed(ctx context.Context, id int64)
 		return err
 	}
 	if children > 0 || documents > 0 {
+		return apperrors.Conflict
+	}
+	return nil
+}
+
+func (s *Service) ensureTagUnused(ctx context.Context, id int64) error {
+	documents, err := s.repo.CountTagDocuments(ctx, id)
+	if err != nil {
+		return err
+	}
+	if documents > 0 {
 		return apperrors.Conflict
 	}
 	return nil

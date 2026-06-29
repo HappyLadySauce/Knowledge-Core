@@ -55,10 +55,12 @@ type TagUpdateCommand struct {
 }
 
 type TaxonomyService interface {
+	ListPublicCategories(ctx context.Context) ([]Category, error)
 	ListCategories(ctx context.Context) ([]Category, error)
 	CreateCategory(ctx context.Context, cmd CategoryCommand) (Category, error)
 	UpdateCategory(ctx context.Context, id int64, cmd CategoryUpdateCommand) (Category, error)
 	DeleteCategory(ctx context.Context, id int64) error
+	ListPublicTags(ctx context.Context) ([]Tag, error)
 	ListTags(ctx context.Context) ([]Tag, error)
 	CreateTag(ctx context.Context, cmd TagCommand) (Tag, error)
 	UpdateTag(ctx context.Context, id int64, cmd TagUpdateCommand) (Tag, error)

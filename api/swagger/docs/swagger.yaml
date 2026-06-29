@@ -567,7 +567,7 @@ paths:
         in: query
         name: q
         type: string
-      - description: Category slug or path
+      - description: Category path
         in: query
         name: category
         type: string
@@ -889,7 +889,7 @@ paths:
       - Admin Tags
   /api/v1/admin/tags/{id}:
     delete:
-      description: Delete a tag and clear document tag links. Admin only.
+      description: Delete an unused tag. Admin only.
       parameters:
       - description: Tag ID
         in: path
@@ -917,6 +917,10 @@ paths:
             $ref: '#/definitions/common.SwaggerErrorResponse'
         "404":
           description: Not Found
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "409":
+          description: Conflict
           schema:
             $ref: '#/definitions/common.SwaggerErrorResponse'
         "500":
@@ -1438,7 +1442,7 @@ paths:
         in: query
         name: q
         type: string
-      - description: Category slug or path
+      - description: Category path
         in: query
         name: category
         type: string

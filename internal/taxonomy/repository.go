@@ -45,6 +45,45 @@ ORDER BY COALESCE(c.parent_id, 0) ASC, c.sort ASC, c.name ASC`)
 	return categories, nil
 }
 
+func (r *Repository) ListPublicCategories(ctx context.Context) ([]Category, error) {
+	rows, err := r.db.QueryContext(ctx, `
+WITH RECURSIVE visible_categories(id) AS (
+    SELECT DISTINCT c.id
+    FROM categories c
+    JOIN documents d ON d.category_id = c.id
+    WHERE d.status = 'published'
+    UNION
+    SELECT parent.id
+    FROM categories parent
+    JOIN categories child ON child.parent_id = parent.id
+    JOIN visible_categories vc ON vc.id = child.id
+)
+SELECT c.id, c.name, c.slug, c.path, COALESCE(c.parent_id, 0), c.sort,
+       COUNT(d.id) AS document_count, c.created_at, c.updated_at
+FROM categories c
+JOIN visible_categories vc ON vc.id = c.id
+LEFT JOIN documents d ON d.category_id = c.id AND d.status = 'published'
+GROUP BY c.id
+ORDER BY COALESCE(c.parent_id, 0) ASC, c.sort ASC, c.name ASC`)
+	if err != nil {
+		return nil, apperrors.Wrap(apperrors.InternalError, err)
+	}
+	defer rows.Close()
+
+	categories := make([]Category, 0)
+	for rows.Next() {
+		item, err := scanCategory(rows)
+		if err != nil {
+			return nil, err
+		}
+		categories = append(categories, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, apperrors.Wrap(apperrors.InternalError, err)
+	}
+	return categories, nil
+}
+
 func (r *Repository) GetCategoryByID(ctx context.Context, id int64) (Category, error) {
 	row := r.db.QueryRowContext(ctx, categorySelectSQL+` WHERE c.id = ? GROUP BY c.id`, id)
 	return scanCategory(row)
@@ -164,6 +203,33 @@ ORDER BY document_count DESC, t.name ASC`)
 	return tags, nil
 }
 
+func (r *Repository) ListPublicTags(ctx context.Context) ([]Tag, error) {
+	rows, err := r.db.QueryContext(ctx, `
+SELECT t.id, t.name, t.slug, COUNT(dt.document_id) AS document_count, t.created_at, t.updated_at
+FROM tags t
+JOIN document_tags dt ON dt.tag_id = t.id
+JOIN documents d ON d.id = dt.document_id AND d.status = 'published'
+GROUP BY t.id
+ORDER BY document_count DESC, t.name ASC`)
+	if err != nil {
+		return nil, apperrors.Wrap(apperrors.InternalError, err)
+	}
+	defer rows.Close()
+
+	tags := make([]Tag, 0)
+	for rows.Next() {
+		item, err := scanTag(rows)
+		if err != nil {
+			return nil, err
+		}
+		tags = append(tags, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, apperrors.Wrap(apperrors.InternalError, err)
+	}
+	return tags, nil
+}
+
 func (r *Repository) GetTagByID(ctx context.Context, id int64) (Tag, error) {
 	row := r.db.QueryRowContext(ctx, tagSelectSQL+` WHERE t.id = ? GROUP BY t.id`, id)
 	return scanTag(row)
@@ -256,6 +322,15 @@ func (r *Repository) DeleteTag(ctx context.Context, id int64) error {
 		return apperrors.NotFound
 	}
 	return nil
+}
+
+func (r *Repository) CountTagDocuments(ctx context.Context, id int64) (int64, error) {
+	var count int64
+	err := r.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM document_tags WHERE tag_id = ?`, id).Scan(&count)
+	if err != nil {
+		return 0, apperrors.Wrap(apperrors.InternalError, err)
+	}
+	return count, nil
 }
 
 const categorySelectSQL = `

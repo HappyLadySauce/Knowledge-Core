@@ -51,7 +51,12 @@ func RegisterRoutes(group *gin.RouterGroup, service internaltaxonomy.TaxonomySer
 // @Failure 500 {object} common.SwaggerErrorResponse
 // @Router /api/v1/categories [get]
 func (h *Controller) ListCategories(c *gin.Context) {
-	h.listCategories(c)
+	items, err := h.service.ListPublicCategories(c.Request.Context())
+	if err != nil {
+		writeServiceError(c, err)
+		return
+	}
+	common.OK(c, toListCategoriesResponse(items))
 }
 
 // ListAdminCategories returns category tree for admin.
@@ -67,10 +72,6 @@ func (h *Controller) ListCategories(c *gin.Context) {
 // @Failure 500 {object} common.SwaggerErrorResponse
 // @Router /api/v1/admin/categories [get]
 func (h *Controller) ListAdminCategories(c *gin.Context) {
-	h.listCategories(c)
-}
-
-func (h *Controller) listCategories(c *gin.Context) {
 	items, err := h.service.ListCategories(c.Request.Context())
 	if err != nil {
 		writeServiceError(c, err)
@@ -193,7 +194,12 @@ func (h *Controller) DeleteCategory(c *gin.Context) {
 // @Failure 500 {object} common.SwaggerErrorResponse
 // @Router /api/v1/tags [get]
 func (h *Controller) ListTags(c *gin.Context) {
-	h.listTags(c)
+	items, err := h.service.ListPublicTags(c.Request.Context())
+	if err != nil {
+		writeServiceError(c, err)
+		return
+	}
+	common.OK(c, toListTagsResponse(items))
 }
 
 // ListAdminTags returns tags for admin.
@@ -209,10 +215,6 @@ func (h *Controller) ListTags(c *gin.Context) {
 // @Failure 500 {object} common.SwaggerErrorResponse
 // @Router /api/v1/admin/tags [get]
 func (h *Controller) ListAdminTags(c *gin.Context) {
-	h.listTags(c)
-}
-
-func (h *Controller) listTags(c *gin.Context) {
 	items, err := h.service.ListTags(c.Request.Context())
 	if err != nil {
 		writeServiceError(c, err)
@@ -296,7 +298,7 @@ func (h *Controller) UpdateTag(c *gin.Context) {
 // DeleteTag deletes a tag.
 // DeleteTag 删除标签。
 // @Summary Delete tag
-// @Description Delete a tag and clear document tag links. Admin only.
+// @Description Delete an unused tag. Admin only.
 // @Tags Admin Tags
 // @Produce json
 // @Security BearerAuth
@@ -306,6 +308,7 @@ func (h *Controller) UpdateTag(c *gin.Context) {
 // @Failure 401 {object} common.SwaggerErrorResponse
 // @Failure 403 {object} common.SwaggerErrorResponse
 // @Failure 404 {object} common.SwaggerErrorResponse
+// @Failure 409 {object} common.SwaggerErrorResponse
 // @Failure 500 {object} common.SwaggerErrorResponse
 // @Router /api/v1/admin/tags/{id} [delete]
 func (h *Controller) DeleteTag(c *gin.Context) {

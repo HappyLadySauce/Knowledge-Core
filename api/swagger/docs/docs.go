@@ -350,7 +350,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Category slug or path",
+                        "description": "Category path",
                         "name": "category",
                         "in": "query"
                     },
@@ -867,7 +867,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Delete a tag and clear document tag links. Admin only.",
+                "description": "Delete an unused tag. Admin only.",
                 "produces": [
                     "application/json"
                 ],
@@ -911,6 +911,12 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/common.SwaggerErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
                         "schema": {
                             "$ref": "#/definitions/common.SwaggerErrorResponse"
                         }
@@ -1740,7 +1746,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Category slug or path",
+                        "description": "Category path",
                         "name": "category",
                         "in": "query"
                     },

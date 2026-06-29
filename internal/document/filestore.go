@@ -1,7 +1,9 @@
 package document
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -72,10 +74,28 @@ func (s *fileStore) writeBytes(path string, data []byte) error {
 	if err := tmp.Close(); err != nil {
 		return fmt.Errorf("close document temp file: %w", err)
 	}
+	var backupPath string
+	if _, err := os.Stat(absPath); err == nil {
+		backupPath, err = tempSiblingPath(filepath.Dir(absPath), ".replace-*.md")
+		if err != nil {
+			return err
+		}
+		if err := os.Rename(absPath, backupPath); err != nil {
+			return fmt.Errorf("stage existing document file: %w", err)
+		}
+	} else if !errors.Is(err, fs.ErrNotExist) {
+		return fmt.Errorf("stat document file: %w", err)
+	}
 	if err := os.Rename(tmpPath, absPath); err != nil {
+		if backupPath != "" {
+			_ = os.Rename(backupPath, absPath)
+		}
 		return fmt.Errorf("replace document file: %w", err)
 	}
 	cleanup = false
+	if backupPath != "" {
+		_ = os.Remove(backupPath)
+	}
 	return nil
 }
 
@@ -111,10 +131,54 @@ func (s *fileStore) remove(path string) error {
 	if err != nil {
 		return err
 	}
-	if err := os.Remove(absPath); err != nil && !os.IsNotExist(err) {
+	if err := os.Remove(absPath); err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return fmt.Errorf("remove document file: %w", err)
 	}
 	return nil
+}
+
+// stageDelete moves a document file aside and returns restore/finalize callbacks.
+// stageDelete 先暂存文档文件，并返回恢复/最终清理回调。
+func (s *fileStore) stageDelete(path string) (func() error, func() error, error) {
+	absPath, err := s.absolutePath(path)
+	if err != nil {
+		return nil, nil, err
+	}
+	if _, err := os.Stat(absPath); errors.Is(err, fs.ErrNotExist) {
+		return noopFileOp, noopFileOp, nil
+	} else if err != nil {
+		return nil, nil, fmt.Errorf("stat document file: %w", err)
+	}
+	stagedPath, err := tempSiblingPath(filepath.Dir(absPath), ".delete-*.md")
+	if err != nil {
+		return nil, nil, err
+	}
+	if err := os.Rename(absPath, stagedPath); err != nil {
+		return nil, nil, fmt.Errorf("stage document file deletion: %w", err)
+	}
+	restore := func() error {
+		if _, err := os.Stat(stagedPath); errors.Is(err, fs.ErrNotExist) {
+			return nil
+		} else if err != nil {
+			return fmt.Errorf("stat staged document file: %w", err)
+		}
+		if _, err := os.Stat(absPath); err == nil {
+			return fmt.Errorf("restore document file: target already exists")
+		} else if !errors.Is(err, fs.ErrNotExist) {
+			return fmt.Errorf("stat restore target: %w", err)
+		}
+		if err := os.Rename(stagedPath, absPath); err != nil {
+			return fmt.Errorf("restore document file: %w", err)
+		}
+		return nil
+	}
+	finalize := func() error {
+		if err := os.Remove(stagedPath); err != nil && !errors.Is(err, fs.ErrNotExist) {
+			return fmt.Errorf("remove staged document file: %w", err)
+		}
+		return nil
+	}
+	return restore, finalize, nil
 }
 
 func (s *fileStore) absolutePath(path string) (string, error) {
@@ -131,6 +195,26 @@ func (s *fileStore) absolutePath(path string) (string, error) {
 		return "", fmt.Errorf("document path escapes library root")
 	}
 	return absPath, nil
+}
+
+func tempSiblingPath(dir, pattern string) (string, error) {
+	tmp, err := os.CreateTemp(dir, pattern)
+	if err != nil {
+		return "", fmt.Errorf("create sibling temp file: %w", err)
+	}
+	path := tmp.Name()
+	if err := tmp.Close(); err != nil {
+		_ = os.Remove(path)
+		return "", fmt.Errorf("close sibling temp file: %w", err)
+	}
+	if err := os.Remove(path); err != nil {
+		return "", fmt.Errorf("remove sibling temp placeholder: %w", err)
+	}
+	return path, nil
+}
+
+func noopFileOp() error {
+	return nil
 }
 
 func renderMarkdown(doc Document, categoryPath string, tagNames []string, content string) string {

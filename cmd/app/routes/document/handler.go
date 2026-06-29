@@ -52,7 +52,7 @@ func RegisterRoutes(group *gin.RouterGroup, service internaldocument.DocumentSer
 // @Param page query int false "Page number" default(1)
 // @Param page_size query int false "Page size" default(20)
 // @Param q query string false "Keyword"
-// @Param category query string false "Category slug or path"
+// @Param category query string false "Category path"
 // @Param tag query string false "Tag slug or name"
 // @Success 200 {object} common.SwaggerResponse{data=v1.ListDocumentsResponse}
 // @Failure 400 {object} common.SwaggerErrorResponse
@@ -113,7 +113,7 @@ func (h *Controller) GetPublic(c *gin.Context) {
 // @Param page query int false "Page number" default(1)
 // @Param page_size query int false "Page size" default(20)
 // @Param q query string false "Keyword"
-// @Param category query string false "Category slug or path"
+// @Param category query string false "Category path"
 // @Param tag query string false "Tag slug or name"
 // @Param status query string false "Status" Enums(draft,published)
 // @Success 200 {object} common.SwaggerResponse{data=v1.ListDocumentsResponse}
