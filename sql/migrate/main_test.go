@@ -25,19 +25,20 @@ func TestListMigrationFilesSortsTopLevelSQLiteMigrations(t *testing.T) {
 	}
 }
 
-func TestInitialMigrationDefinesKnowledgeIndexTables(t *testing.T) {
+func TestInitialMigrationDefinesUserAuthTables(t *testing.T) {
 	root := repoRootFromWorkingDir(t)
-	body, err := os.ReadFile(filepath.Join(root, "sql", "migrations", "001_init_index.sql"))
+	body, err := os.ReadFile(filepath.Join(root, "sql", "migrations", "001_users.sql"))
 	if err != nil {
 		t.Fatalf("read initial migration failed: %v", err)
 	}
 
 	sqlText := string(body)
 	for _, want := range []string{
-		"CREATE TABLE IF NOT EXISTS notes",
-		"CREATE TABLE IF NOT EXISTS note_tags",
-		"CREATE VIRTUAL TABLE IF NOT EXISTS notes_fts",
-		"idx_notes_category_updated_at",
+		"CREATE TABLE IF NOT EXISTS users",
+		"avatar TEXT NOT NULL DEFAULT ''",
+		"bio TEXT NOT NULL DEFAULT ''",
+		"CREATE TABLE IF NOT EXISTS refresh_tokens",
+		"idx_users_role_status",
 	} {
 		if !strings.Contains(sqlText, want) {
 			t.Fatalf("initial migration missing %q", want)

@@ -2,6 +2,8 @@ CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,
     email TEXT UNIQUE,
+    avatar TEXT NOT NULL DEFAULT '',
+    bio TEXT NOT NULL DEFAULT '',
     password_hash TEXT NOT NULL,
     role TEXT NOT NULL CHECK (role IN ('admin', 'user')),
     status TEXT NOT NULL CHECK (status IN ('active', 'disabled')),
@@ -28,10 +30,12 @@ ON refresh_tokens (user_id);
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_expires_at
 ON refresh_tokens (expires_at);
 
-INSERT INTO users (username, email, password_hash, role, status, created_at, updated_at)
+INSERT INTO users (username, email, avatar, bio, password_hash, role, status, created_at, updated_at)
 SELECT
     'admin',
     NULL,
+    '',
+    '',
     '$2a$12$jT69G2EI/FYC1aePkf4bFu6ooPuj2Vc8ln8Zc5gTnrTELu3Lf7vnq',
     'admin',
     'active',

@@ -12,6 +12,7 @@ import (
 
 	apperrors "github.com/HappyLadySauce/Knowledge-Core/internal/errors"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/options"
+	"github.com/HappyLadySauce/Knowledge-Core/internal/user"
 )
 
 type Claims struct {
@@ -27,14 +28,14 @@ func newTokenManager(opts *options.JWTOptions) *tokenManager {
 	return &tokenManager{opts: opts}
 }
 
-func (m *tokenManager) issueAccessToken(user User) (string, int64, error) {
+func (m *tokenManager) issueAccessToken(currentUser user.User) (string, int64, error) {
 	now := time.Now().UTC()
 	expiresAt := now.Add(m.opts.AccessTTL)
 	claims := Claims{
-		Role: user.Role,
+		Role: currentUser.Role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    m.opts.Issuer,
-			Subject:   fmt.Sprintf("%d", user.ID),
+			Subject:   fmt.Sprintf("%d", currentUser.ID),
 			ExpiresAt: jwt.NewNumericDate(expiresAt),
 			IssuedAt:  jwt.NewNumericDate(now),
 			ID:        randomID(),

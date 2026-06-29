@@ -1,33 +1,12 @@
 package auth
 
-import "time"
+import (
+	"context"
 
-const (
-	RoleAdmin = "admin"
-	RoleUser  = "user"
-
-	StatusActive   = "active"
-	StatusDisabled = "disabled"
-
-	TokenTypeBearer = "Bearer"
+	"github.com/HappyLadySauce/Knowledge-Core/internal/user"
 )
 
-// User is the domain account model.
-// User 是领域层账户模型。
-type User struct {
-	ID        int64
-	Username  string
-	Email     string
-	Role      string
-	Status    string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-}
-
-type userRecord struct {
-	User
-	PasswordHash string
-}
+const TokenTypeBearer = "Bearer"
 
 // TokenResponse carries issued OAuth2-compatible token fields.
 // TokenResponse 携带已签发的 OAuth2 兼容令牌字段。
@@ -37,7 +16,7 @@ type TokenResponse struct {
 	ExpiresIn    int64
 	RefreshToken string
 	Scope        string
-	User         User
+	User         user.User
 }
 
 type RegisterCommand struct {
@@ -55,9 +34,9 @@ type RefreshCommand struct {
 	RefreshToken string
 }
 
-type UpdateUserCommand struct {
-	Username *string
-	Email    *string
-	Status   *string
-	Role     *string
+type AuthService interface {
+	Register(ctx context.Context, req RegisterCommand) (TokenResponse, error)
+	Login(ctx context.Context, req LoginCommand) (TokenResponse, error)
+	Refresh(ctx context.Context, req RefreshCommand) (TokenResponse, error)
+	CurrentUser(ctx context.Context, rawToken string) (user.User, error)
 }

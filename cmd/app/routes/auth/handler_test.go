@@ -9,7 +9,6 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
-	"strconv"
 	"testing"
 	"time"
 
@@ -22,31 +21,47 @@ import (
 	"github.com/HappyLadySauce/Knowledge-Core/internal/config"
 	apperrors "github.com/HappyLadySauce/Knowledge-Core/internal/errors"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/options"
+	internaluser "github.com/HappyLadySauce/Knowledge-Core/internal/user"
 )
 
-func TestRegisterLogsUserInAndRejectsAdminRoleInjection(t *testing.T) {
+func TestRegisterLoginAndRefreshReturnTokenEnvelope(t *testing.T) {
 	harness := newAuthHarness(t)
 
-	response := harness.request(t, http.MethodPost, "/api/v1/auth/register", map[string]any{
+	register := harness.request(t, http.MethodPost, "/api/v1/auth/register", map[string]any{
 		"username": "Alice",
 		"password": "StrongPass_123",
 		"email":    "alice@example.com",
-		"role":     internalauth.RoleAdmin,
+		"role":     internaluser.RoleAdmin,
 	}, "")
-	if response.Code != http.StatusCreated {
-		t.Fatalf("register status = %d, body = %s", response.Code, response.Body.String())
+	registered := decodeEnvelopeData[v1.TokenResponse](t, register, http.StatusCreated, apperrors.MessageOK)
+	if registered.User.Role != internaluser.RoleUser || registered.User.Status != internaluser.StatusActive {
+		t.Fatalf("registered user should be active normal user: %+v", registered.User)
+	}
+	if registered.User.Avatar != "" || registered.User.Bio != "" {
+		t.Fatalf("new user should have empty profile fields: %+v", registered.User)
 	}
 
-	token := decodeEnvelopeData[v1.TokenResponse](t, response, http.StatusCreated, apperrors.MessageOK)
-	if token.AccessToken == "" || token.RefreshToken == "" || token.TokenType != internalauth.TokenTypeBearer {
-		t.Fatalf("register should return OAuth2 token response in data: %+v", token)
+	login := harness.request(t, http.MethodPost, "/api/v1/auth/login", map[string]any{
+		"username": "alice",
+		"password": "StrongPass_123",
+	}, "")
+	loggedIn := decodeEnvelopeData[v1.TokenResponse](t, login, http.StatusOK, apperrors.MessageOK)
+	if loggedIn.AccessToken == "" || loggedIn.RefreshToken == "" || loggedIn.TokenType != internalauth.TokenTypeBearer {
+		t.Fatalf("login should return OAuth2 token response in data: %+v", loggedIn)
 	}
-	if token.User.Role != internalauth.RoleUser || token.User.Status != internalauth.StatusActive {
-		t.Fatalf("registered user should be active normal user: %+v", token.User)
+
+	refresh := harness.request(t, http.MethodPost, "/api/v1/auth/refresh", map[string]any{
+		"refresh_token": loggedIn.RefreshToken,
+	}, "")
+	rotated := decodeEnvelopeData[v1.TokenResponse](t, refresh, http.StatusOK, apperrors.MessageOK)
+	if rotated.RefreshToken == "" || rotated.RefreshToken == loggedIn.RefreshToken {
+		t.Fatalf("refresh token was not rotated")
 	}
-	if token.Scope != "role:user" {
-		t.Fatalf("scope = %q", token.Scope)
-	}
+
+	oldRefresh := harness.request(t, http.MethodPost, "/api/v1/auth/refresh", map[string]any{
+		"refresh_token": loggedIn.RefreshToken,
+	}, "")
+	decodeEnvelopeData[any](t, oldRefresh, http.StatusUnauthorized, apperrors.MessageUnauthorized)
 }
 
 func TestDefaultAdminCanLogin(t *testing.T) {
@@ -56,130 +71,13 @@ func TestDefaultAdminCanLogin(t *testing.T) {
 		"username": "admin",
 		"password": "ChangeMe_123456!",
 	}, "")
-	if response.Code != http.StatusOK {
-		t.Fatalf("admin login status = %d, body = %s", response.Code, response.Body.String())
-	}
-
 	token := decodeEnvelopeData[v1.TokenResponse](t, response, http.StatusOK, apperrors.MessageOK)
-	if token.User.Role != internalauth.RoleAdmin || token.Scope != "role:admin" {
+	if token.User.Role != internaluser.RoleAdmin || token.Scope != "role:admin" {
 		t.Fatalf("admin login returned wrong user/scope: %+v", token)
 	}
 }
 
-func TestRefreshRotatesTokenAndRejectsOldToken(t *testing.T) {
-	harness := newAuthHarness(t)
-	token := harness.registerUser(t, "refresh-user")
-
-	firstRefresh := harness.request(t, http.MethodPost, "/api/v1/auth/refresh", map[string]any{
-		"refresh_token": token.RefreshToken,
-	}, "")
-	if firstRefresh.Code != http.StatusOK {
-		t.Fatalf("refresh status = %d, body = %s", firstRefresh.Code, firstRefresh.Body.String())
-	}
-
-	rotated := decodeEnvelopeData[v1.TokenResponse](t, firstRefresh, http.StatusOK, apperrors.MessageOK)
-	if rotated.RefreshToken == "" || rotated.RefreshToken == token.RefreshToken {
-		t.Fatalf("refresh token was not rotated")
-	}
-
-	oldRefresh := harness.request(t, http.MethodPost, "/api/v1/auth/refresh", map[string]any{
-		"refresh_token": token.RefreshToken,
-	}, "")
-	decodeEnvelopeData[any](t, oldRefresh, http.StatusUnauthorized, apperrors.MessageUnauthorized)
-}
-
-func TestAdminCanUpdateUserProfileStatusAndRole(t *testing.T) {
-	harness := newAuthHarness(t)
-	userToken := harness.registerUser(t, "managed-user")
-	adminToken := harness.loginAdmin(t)
-
-	updateResponse := harness.request(t, http.MethodPatch, "/api/v1/admin/users/"+itoa(userToken.User.ID), map[string]any{
-		"username": "managed-user-renamed",
-		"email":    "managed@example.com",
-		"status":   internalauth.StatusActive,
-		"role":     internalauth.RoleAdmin,
-	}, adminToken.AccessToken)
-	updated := decodeEnvelopeData[v1.UserResponse](t, updateResponse, http.StatusOK, apperrors.MessageOK)
-	if updated.Username != "managed-user-renamed" || updated.Email != "managed@example.com" ||
-		updated.Status != internalauth.StatusActive || updated.Role != internalauth.RoleAdmin {
-		t.Fatalf("unexpected updated user: %+v", updated)
-	}
-}
-
-func TestAdminDisableUserRevokesRefreshToken(t *testing.T) {
-	harness := newAuthHarness(t)
-	userToken := harness.registerUser(t, "status-user")
-	adminToken := harness.loginAdmin(t)
-
-	disableResponse := harness.request(t, http.MethodPatch, "/api/v1/admin/users/"+itoa(userToken.User.ID), map[string]any{
-		"status": internalauth.StatusDisabled,
-	}, adminToken.AccessToken)
-	decodeEnvelopeData[v1.UserResponse](t, disableResponse, http.StatusOK, apperrors.MessageOK)
-
-	loginDisabled := harness.request(t, http.MethodPost, "/api/v1/auth/login", map[string]any{
-		"username": "status-user",
-		"password": "StrongPass_123",
-	}, "")
-	decodeEnvelopeData[any](t, loginDisabled, http.StatusUnauthorized, apperrors.MessageUnauthorized)
-
-	refreshDisabled := harness.request(t, http.MethodPost, "/api/v1/auth/refresh", map[string]any{
-		"refresh_token": userToken.RefreshToken,
-	}, "")
-	decodeEnvelopeData[any](t, refreshDisabled, http.StatusUnauthorized, apperrors.MessageUnauthorized)
-}
-
-func TestAdminRoleChangeRevokesRefreshToken(t *testing.T) {
-	harness := newAuthHarness(t)
-	userToken := harness.registerUser(t, "role-user")
-	adminToken := harness.loginAdmin(t)
-
-	roleResponse := harness.request(t, http.MethodPatch, "/api/v1/admin/users/"+itoa(userToken.User.ID), map[string]any{
-		"role": internalauth.RoleAdmin,
-	}, adminToken.AccessToken)
-	decodeEnvelopeData[v1.UserResponse](t, roleResponse, http.StatusOK, apperrors.MessageOK)
-
-	refreshAfterRoleChange := harness.request(t, http.MethodPost, "/api/v1/auth/refresh", map[string]any{
-		"refresh_token": userToken.RefreshToken,
-	}, "")
-	decodeEnvelopeData[any](t, refreshAfterRoleChange, http.StatusUnauthorized, apperrors.MessageUnauthorized)
-}
-
-func TestNonAdminCannotUpdateUserAndAdminCannotChangeOwnRoleOrStatus(t *testing.T) {
-	harness := newAuthHarness(t)
-	userToken := harness.registerUser(t, "normal-user")
-	adminToken := harness.loginAdmin(t)
-
-	forbidden := harness.request(t, http.MethodPatch, "/api/v1/admin/users/"+itoa(userToken.User.ID), map[string]any{
-		"status": internalauth.StatusDisabled,
-	}, userToken.AccessToken)
-	decodeEnvelopeData[any](t, forbidden, http.StatusForbidden, apperrors.MessageForbidden)
-
-	selfDisable := harness.request(t, http.MethodPatch, "/api/v1/admin/users/"+itoa(adminToken.User.ID), map[string]any{
-		"status": internalauth.StatusDisabled,
-	}, adminToken.AccessToken)
-	decodeEnvelopeData[any](t, selfDisable, http.StatusForbidden, apperrors.MessageForbidden)
-
-	selfRole := harness.request(t, http.MethodPatch, "/api/v1/admin/users/"+itoa(adminToken.User.ID), map[string]any{
-		"role": internalauth.RoleUser,
-	}, adminToken.AccessToken)
-	decodeEnvelopeData[any](t, selfRole, http.StatusForbidden, apperrors.MessageForbidden)
-}
-
-func TestAdminCanUpdateOwnProfile(t *testing.T) {
-	harness := newAuthHarness(t)
-	adminToken := harness.loginAdmin(t)
-
-	response := harness.request(t, http.MethodPatch, "/api/v1/admin/users/"+itoa(adminToken.User.ID), map[string]any{
-		"username": "admin-renamed",
-		"email":    "admin@example.com",
-	}, adminToken.AccessToken)
-	updated := decodeEnvelopeData[v1.UserResponse](t, response, http.StatusOK, apperrors.MessageOK)
-	if updated.Username != "admin-renamed" || updated.Email != "admin@example.com" {
-		t.Fatalf("unexpected self profile update: %+v", updated)
-	}
-}
-
-func TestBadRequestsAndDuplicateRegisterReturnEnvelope(t *testing.T) {
+func TestBadAuthRequestsReturnEnvelope(t *testing.T) {
 	harness := newAuthHarness(t)
 
 	badRequest := harness.request(t, http.MethodPost, "/api/v1/auth/register", map[string]any{
@@ -193,73 +91,32 @@ func TestBadRequestsAndDuplicateRegisterReturnEnvelope(t *testing.T) {
 		"password": "StrongPass_123",
 	}, "")
 	decodeEnvelopeData[any](t, conflict, http.StatusConflict, apperrors.MessageConflict)
+
+	wrongPassword := harness.request(t, http.MethodPost, "/api/v1/auth/login", map[string]any{
+		"username": "duplicate-user",
+		"password": "wrong-password",
+	}, "")
+	decodeEnvelopeData[any](t, wrongPassword, http.StatusUnauthorized, apperrors.MessageUnauthorized)
 }
 
-func TestUpdateUserRejectsEmptyBodyInvalidEnumsAndDuplicateFields(t *testing.T) {
+func TestAuthMeRouteIsRemoved(t *testing.T) {
 	harness := newAuthHarness(t)
-	first := harness.registerUser(t, "first-user")
-	second := harness.registerUserWithEmail(t, "second-user", "second@example.com")
-	adminToken := harness.loginAdmin(t)
 
-	empty := harness.request(t, http.MethodPatch, "/api/v1/admin/users/"+itoa(first.User.ID), map[string]any{}, adminToken.AccessToken)
-	decodeEnvelopeData[any](t, empty, http.StatusBadRequest, apperrors.MessageInvalidRequest)
-
-	badStatus := harness.request(t, http.MethodPatch, "/api/v1/admin/users/"+itoa(first.User.ID), map[string]any{
-		"status": "pending",
-	}, adminToken.AccessToken)
-	decodeEnvelopeData[any](t, badStatus, http.StatusBadRequest, apperrors.MessageInvalidRequest)
-
-	badRole := harness.request(t, http.MethodPatch, "/api/v1/admin/users/"+itoa(first.User.ID), map[string]any{
-		"role": "owner",
-	}, adminToken.AccessToken)
-	decodeEnvelopeData[any](t, badRole, http.StatusBadRequest, apperrors.MessageInvalidRequest)
-
-	duplicateUsername := harness.request(t, http.MethodPatch, "/api/v1/admin/users/"+itoa(first.User.ID), map[string]any{
-		"username": second.User.Username,
-	}, adminToken.AccessToken)
-	decodeEnvelopeData[any](t, duplicateUsername, http.StatusConflict, apperrors.MessageConflict)
-
-	duplicateEmail := harness.request(t, http.MethodPatch, "/api/v1/admin/users/"+itoa(first.User.ID), map[string]any{
-		"email": "second@example.com",
-	}, adminToken.AccessToken)
-	decodeEnvelopeData[any](t, duplicateEmail, http.StatusConflict, apperrors.MessageConflict)
-}
-
-func TestRejectsDisablingOrDemotingLastActiveAdmin(t *testing.T) {
-	harness := newAuthHarness(t)
-	adminToken := harness.loginAdmin(t)
-
-	disableLastAdmin := harness.request(t, http.MethodPatch, "/api/v1/admin/users/"+itoa(adminToken.User.ID), map[string]any{
-		"status": internalauth.StatusDisabled,
-	}, adminToken.AccessToken)
-	decodeEnvelopeData[any](t, disableLastAdmin, http.StatusForbidden, apperrors.MessageForbidden)
-
-	demoteLastAdmin := harness.request(t, http.MethodPatch, "/api/v1/admin/users/"+itoa(adminToken.User.ID), map[string]any{
-		"role": internalauth.RoleUser,
-	}, adminToken.AccessToken)
-	decodeEnvelopeData[any](t, demoteLastAdmin, http.StatusForbidden, apperrors.MessageForbidden)
-}
-
-func TestJWTSecretValidationRejectsShortSecret(t *testing.T) {
-	opts := options.NewJWTOptions()
-	opts.Issuer = "Knowledge-Core"
-	opts.Secret = "short"
-	opts.AccessTTL = time.Minute
-	opts.RefreshTTL = time.Hour
-
-	if err := opts.Validate(); err == nil {
-		t.Fatalf("expected short jwt secret to fail validation")
+	response := harness.request(t, http.MethodGet, "/api/v1/auth/me", nil, "")
+	if response.Code != http.StatusNotFound {
+		t.Fatalf("GET /api/v1/auth/me status = %d, want 404", response.Code)
 	}
 }
 
-func TestJWTSecretValidationRejectsEmptySecret(t *testing.T) {
-	opts := options.NewJWTOptions()
-	opts.Issuer = "Knowledge-Core"
-	opts.AccessTTL = time.Minute
-	opts.RefreshTTL = time.Hour
-
-	if err := opts.Validate(); err == nil {
-		t.Fatalf("expected empty jwt secret to fail validation")
+func TestJWTSecretValidationRejectsShortOrEmptySecret(t *testing.T) {
+	for _, secret := range []string{"", "short"} {
+		opts := options.NewJWTOptions()
+		opts.Secret = secret
+		opts.AccessTTL = time.Minute
+		opts.RefreshTTL = time.Hour
+		if err := opts.Validate(); err == nil {
+			t.Fatalf("expected jwt secret %q to fail validation", secret)
+		}
 	}
 }
 
@@ -271,24 +128,7 @@ func newAuthHarness(t *testing.T) *authHarness {
 	t.Helper()
 	gin.SetMode(gin.TestMode)
 
-	db, err := sql.Open("sqlite", "file:"+filepath.ToSlash(filepath.Join(t.TempDir(), "auth.db")))
-	if err != nil {
-		t.Fatalf("open sqlite failed: %v", err)
-	}
-	t.Cleanup(func() {
-		_ = db.Close()
-	})
-	if _, err := db.ExecContext(context.Background(), "PRAGMA foreign_keys=ON"); err != nil {
-		t.Fatalf("enable foreign keys failed: %v", err)
-	}
-	applyAuthMigration(t, db)
-
-	jwtOptions := &options.JWTOptions{
-		Issuer:     "Knowledge-Core",
-		Secret:     "Knowledge-Core-test-secret-32bytes",
-		AccessTTL:  time.Minute,
-		RefreshTTL: time.Hour,
-	}
+	db, jwtOptions := newTestDB(t)
 	sc := &svc.ServiceContext{
 		Config: &config.Config{JWT: jwtOptions},
 		DB:     db,
@@ -307,30 +147,15 @@ func (h *authHarness) registerUser(t *testing.T, username string) v1.TokenRespon
 	return decodeEnvelopeData[v1.TokenResponse](t, response, http.StatusCreated, apperrors.MessageOK)
 }
 
-func (h *authHarness) registerUserWithEmail(t *testing.T, username, email string) v1.TokenResponse {
-	t.Helper()
-	response := h.request(t, http.MethodPost, "/api/v1/auth/register", map[string]any{
-		"username": username,
-		"password": "StrongPass_123",
-		"email":    email,
-	}, "")
-	return decodeEnvelopeData[v1.TokenResponse](t, response, http.StatusCreated, apperrors.MessageOK)
-}
-
-func (h *authHarness) loginAdmin(t *testing.T) v1.TokenResponse {
-	t.Helper()
-	response := h.request(t, http.MethodPost, "/api/v1/auth/login", map[string]any{
-		"username": "admin",
-		"password": "ChangeMe_123456!",
-	}, "")
-	return decodeEnvelopeData[v1.TokenResponse](t, response, http.StatusOK, apperrors.MessageOK)
-}
-
 func (h *authHarness) request(t *testing.T, method, path string, body any, accessToken string) *httptest.ResponseRecorder {
 	t.Helper()
-	payload, err := json.Marshal(body)
-	if err != nil {
-		t.Fatalf("marshal request failed: %v", err)
+	var payload []byte
+	if body != nil {
+		var err error
+		payload, err = json.Marshal(body)
+		if err != nil {
+			t.Fatalf("marshal request failed: %v", err)
+		}
 	}
 	req := httptest.NewRequest(method, path, bytes.NewReader(payload))
 	req.Header.Set("Content-Type", "application/json")
@@ -342,15 +167,36 @@ func (h *authHarness) request(t *testing.T, method, path string, body any, acces
 	return response
 }
 
-func applyAuthMigration(t *testing.T, db *sql.DB) {
+func newTestDB(t *testing.T) (*sql.DB, *options.JWTOptions) {
+	t.Helper()
+	db, err := sql.Open("sqlite", "file:"+filepath.ToSlash(filepath.Join(t.TempDir(), "auth.db")))
+	if err != nil {
+		t.Fatalf("open sqlite failed: %v", err)
+	}
+	t.Cleanup(func() {
+		_ = db.Close()
+	})
+	if _, err := db.ExecContext(context.Background(), "PRAGMA foreign_keys=ON"); err != nil {
+		t.Fatalf("enable foreign keys failed: %v", err)
+	}
+	applyUsersMigration(t, db)
+	return db, &options.JWTOptions{
+		Issuer:     "Knowledge-Core",
+		Secret:     "Knowledge-Core-test-secret-32bytes",
+		AccessTTL:  time.Minute,
+		RefreshTTL: time.Hour,
+	}
+}
+
+func applyUsersMigration(t *testing.T, db *sql.DB) {
 	t.Helper()
 	root := repoRootFromWorkingDir(t)
-	body, err := os.ReadFile(filepath.Join(root, "sql", "migrations", "002_auth_users.sql"))
+	body, err := os.ReadFile(filepath.Join(root, "sql", "migrations", "001_users.sql"))
 	if err != nil {
-		t.Fatalf("read auth migration failed: %v", err)
+		t.Fatalf("read users migration failed: %v", err)
 	}
 	if _, err := db.ExecContext(context.Background(), string(body)); err != nil {
-		t.Fatalf("apply auth migration failed: %v", err)
+		t.Fatalf("apply users migration failed: %v", err)
 	}
 }
 
@@ -385,8 +231,4 @@ func decodeEnvelopeData[T any](t *testing.T, response *httptest.ResponseRecorder
 		t.Fatalf("envelope message = %q, want %q", envelope.Message, wantMessage)
 	}
 	return envelope.Data
-}
-
-func itoa(value int64) string {
-	return strconv.FormatInt(value, 10)
 }

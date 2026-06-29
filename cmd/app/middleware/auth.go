@@ -9,6 +9,7 @@ import (
 	"github.com/HappyLadySauce/Knowledge-Core/cmd/app/types/common"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/auth"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/errors"
+	"github.com/HappyLadySauce/Knowledge-Core/internal/user"
 )
 
 const contextUserKey = "auth.user"
@@ -40,13 +41,13 @@ func AuthMiddleware(sc *svc.ServiceContext) gin.HandlerFunc {
 // RequireAdmin 仅允许 admin 用户通过。
 func RequireAdmin() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		user, ok := UserFromContext(c)
+		currentUser, ok := UserFromContext(c)
 		if !ok {
 			common.Error(c, errors.InvalidToken)
 			c.Abort()
 			return
 		}
-		if user.Role != auth.RoleAdmin {
+		if currentUser.Role != user.RoleAdmin {
 			common.Error(c, errors.Forbidden)
 			c.Abort()
 			return
@@ -57,11 +58,11 @@ func RequireAdmin() gin.HandlerFunc {
 
 // UserFromContext returns the authenticated user stored by AuthMiddleware.
 // UserFromContext 返回 AuthMiddleware 写入上下文的认证用户。
-func UserFromContext(c *gin.Context) (auth.User, bool) {
+func UserFromContext(c *gin.Context) (user.User, bool) {
 	value, ok := c.Get(contextUserKey)
 	if !ok {
-		return auth.User{}, false
+		return user.User{}, false
 	}
-	user, ok := value.(auth.User)
-	return user, ok
+	currentUser, ok := value.(user.User)
+	return currentUser, ok
 }
