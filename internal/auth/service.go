@@ -102,6 +102,16 @@ func (s *Service) Refresh(ctx context.Context, req RefreshCommand) (TokenRespons
 	}, nil
 }
 
+// Logout revokes one refresh token.
+// Logout 撤销单个刷新令牌。
+func (s *Service) Logout(ctx context.Context, req LogoutCommand) error {
+	plain := strings.TrimSpace(req.RefreshToken)
+	if plain == "" {
+		return apperrors.InvalidToken
+	}
+	return s.refreshRepo.revokeRefreshToken(ctx, refreshTokenHash(plain))
+}
+
 // CurrentUser returns the active user behind an access token.
 // CurrentUser 返回访问令牌对应的 active 用户。
 func (s *Service) CurrentUser(ctx context.Context, rawToken string) (user.User, error) {

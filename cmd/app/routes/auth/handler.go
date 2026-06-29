@@ -39,6 +39,7 @@ func RegisterRoutes(group *gin.RouterGroup, service auth.AuthService, sc *svc.Se
 	authGroup.POST("/register", controller.Register)
 	authGroup.POST("/login", controller.Login)
 	authGroup.POST("/refresh", controller.Refresh)
+	authGroup.POST("/logout", controller.Logout)
 }
 
 func (h *Controller) Register(c *gin.Context) {
@@ -90,6 +91,21 @@ func (h *Controller) Refresh(c *gin.Context) {
 		return
 	}
 	common.OK(c, toTokenResponse(response))
+}
+
+func (h *Controller) Logout(c *gin.Context) {
+	var req v1.LogoutRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		common.Error(c, apperrors.InvalidRequest)
+		return
+	}
+	if err := h.service.Logout(c.Request.Context(), auth.LogoutCommand{
+		RefreshToken: req.RefreshToken,
+	}); err != nil {
+		writeServiceError(c, err)
+		return
+	}
+	common.OK[any](c, nil)
 }
 
 func writeServiceError(c *gin.Context, err error) {

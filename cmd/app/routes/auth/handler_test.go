@@ -77,6 +77,21 @@ func TestDefaultAdminCanLogin(t *testing.T) {
 	}
 }
 
+func TestLogoutRevokesRefreshToken(t *testing.T) {
+	harness := newAuthHarness(t)
+	token := harness.registerUser(t, "logout-user")
+
+	logout := harness.request(t, http.MethodPost, "/api/v1/auth/logout", map[string]any{
+		"refresh_token": token.RefreshToken,
+	}, "")
+	decodeEnvelopeData[any](t, logout, http.StatusOK, apperrors.MessageOK)
+
+	refresh := harness.request(t, http.MethodPost, "/api/v1/auth/refresh", map[string]any{
+		"refresh_token": token.RefreshToken,
+	}, "")
+	decodeEnvelopeData[any](t, refresh, http.StatusUnauthorized, apperrors.MessageUnauthorized)
+}
+
 func TestBadAuthRequestsReturnEnvelope(t *testing.T) {
 	harness := newAuthHarness(t)
 
@@ -97,6 +112,14 @@ func TestBadAuthRequestsReturnEnvelope(t *testing.T) {
 		"password": "wrong-password",
 	}, "")
 	decodeEnvelopeData[any](t, wrongPassword, http.StatusUnauthorized, apperrors.MessageUnauthorized)
+
+	badLogout := harness.request(t, http.MethodPost, "/api/v1/auth/logout", map[string]any{}, "")
+	decodeEnvelopeData[any](t, badLogout, http.StatusBadRequest, apperrors.MessageInvalidRequest)
+
+	invalidLogout := harness.request(t, http.MethodPost, "/api/v1/auth/logout", map[string]any{
+		"refresh_token": "invalid-refresh-token",
+	}, "")
+	decodeEnvelopeData[any](t, invalidLogout, http.StatusUnauthorized, apperrors.MessageUnauthorized)
 }
 
 func TestAuthMeRouteIsRemoved(t *testing.T) {

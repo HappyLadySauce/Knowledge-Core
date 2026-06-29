@@ -34,9 +34,14 @@ type RefreshCommand struct {
 	RefreshToken string
 }
 
+type LogoutCommand struct {
+	RefreshToken string
+}
+
 type AuthService interface {
 	Register(ctx context.Context, req RegisterCommand) (TokenResponse, error)
 	Login(ctx context.Context, req LoginCommand) (TokenResponse, error)
 	Refresh(ctx context.Context, req RefreshCommand) (TokenResponse, error)
+	Logout(ctx context.Context, req LogoutCommand) error
 	CurrentUser(ctx context.Context, rawToken string) (user.User, error)
 }

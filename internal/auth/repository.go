@@ -107,6 +107,25 @@ VALUES (?, ?, ?, ?)`,
 	return currentUser, nil
 }
 
+func (r *Repository) revokeRefreshToken(ctx context.Context, tokenHash string) error {
+	result, err := r.db.ExecContext(ctx, `
+UPDATE refresh_tokens
+SET revoked_at = ?
+WHERE token_hash = ? AND revoked_at IS NULL`,
+		formatTime(time.Now().UTC()), tokenHash)
+	if err != nil {
+		return apperrors.Wrap(apperrors.InternalError, err)
+	}
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return apperrors.Wrap(apperrors.InternalError, err)
+	}
+	if affected != 1 {
+		return apperrors.InvalidToken
+	}
+	return nil
+}
+
 func formatTime(t time.Time) string {
 	return t.UTC().Format(time.RFC3339Nano)
 }
