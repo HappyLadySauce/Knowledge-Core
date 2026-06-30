@@ -1145,6 +1145,23 @@ class SimpleNet(nn.Module):
         <!-- ===== RIGHT: Sidebar ===== -->
         <div class="w-full lg:w-[300px] lg:flex-shrink-0 flex flex-col" style="gap:var(--spacer-24);">
 
+          <!-- Sticky Table of Contents -->
+          <div style="position:sticky;top:72px;max-height:calc(100vh - 96px);overflow-y:auto;">
+            <div style="background:var(--bg-base-default);border:1px solid var(--border-neutral-l1);border-radius:var(--radius-12);padding:var(--spacer-20);">
+              <p style="font-size:14px;font-weight:600;color:var(--text-tertiary);margin-bottom:var(--spacer-16);">目录</p>
+              <nav style="display:flex;flex-direction:column;gap:2px;">
+                <a href="#toc-1" style="font-size:13px;color:var(--text-brand);text-decoration:none;display:block;padding:6px 0 6px 12px;border-left:2px solid var(--bg-brand);font-weight:500;">什么是深度学习？</a>
+                <a href="#toc-2" style="font-size:12px;color:var(--text-tertiary);text-decoration:none;display:block;padding:4px 0 4px 24px;">核心概念</a>
+                <a href="#toc-3" style="font-size:12px;color:var(--text-tertiary);text-decoration:none;display:block;padding:4px 0 4px 24px;">数据表示与预处理</a>
+                <a href="#toc-4" style="font-size:13px;color:var(--text-secondary);text-decoration:none;display:block;padding:6px 0 6px 12px;border-left:2px solid var(--border-neutral-l1);">常用框架对比</a>
+                <a href="#toc-5" style="font-size:12px;color:var(--text-tertiary);text-decoration:none;display:block;padding:4px 0 4px 24px;">PyTorch vs TensorFlow</a>
+                <a href="#toc-6" style="font-size:13px;color:var(--text-secondary);text-decoration:none;display:block;padding:6px 0 6px 12px;border-left:2px solid var(--border-neutral-l1);">学习路径建议</a>
+                <a href="#toc-7" style="font-size:12px;color:var(--text-tertiary);text-decoration:none;display:block;padding:4px 0 4px 24px;">推荐资源</a>
+                <a href="#toc-8" style="font-size:13px;color:var(--text-secondary);text-decoration:none;display:block;padding:6px 0 6px 12px;border-left:2px solid var(--border-neutral-l1);">实践项目</a>
+              </nav>
+            </div>
+          </div>
+
           <!-- Author Profile Card -->
           <div class="ds-card" style="display:flex;flex-direction:column;align-items:center;text-align:center;">
             <img src="../assets/author-portrait.jpg" alt="HappyLadySauce" style="width:64px;height:64px;border-radius:var(--radius-full);object-fit:cover;">

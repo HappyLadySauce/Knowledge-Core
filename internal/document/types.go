@@ -40,28 +40,29 @@ type TagSummary struct {
 // Document is the indexed Markdown document metadata.
 // Document 是 Markdown 文档索引元数据。
 type Document struct {
-	ID          int64
-	Slug        string
-	Title       string
-	Summary     string
-	ContentPath string
-	CategoryID  int64
-	Category    *CategorySummary
-	Tags        []TagSummary
-	Source      string
-	Status      string
-	Confidence  float64
-	WordCount   int
-	CoverURL    string
-	AuthorID    int64
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	PublishedAt *time.Time
+	ID             int64
+	Slug           string
+	Title          string
+	Summary        string
+	CategoryID     int64
+	Category       *CategorySummary
+	Tags           []TagSummary
+	Source         string
+	Status         string
+	Confidence     float64
+	WordCount      int
+	CoverURL       string
+	AuthorID       int64
+	CurrentVersion int64
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	PublishedAt    *time.Time
 }
 
 type Detail struct {
 	Document
 	Content string
+	Blocks  []Block
 }
 
 type ListQuery struct {
@@ -91,6 +92,7 @@ type CreateCommand struct {
 	Status     string
 	Confidence float64
 	CoverURL   string
+	Blocks     []BlockInput
 }
 
 type UpdateCommand struct {
@@ -104,6 +106,64 @@ type UpdateCommand struct {
 	Status     *string
 	Confidence *float64
 	CoverURL   *string
+	Blocks     *[]BlockInput
+}
+
+type Block struct {
+	BlockID     string
+	DocumentID  int64
+	ParentID    string
+	PositionKey string
+	Type        string
+	ContentJSON string
+	TextContent string
+	Version     int64
+	UpdatedBy   int64
+	UpdatedAt   time.Time
+}
+
+type BlockInput struct {
+	BlockID     string
+	ParentID    string
+	PositionKey string
+	Type        string
+	ContentJSON string
+	TextContent string
+}
+
+type Operation struct {
+	OpID                 string
+	BaseDocumentVersion  int64
+	BlockID              string
+	ExpectedBlockVersion int64
+	Type                 string
+	PayloadJSON          string
+}
+
+type OperationAck struct {
+	OpID            string
+	DocumentID      int64
+	DocumentVersion int64
+	BlockID         string
+	BlockVersion    int64
+}
+
+type OperationConflict struct {
+	OpID            string
+	DocumentID      int64
+	DocumentVersion int64
+	Block           Block
+}
+
+type ApplyOpsCommand struct {
+	Ops []Operation
+}
+
+type ApplyOpsResult struct {
+	Acks      []OperationAck
+	Conflicts []OperationConflict
+	Document  Document
+	Blocks    []Block
 }
 
 type DocumentService interface {
@@ -114,6 +174,7 @@ type DocumentService interface {
 	GetAdmin(ctx context.Context, actor user.User, id int64) (Detail, error)
 	UpdateAdmin(ctx context.Context, actor user.User, id int64, cmd UpdateCommand) (Detail, error)
 	DeleteAdmin(ctx context.Context, actor user.User, id int64) error
+	ApplyOpsAdmin(ctx context.Context, actor user.User, id int64, cmd ApplyOpsCommand) (ApplyOpsResult, error)
 }
 
 type record struct {

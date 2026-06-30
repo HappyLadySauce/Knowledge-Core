@@ -3,7 +3,6 @@ CREATE TABLE IF NOT EXISTS documents (
     slug TEXT NOT NULL UNIQUE,
     title TEXT NOT NULL,
     summary TEXT NOT NULL DEFAULT '',
-    content_path TEXT NOT NULL UNIQUE,
     category_id INTEGER,
     source TEXT NOT NULL CHECK (source IN ('manual', 'import', 'agent')),
     status TEXT NOT NULL CHECK (status IN ('draft', 'published')),
@@ -12,6 +11,7 @@ CREATE TABLE IF NOT EXISTS documents (
     search_text TEXT NOT NULL DEFAULT '',
     cover_url TEXT NOT NULL DEFAULT '',
     author_id INTEGER,
+    current_version INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
     published_at TEXT,
@@ -27,6 +27,57 @@ ON documents (category_id, status);
 
 CREATE INDEX IF NOT EXISTS idx_documents_slug
 ON documents (slug);
+
+CREATE TABLE IF NOT EXISTS document_blocks (
+    block_id TEXT PRIMARY KEY,
+    document_id INTEGER NOT NULL,
+    parent_id TEXT NOT NULL DEFAULT '',
+    position_key TEXT NOT NULL,
+    type TEXT NOT NULL,
+    content_json TEXT NOT NULL,
+    text_content TEXT NOT NULL DEFAULT '',
+    version INTEGER NOT NULL DEFAULT 1,
+    updated_by INTEGER,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
+    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_document_blocks_document_position
+ON document_blocks (document_id, position_key);
+
+CREATE TABLE IF NOT EXISTS document_ops (
+    op_id TEXT PRIMARY KEY,
+    document_id INTEGER NOT NULL,
+    actor_id INTEGER,
+    base_document_version INTEGER NOT NULL,
+    block_id TEXT NOT NULL,
+    op_type TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    document_version INTEGER NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
+    FOREIGN KEY (actor_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_document_ops_document_version
+ON document_ops (document_id, document_version);
+
+CREATE TABLE IF NOT EXISTS document_revisions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    document_id INTEGER NOT NULL,
+    version INTEGER NOT NULL,
+    snapshot_json TEXT NOT NULL,
+    content_text TEXT NOT NULL,
+    created_by INTEGER,
+    created_at TEXT NOT NULL,
+    UNIQUE (document_id, version),
+    FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_document_revisions_document_version
+ON document_revisions (document_id, version);
 
 CREATE TABLE IF NOT EXISTS document_tags (
     document_id INTEGER NOT NULL,

@@ -7,8 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -52,14 +50,15 @@ func TestDocumentServiceWritesMarkdownAndIndexesPublishedDocuments(t *testing.T)
 	if created.Status != StatusPublished || created.PublishedAt == nil {
 		t.Fatalf("unexpected published document: %+v", created.Document)
 	}
-	markdownPath := filepath.Join(libraryRoot, filepath.FromSlash(created.ContentPath))
-	markdownBytes, err := os.ReadFile(markdownPath)
-	if err != nil {
-		t.Fatalf("read markdown failed: %v", err)
+	if created.Content != "Goroutine and channel examples" || len(created.Blocks) != 1 {
+		t.Fatalf("unexpected created blocks/content: %+v content=%q", created.Blocks, created.Content)
 	}
-	markdown := string(markdownBytes)
-	if !strings.Contains(markdown, `title: "Go Concurrency"`) || !strings.Contains(markdown, `tags: ["Go"]`) {
-		t.Fatalf("markdown frontmatter missing expected fields:\n%s", markdown)
+	publicDetail, err := service.GetPublic(ctx, created.ID)
+	if err != nil {
+		t.Fatalf("get public published document failed: %v", err)
+	}
+	if publicDetail.Content != "Goroutine and channel examples" || len(publicDetail.Blocks) != 1 {
+		t.Fatalf("unexpected public revision: %+v content=%q", publicDetail.Blocks, publicDetail.Content)
 	}
 
 	list, err := service.ListPublic(ctx, ListQuery{Q: "goroutine"})
@@ -85,12 +84,12 @@ func TestDocumentServiceWritesMarkdownAndIndexesPublishedDocuments(t *testing.T)
 	if err := service.DeleteAdmin(ctx, admin, created.ID); err != nil {
 		t.Fatalf("delete document failed: %v", err)
 	}
-	if _, err := os.Stat(markdownPath); !os.IsNotExist(err) {
-		t.Fatalf("markdown file still exists or stat failed: %v", err)
+	if _, err := service.GetAdmin(ctx, admin, created.ID); !errors.Is(err, apperrors.NotFound) {
+		t.Fatalf("get deleted document error = %v, want not found", err)
 	}
 }
 
-func TestDocumentServiceSerializesSameSlugCreate(t *testing.T) {
+func TestDocumentServiceApplyOpsIdempotencyAndConflict(t *testing.T) {
 	ctx := context.Background()
 	db := newDocumentTestDB(t)
 	libraryRoot := t.TempDir()
@@ -105,52 +104,55 @@ func TestDocumentServiceSerializesSameSlugCreate(t *testing.T) {
 	}
 	admin := user.User{ID: 1, Role: user.RoleAdmin}
 	cmd := CreateCommand{
-		Slug:       "same-slug",
-		Title:      "Same Slug",
+		Slug:       "ops-doc",
+		Title:      "Ops Doc",
 		Content:    "body",
 		CategoryID: category.ID,
 	}
-
-	type createResult struct {
-		detail Detail
-		err    error
+	created, err := service.CreateAdmin(ctx, admin, cmd)
+	if err != nil {
+		t.Fatalf("create document failed: %v", err)
 	}
-	results := make([]createResult, 2)
-	start := make(chan struct{})
-	var wg sync.WaitGroup
-	for i := range results {
-		wg.Add(1)
-		go func(index int) {
-			defer wg.Done()
-			<-start
-			detail, err := service.CreateAdmin(ctx, admin, cmd)
-			results[index] = createResult{detail: detail, err: err}
-		}(i)
+	if len(created.Blocks) != 1 || created.Blocks[0].TextContent != "body" {
+		t.Fatalf("created blocks = %+v, want one body block", created.Blocks)
 	}
-	close(start)
-	wg.Wait()
-
-	successes := 0
-	conflicts := 0
-	var created Detail
-	for _, result := range results {
-		if result.err == nil {
-			successes++
-			created = result.detail
-			continue
-		}
-		if errors.Is(result.err, apperrors.Conflict) {
-			conflicts++
-			continue
-		}
-		t.Fatalf("create error = %v, want nil or conflict", result.err)
+	payload := `{"text_content":"updated body"}`
+	op := Operation{
+		OpID:                 "op-1",
+		BaseDocumentVersion:  created.CurrentVersion,
+		BlockID:              created.Blocks[0].BlockID,
+		ExpectedBlockVersion: created.Blocks[0].Version,
+		Type:                 OpTypeUpdateBlock,
+		PayloadJSON:          payload,
 	}
-	if successes != 1 || conflicts != 1 {
-		t.Fatalf("successes=%d conflicts=%d, want 1 success and 1 conflict", successes, conflicts)
+	first, err := service.ApplyOpsAdmin(ctx, admin, created.ID, ApplyOpsCommand{Ops: []Operation{op}})
+	if err != nil {
+		t.Fatalf("apply op failed: %v", err)
 	}
-	markdownPath := filepath.Join(libraryRoot, filepath.FromSlash(created.ContentPath))
-	if _, err := os.Stat(markdownPath); err != nil {
-		t.Fatalf("created markdown missing: %v", err)
+	if len(first.Acks) != 1 || first.Blocks[0].TextContent != "updated body" {
+		t.Fatalf("first apply = %+v blocks=%+v, want ack and updated body", first.Acks, first.Blocks)
+	}
+	second, err := service.ApplyOpsAdmin(ctx, admin, created.ID, ApplyOpsCommand{Ops: []Operation{op}})
+	if err != nil {
+		t.Fatalf("duplicate op failed: %v", err)
+	}
+	if len(second.Acks) != 1 || second.Document.CurrentVersion != first.Document.CurrentVersion {
+		t.Fatalf("duplicate result = %+v, want same version %d", second, first.Document.CurrentVersion)
+	}
+	stale := Operation{
+		OpID:                 "op-2",
+		BaseDocumentVersion:  created.CurrentVersion,
+		BlockID:              created.Blocks[0].BlockID,
+		ExpectedBlockVersion: created.Blocks[0].Version,
+		Type:                 OpTypeUpdateBlock,
+		PayloadJSON:          `{"text_content":"stale"}`,
+	}
+	conflict, err := service.ApplyOpsAdmin(ctx, admin, created.ID, ApplyOpsCommand{Ops: []Operation{stale}})
+	if !errors.Is(err, apperrors.Conflict) {
+		t.Fatalf("stale op error = %v, want conflict", err)
+	}
+	if len(conflict.Conflicts) != 1 || conflict.Conflicts[0].Block.TextContent != "updated body" {
+		t.Fatalf("conflict = %+v, want current updated block", conflict.Conflicts)
 	}
 	list, err := service.ListAdmin(ctx, admin, ListQuery{PageSize: 10})
 	if err != nil {

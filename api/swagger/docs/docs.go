@@ -422,7 +422,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Create a Markdown document and index metadata. Admin only.",
+                "description": "Create a block-structured document. Markdown content is imported into blocks. Admin only.",
                 "consumes": [
                     "application/json"
                 ],
@@ -577,7 +577,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Delete document metadata and Markdown file. Admin only.",
+                "description": "Delete document metadata, blocks, operations, and revisions. Admin only.",
                 "produces": [
                     "application/json"
                 ],
@@ -681,6 +681,152 @@ const docTemplate = `{
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/v1.DocumentResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/common.SwaggerErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/common.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/common.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/common.SwaggerErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/common.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/common.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/documents/{id}/collab": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Open a block-level realtime collaboration websocket. Admin only.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Documents"
+                ],
+                "summary": "Open document collaboration websocket",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Document ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "101": {
+                        "description": "Switching Protocols",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/common.SwaggerErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/common.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/common.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/documents/{id}/ops": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Apply idempotent block-level document operations. Admin only.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Documents"
+                ],
+                "summary": "Apply document operations",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Document ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Document operations request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.ApplyDocumentOpsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/common.SwaggerResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/v1.ApplyDocumentOpsResponse"
                                         }
                                     }
                                 }
@@ -2136,6 +2282,40 @@ const docTemplate = `{
                 }
             }
         },
+        "v1.ApplyDocumentOpsRequest": {
+            "type": "object",
+            "properties": {
+                "ops": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.DocumentOperationRequest"
+                    }
+                }
+            }
+        },
+        "v1.ApplyDocumentOpsResponse": {
+            "type": "object",
+            "properties": {
+                "acks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.DocumentOperationAckResponse"
+                    }
+                },
+                "conflicts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.DocumentOperationConflictResponse"
+                    }
+                },
+                "current_version": {
+                    "type": "integer"
+                },
+                "document": {
+                    "$ref": "#/definitions/v1.DocumentResponse"
+                }
+            }
+        },
         "v1.CategoryResponse": {
             "type": "object",
             "properties": {
@@ -2209,6 +2389,12 @@ const docTemplate = `{
         "v1.CreateDocumentRequest": {
             "type": "object",
             "properties": {
+                "blocks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.DocumentBlockInput"
+                    }
+                },
                 "category_id": {
                     "type": "integer"
                 },
@@ -2255,6 +2441,61 @@ const docTemplate = `{
                 }
             }
         },
+        "v1.DocumentBlockInput": {
+            "type": "object",
+            "properties": {
+                "block_id": {
+                    "type": "string"
+                },
+                "content_json": {
+                    "type": "string"
+                },
+                "parent_id": {
+                    "type": "string"
+                },
+                "position_key": {
+                    "type": "string"
+                },
+                "text_content": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.DocumentBlockResponse": {
+            "type": "object",
+            "properties": {
+                "block_id": {
+                    "type": "string"
+                },
+                "content_json": {
+                    "type": "string"
+                },
+                "parent_id": {
+                    "type": "string"
+                },
+                "position_key": {
+                    "type": "string"
+                },
+                "text_content": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "updated_by": {
+                    "type": "integer"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
         "v1.DocumentCategoryResponse": {
             "type": "object",
             "properties": {
@@ -2272,11 +2513,77 @@ const docTemplate = `{
                 }
             }
         },
+        "v1.DocumentOperationAckResponse": {
+            "type": "object",
+            "properties": {
+                "block_id": {
+                    "type": "string"
+                },
+                "block_version": {
+                    "type": "integer"
+                },
+                "document_id": {
+                    "type": "integer"
+                },
+                "document_version": {
+                    "type": "integer"
+                },
+                "op_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.DocumentOperationConflictResponse": {
+            "type": "object",
+            "properties": {
+                "block": {
+                    "$ref": "#/definitions/v1.DocumentBlockResponse"
+                },
+                "document_id": {
+                    "type": "integer"
+                },
+                "document_version": {
+                    "type": "integer"
+                },
+                "op_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.DocumentOperationRequest": {
+            "type": "object",
+            "properties": {
+                "base_document_version": {
+                    "type": "integer"
+                },
+                "block_id": {
+                    "type": "string"
+                },
+                "expected_block_version": {
+                    "type": "integer"
+                },
+                "op_id": {
+                    "type": "string"
+                },
+                "payload_json": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "v1.DocumentResponse": {
             "type": "object",
             "properties": {
                 "author_id": {
                     "type": "integer"
+                },
+                "blocks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.DocumentBlockResponse"
+                    }
                 },
                 "category": {
                     "$ref": "#/definitions/v1.DocumentCategoryResponse"
@@ -2295,6 +2602,9 @@ const docTemplate = `{
                 },
                 "created_at": {
                     "type": "string"
+                },
+                "current_version": {
+                    "type": "integer"
                 },
                 "id": {
                     "type": "integer"
@@ -2528,6 +2838,12 @@ const docTemplate = `{
         "v1.UpdateDocumentRequest": {
             "type": "object",
             "properties": {
+                "blocks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.DocumentBlockInput"
+                    }
+                },
                 "category_id": {
                     "type": "integer"
                 },

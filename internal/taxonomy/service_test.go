@@ -220,11 +220,11 @@ func insertTaxonomyDocument(t *testing.T, db *sql.DB, slug string, categoryID in
 	now := formatTime(time.Now().UTC())
 	result, err := db.ExecContext(context.Background(), `
 INSERT INTO documents (
-    slug, title, summary, content_path, category_id, source, status, confidence,
-    word_count, search_text, cover_url, created_at, updated_at
+    slug, title, summary, category_id, source, status, confidence,
+    word_count, search_text, cover_url, current_version, created_at, updated_at
 )
-VALUES (?, ?, '', ?, ?, 'manual', ?, 1, 1, ?, '', ?, ?)`,
-		slug, slug, "notes/"+slug+".md", categoryID, status, slug, now, now)
+VALUES (?, ?, '', ?, 'manual', ?, 1, 1, ?, '', 1, ?, ?)`,
+		slug, slug, categoryID, status, slug, now, now)
 	if err != nil {
 		t.Fatalf("insert document failed: %v", err)
 	}

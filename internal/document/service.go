@@ -8,8 +8,6 @@ import (
 	"time"
 	"unicode"
 
-	"k8s.io/klog/v2"
-
 	apperrors "github.com/HappyLadySauce/Knowledge-Core/internal/errors"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/taxonomy"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/user"
@@ -18,20 +16,13 @@ import (
 type Service struct {
 	repo       *Repository
 	taxonomies *taxonomy.Repository
-	files      *fileStore
-	fileLocks  *pathLocker
 }
 
 func NewService(db *sql.DB, libraryRoot string) (*Service, error) {
-	files, err := newFileStore(libraryRoot)
-	if err != nil {
-		return nil, err
-	}
+	_ = libraryRoot
 	return &Service{
 		repo:       NewRepository(db),
 		taxonomies: taxonomy.NewRepository(db),
-		files:      files,
-		fileLocks:  newPathLocker(),
 	}, nil
 }
 
@@ -41,14 +32,18 @@ func (s *Service) ListPublic(ctx context.Context, query ListQuery) (ListResult, 
 }
 
 func (s *Service) GetPublic(ctx context.Context, id int64) (Detail, error) {
-	detail, err := s.detail(ctx, id)
+	item, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return Detail{}, err
 	}
-	if detail.Status != StatusPublished {
+	if item.Status != StatusPublished {
 		return Detail{}, apperrors.NotFound
 	}
-	return detail, nil
+	content, blocks, err := s.repo.GetPublishedRevision(ctx, id)
+	if err != nil {
+		return Detail{}, err
+	}
+	return Detail{Document: item, Content: content, Blocks: blocks}, nil
 }
 
 func (s *Service) ListAdmin(ctx context.Context, actor user.User, query ListQuery) (ListResult, error) {
@@ -65,16 +60,10 @@ func (s *Service) CreateAdmin(ctx context.Context, actor user.User, cmd CreateCo
 	if actor.Role != user.RoleAdmin {
 		return Detail{}, apperrors.Forbidden
 	}
-	slugLock := normalizeSlug(cmd.Slug, strings.TrimSpace(cmd.Title))
-	unlockSlug := s.fileLocks.lock("slug:" + slugLock)
-	defer unlockSlug()
-
-	normalized, categoryPath, tagNames, err := s.normalizeCreate(ctx, actor.ID, cmd)
+	normalized, _, _, blocks, content, err := s.normalizeCreate(ctx, actor.ID, cmd)
 	if err != nil {
 		return Detail{}, err
 	}
-	unlock := s.fileLocks.lock(normalized.ContentPath)
-	defer unlock()
 
 	exists, err := s.repo.SlugExists(ctx, normalized.Slug, 0)
 	if err != nil {
@@ -83,22 +72,15 @@ func (s *Service) CreateAdmin(ctx context.Context, actor user.User, cmd CreateCo
 	if exists {
 		return Detail{}, apperrors.Conflict
 	}
-	fileExists, err := s.files.exists(normalized.ContentPath)
+	created, err := s.repo.Create(ctx, normalized, blocks, content)
 	if err != nil {
-		return Detail{}, apperrors.Wrap(apperrors.InternalError, err)
-	}
-	if fileExists {
-		return Detail{}, apperrors.Conflict
-	}
-	if err := s.files.writeDocument(normalized.ContentPath, normalized.Document, categoryPath, tagNames, cmd.Content); err != nil {
-		return Detail{}, apperrors.Wrap(apperrors.InternalError, err)
-	}
-	created, err := s.repo.Create(ctx, normalized)
-	if err != nil {
-		_ = s.files.remove(normalized.ContentPath)
 		return Detail{}, err
 	}
-	return Detail{Document: created, Content: cmd.Content}, nil
+	createdBlocks, err := s.repo.GetBlocks(ctx, created.ID)
+	if err != nil {
+		return Detail{}, err
+	}
+	return Detail{Document: created, Content: blocksToMarkdown(createdBlocks), Blocks: createdBlocks}, nil
 }
 
 func (s *Service) GetAdmin(ctx context.Context, actor user.User, id int64) (Detail, error) {
@@ -119,12 +101,10 @@ func (s *Service) UpdateAdmin(ctx context.Context, actor user.User, id int64, cm
 	if err != nil {
 		return Detail{}, err
 	}
-	next, categoryPath, tagNames, content, err := s.normalizeUpdate(ctx, current, cmd)
+	next, _, _, blocks, content, err := s.normalizeUpdate(ctx, current, cmd)
 	if err != nil {
 		return Detail{}, err
 	}
-	unlock := s.fileLocks.lock(current.ContentPath, next.ContentPath)
-	defer unlock()
 
 	if next.Slug != current.Slug {
 		exists, err := s.repo.SlugExists(ctx, next.Slug, id)
@@ -135,40 +115,15 @@ func (s *Service) UpdateAdmin(ctx context.Context, actor user.User, id int64, cm
 			return Detail{}, apperrors.Conflict
 		}
 	}
-
-	samePath := next.ContentPath == current.ContentPath
-	var oldBytes []byte
-	if samePath {
-		_, oldBytes, err = s.files.readContent(current.ContentPath)
-		if err != nil {
-			return Detail{}, apperrors.Wrap(apperrors.InternalError, err)
-		}
-	} else {
-		exists, err := s.files.exists(next.ContentPath)
-		if err != nil {
-			return Detail{}, apperrors.Wrap(apperrors.InternalError, err)
-		}
-		if exists {
-			return Detail{}, apperrors.Conflict
-		}
-	}
-
-	if err := s.files.writeDocument(next.ContentPath, next.Document, categoryPath, tagNames, content); err != nil {
-		return Detail{}, apperrors.Wrap(apperrors.InternalError, err)
-	}
-	updated, err := s.repo.Update(ctx, id, next)
+	updated, err := s.repo.Update(ctx, id, next, blocks, content)
 	if err != nil {
-		if samePath {
-			_ = s.files.writeBytes(current.ContentPath, oldBytes)
-		} else {
-			_ = s.files.remove(next.ContentPath)
-		}
 		return Detail{}, err
 	}
-	if !samePath {
-		_ = s.files.remove(current.ContentPath)
+	updatedBlocks, err := s.repo.GetBlocks(ctx, updated.ID)
+	if err != nil {
+		return Detail{}, err
 	}
-	return Detail{Document: updated, Content: content}, nil
+	return Detail{Document: updated, Content: blocksToMarkdown(updatedBlocks), Blocks: updatedBlocks}, nil
 }
 
 func (s *Service) DeleteAdmin(ctx context.Context, actor user.User, id int64) error {
@@ -178,27 +133,30 @@ func (s *Service) DeleteAdmin(ctx context.Context, actor user.User, id int64) er
 	if id <= 0 {
 		return apperrors.InvalidRequest
 	}
-	current, err := s.repo.GetByID(ctx, id)
-	if err != nil {
+	if _, err := s.repo.GetByID(ctx, id); err != nil {
 		return err
-	}
-	unlock := s.fileLocks.lock(current.ContentPath)
-	defer unlock()
-
-	restore, finalize, err := s.files.stageDelete(current.ContentPath)
-	if err != nil {
-		return apperrors.Wrap(apperrors.InternalError, err)
 	}
 	if err := s.repo.Delete(ctx, id); err != nil {
-		if restoreErr := restore(); restoreErr != nil {
-			return apperrors.Wrap(apperrors.InternalError, restoreErr)
-		}
 		return err
 	}
-	if err := finalize(); err != nil {
-		klog.ErrorS(err, "document staged file cleanup failed")
-	}
 	return nil
+}
+
+func (s *Service) ApplyOpsAdmin(ctx context.Context, actor user.User, id int64, cmd ApplyOpsCommand) (ApplyOpsResult, error) {
+	if actor.Role != user.RoleAdmin {
+		return ApplyOpsResult{}, apperrors.Forbidden
+	}
+	if id <= 0 || len(cmd.Ops) == 0 {
+		return ApplyOpsResult{}, apperrors.InvalidRequest
+	}
+	result, err := s.repo.ApplyOps(ctx, id, actor.ID, cmd.Ops)
+	if err != nil {
+		return ApplyOpsResult{}, err
+	}
+	if len(result.Conflicts) > 0 {
+		return result, apperrors.Conflict
+	}
+	return result, nil
 }
 
 func (s *Service) detail(ctx context.Context, id int64) (Detail, error) {
@@ -209,63 +167,67 @@ func (s *Service) detail(ctx context.Context, id int64) (Detail, error) {
 	if err != nil {
 		return Detail{}, err
 	}
-	content, _, err := s.files.readContent(item.ContentPath)
+	blocks, err := s.repo.GetBlocks(ctx, id)
 	if err != nil {
-		return Detail{}, apperrors.Wrap(apperrors.InternalError, err)
+		return Detail{}, err
 	}
-	return Detail{Document: item, Content: content}, nil
+	return Detail{Document: item, Content: blocksToMarkdown(blocks), Blocks: blocks}, nil
 }
 
-func (s *Service) normalizeCreate(ctx context.Context, actorID int64, cmd CreateCommand) (record, string, []string, error) {
+func (s *Service) normalizeCreate(ctx context.Context, actorID int64, cmd CreateCommand) (record, string, []string, []Block, string, error) {
 	title := strings.TrimSpace(cmd.Title)
 	content := strings.TrimSpace(cmd.Content)
+	if len(cmd.Blocks) > 0 {
+		content = blocksToMarkdown(blockInputsToBlocks(cmd.Blocks, actorID, time.Now().UTC()))
+	}
 	if title == "" || content == "" {
-		return record{}, "", nil, apperrors.InvalidRequest
+		return record{}, "", nil, nil, "", apperrors.InvalidRequest
 	}
 	slug := normalizeSlug(cmd.Slug, title)
 	if slug == "" {
-		return record{}, "", nil, apperrors.InvalidRequest
+		return record{}, "", nil, nil, "", apperrors.InvalidRequest
 	}
 	status := normalizeStatus(cmd.Status)
 	source := normalizeSource(cmd.Source)
 	if status == "" || source == "" {
-		return record{}, "", nil, apperrors.InvalidRequest
+		return record{}, "", nil, nil, "", apperrors.InvalidRequest
 	}
 	category, categoryPath, err := s.resolveCategory(ctx, cmd.CategoryID)
 	if err != nil {
-		return record{}, "", nil, err
+		return record{}, "", nil, nil, "", err
 	}
 	tags, err := s.resolveTags(ctx, cmd.TagIDs)
 	if err != nil {
-		return record{}, "", nil, err
+		return record{}, "", nil, nil, "", err
 	}
 	tagIDs, tagNames := tagIDsAndNames(tags)
-	contentPath, err := s.files.contentPath(categoryPath, slug)
-	if err != nil {
-		return record{}, "", nil, apperrors.InvalidRequest
-	}
 	now := time.Now().UTC()
+	blocks := markdownToBlocks(content, actorID, now)
+	if len(cmd.Blocks) > 0 {
+		blocks = blockInputsToBlocks(cmd.Blocks, actorID, now)
+		content = blocksToMarkdown(blocks)
+	}
 	publishedAt := publishedAtFor("", status, nil, now)
 	doc := Document{
-		Slug:        slug,
-		Title:       title,
-		Summary:     strings.TrimSpace(cmd.Summary),
-		ContentPath: contentPath,
-		CategoryID:  category.ID,
-		Source:      source,
-		Status:      status,
-		Confidence:  cmd.Confidence,
-		WordCount:   countWords(content),
-		CoverURL:    strings.TrimSpace(cmd.CoverURL),
-		AuthorID:    actorID,
-		CreatedAt:   now,
-		UpdatedAt:   now,
-		PublishedAt: publishedAt,
+		Slug:           slug,
+		Title:          title,
+		Summary:        strings.TrimSpace(cmd.Summary),
+		CategoryID:     category.ID,
+		Source:         source,
+		Status:         status,
+		Confidence:     cmd.Confidence,
+		WordCount:      countWords(content),
+		CoverURL:       strings.TrimSpace(cmd.CoverURL),
+		AuthorID:       actorID,
+		CurrentVersion: 1,
+		CreatedAt:      now,
+		UpdatedAt:      now,
+		PublishedAt:    publishedAt,
 	}
-	return record{Document: doc, SearchText: buildSearchText(doc, categoryPath, tagNames, content), TagIDs: tagIDs}, categoryPath, tagNames, nil
+	return record{Document: doc, SearchText: buildSearchText(doc, categoryPath, tagNames, content), TagIDs: tagIDs}, categoryPath, tagNames, blocks, content, nil
 }
 
-func (s *Service) normalizeUpdate(ctx context.Context, current Detail, cmd UpdateCommand) (record, string, []string, string, error) {
+func (s *Service) normalizeUpdate(ctx context.Context, current Detail, cmd UpdateCommand) (record, string, []string, []Block, string, error) {
 	doc := current.Document
 	content := current.Content
 	if cmd.Title != nil {
@@ -293,7 +255,7 @@ func (s *Service) normalizeUpdate(ctx context.Context, current Detail, cmd Updat
 		doc.CoverURL = strings.TrimSpace(*cmd.CoverURL)
 	}
 	if doc.Title == "" || doc.Slug == "" || content == "" || doc.Source == "" || doc.Status == "" {
-		return record{}, "", nil, "", apperrors.InvalidRequest
+		return record{}, "", nil, nil, "", apperrors.InvalidRequest
 	}
 
 	nextCategoryID := doc.CategoryID
@@ -302,7 +264,7 @@ func (s *Service) normalizeUpdate(ctx context.Context, current Detail, cmd Updat
 	}
 	category, categoryPath, err := s.resolveCategory(ctx, nextCategoryID)
 	if err != nil {
-		return record{}, "", nil, "", err
+		return record{}, "", nil, nil, "", err
 	}
 	doc.CategoryID = category.ID
 
@@ -315,19 +277,26 @@ func (s *Service) normalizeUpdate(ctx context.Context, current Detail, cmd Updat
 	}
 	tags, err := s.resolveTags(ctx, tagIDs)
 	if err != nil {
-		return record{}, "", nil, "", err
+		return record{}, "", nil, nil, "", err
 	}
 	nextTagIDs, tagNames := tagIDsAndNames(tags)
-	contentPath, err := s.files.contentPath(categoryPath, doc.Slug)
-	if err != nil {
-		return record{}, "", nil, "", apperrors.InvalidRequest
-	}
 	now := time.Now().UTC()
-	doc.ContentPath = contentPath
+	blocks := current.Blocks
+	if cmd.Content != nil {
+		blocks = markdownToBlocks(content, doc.AuthorID, now)
+	}
+	if cmd.Blocks != nil {
+		blocks = blockInputsToBlocks(*cmd.Blocks, doc.AuthorID, now)
+		content = blocksToMarkdown(blocks)
+	}
+	if len(blocks) == 0 {
+		return record{}, "", nil, nil, "", apperrors.InvalidRequest
+	}
 	doc.WordCount = countWords(content)
 	doc.UpdatedAt = now
 	doc.PublishedAt = publishedAtFor(current.Status, doc.Status, current.PublishedAt, now)
-	return record{Document: doc, SearchText: buildSearchText(doc, categoryPath, tagNames, content), TagIDs: nextTagIDs}, categoryPath, tagNames, content, nil
+	doc.CurrentVersion = current.CurrentVersion + 1
+	return record{Document: doc, SearchText: buildSearchText(doc, categoryPath, tagNames, content), TagIDs: nextTagIDs}, categoryPath, tagNames, blocks, content, nil
 }
 
 func (s *Service) resolveCategory(ctx context.Context, id int64) (CategorySummary, string, error) {
@@ -414,6 +383,10 @@ func publishedAtFor(previousStatus, nextStatus string, current *time.Time, now t
 func buildSearchText(doc Document, categoryPath string, tagNames []string, content string) string {
 	parts := []string{doc.Title, doc.Summary, categoryPath, strings.Join(tagNames, " "), content}
 	return strings.ToLower(strings.Join(parts, "\n"))
+}
+
+func buildSearchTextFromBlocks(doc Document, blocks []Block) string {
+	return buildSearchText(doc, "", nil, blocksToMarkdown(blocks))
 }
 
 func countWords(content string) int {

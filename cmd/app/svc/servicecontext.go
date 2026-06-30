@@ -101,7 +101,10 @@ func sqliteDSN(path string, busyTimeoutMS int) string {
 }
 
 func verifySchema(ctx context.Context, db *sql.DB) error {
-	requiredTables := []string{"users", "refresh_tokens", "documents", "categories", "tags", "document_tags"}
+	requiredTables := []string{
+		"users", "refresh_tokens", "documents", "document_blocks", "document_ops",
+		"document_revisions", "categories", "tags", "document_tags",
+	}
 	for _, table := range requiredTables {
 		var name string
 		err := db.QueryRowContext(ctx, `

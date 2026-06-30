@@ -18,6 +18,7 @@ import (
 
 type Controller struct {
 	service internaldocument.DocumentService
+	hub     *collabHub
 }
 
 func Init(ctx context.Context, sc *svc.ServiceContext) error {
@@ -31,7 +32,7 @@ func Init(ctx context.Context, sc *svc.ServiceContext) error {
 }
 
 func RegisterRoutes(group *gin.RouterGroup, service internaldocument.DocumentService, sc *svc.ServiceContext) {
-	controller := &Controller{service: service}
+	controller := &Controller{service: service, hub: newCollabHub()}
 	group.GET("/documents", controller.ListPublic)
 	group.GET("/documents/:id", controller.GetPublic)
 
@@ -41,6 +42,8 @@ func RegisterRoutes(group *gin.RouterGroup, service internaldocument.DocumentSer
 	adminGroup.GET("/documents/:id", controller.GetAdmin)
 	adminGroup.PATCH("/documents/:id", controller.UpdateAdmin)
 	adminGroup.DELETE("/documents/:id", controller.DeleteAdmin)
+	adminGroup.POST("/documents/:id/ops", controller.ApplyOps)
+	adminGroup.GET("/documents/:id/collab", controller.Collab)
 }
 
 // ListPublic returns published documents.
@@ -151,7 +154,7 @@ func (h *Controller) ListAdmin(c *gin.Context) {
 // CreateAdmin creates a document.
 // CreateAdmin 创建文档。
 // @Summary Create document
-// @Description Create a Markdown document and index metadata. Admin only.
+// @Description Create a block-structured document. Markdown content is imported into blocks. Admin only.
 // @Tags Admin Documents
 // @Accept json
 // @Produce json
@@ -186,6 +189,7 @@ func (h *Controller) CreateAdmin(c *gin.Context) {
 		Status:     req.Status,
 		Confidence: req.Confidence,
 		CoverURL:   req.CoverURL,
+		Blocks:     toBlockInputs(req.Blocks),
 	})
 	if err != nil {
 		writeServiceError(c, err)
@@ -260,6 +264,11 @@ func (h *Controller) UpdateAdmin(c *gin.Context) {
 		common.Error(c, apperrors.InvalidRequest)
 		return
 	}
+	var blocks *[]internaldocument.BlockInput
+	if req.Blocks != nil {
+		nextBlocks := toBlockInputs(*req.Blocks)
+		blocks = &nextBlocks
+	}
 	detail, err := h.service.UpdateAdmin(c.Request.Context(), actor, id, internaldocument.UpdateCommand{
 		Slug:       req.Slug,
 		Title:      req.Title,
@@ -271,6 +280,7 @@ func (h *Controller) UpdateAdmin(c *gin.Context) {
 		Status:     req.Status,
 		Confidence: req.Confidence,
 		CoverURL:   req.CoverURL,
+		Blocks:     blocks,
 	})
 	if err != nil {
 		writeServiceError(c, err)
@@ -282,7 +292,7 @@ func (h *Controller) UpdateAdmin(c *gin.Context) {
 // DeleteAdmin deletes one document.
 // DeleteAdmin 删除单篇文档。
 // @Summary Delete document
-// @Description Delete document metadata and Markdown file. Admin only.
+// @Description Delete document metadata, blocks, operations, and revisions. Admin only.
 // @Tags Admin Documents
 // @Produce json
 // @Security BearerAuth
@@ -309,6 +319,53 @@ func (h *Controller) DeleteAdmin(c *gin.Context) {
 		return
 	}
 	common.OK[any](c, nil)
+}
+
+// ApplyOps applies block operations to a document.
+// ApplyOps 应用文档块级操作。
+// @Summary Apply document operations
+// @Description Apply idempotent block-level document operations. Admin only.
+// @Tags Admin Documents
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Document ID"
+// @Param request body v1.ApplyDocumentOpsRequest true "Document operations request"
+// @Success 200 {object} common.SwaggerResponse{data=v1.ApplyDocumentOpsResponse}
+// @Failure 400 {object} common.SwaggerErrorResponse
+// @Failure 401 {object} common.SwaggerErrorResponse
+// @Failure 403 {object} common.SwaggerErrorResponse
+// @Failure 404 {object} common.SwaggerErrorResponse
+// @Failure 409 {object} common.SwaggerErrorResponse
+// @Failure 500 {object} common.SwaggerErrorResponse
+// @Router /api/v1/admin/documents/{id}/ops [post]
+func (h *Controller) ApplyOps(c *gin.Context) {
+	actor, ok := middleware.UserFromContext(c)
+	if !ok {
+		common.Error(c, apperrors.InvalidToken)
+		return
+	}
+	id, ok := documentIDParam(c)
+	if !ok {
+		return
+	}
+	var req v1.ApplyDocumentOpsRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		common.Error(c, apperrors.InvalidRequest)
+		return
+	}
+	result, err := h.service.ApplyOpsAdmin(c.Request.Context(), actor, id, internaldocument.ApplyOpsCommand{
+		Ops: toOperations(req.Ops),
+	})
+	if err != nil {
+		if apperrors.Is(err, apperrors.Conflict) && len(result.Conflicts) > 0 {
+			common.JSON(c, apperrors.Conflict.HTTPStatus, apperrors.MessageConflict, toApplyOpsResponse(result))
+			return
+		}
+		writeServiceError(c, err)
+		return
+	}
+	common.OK(c, toApplyOpsResponse(result))
 }
 
 func documentIDParam(c *gin.Context) (int64, bool) {

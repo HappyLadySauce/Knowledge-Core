@@ -42,6 +42,28 @@ definitions:
       username:
         type: string
     type: object
+  v1.ApplyDocumentOpsRequest:
+    properties:
+      ops:
+        items:
+          $ref: '#/definitions/v1.DocumentOperationRequest'
+        type: array
+    type: object
+  v1.ApplyDocumentOpsResponse:
+    properties:
+      acks:
+        items:
+          $ref: '#/definitions/v1.DocumentOperationAckResponse'
+        type: array
+      conflicts:
+        items:
+          $ref: '#/definitions/v1.DocumentOperationConflictResponse'
+        type: array
+      current_version:
+        type: integer
+      document:
+        $ref: '#/definitions/v1.DocumentResponse'
+    type: object
   v1.CategoryResponse:
     properties:
       children:
@@ -90,6 +112,10 @@ definitions:
     type: object
   v1.CreateDocumentRequest:
     properties:
+      blocks:
+        items:
+          $ref: '#/definitions/v1.DocumentBlockInput'
+        type: array
       category_id:
         type: integer
       confidence:
@@ -120,6 +146,42 @@ definitions:
       slug:
         type: string
     type: object
+  v1.DocumentBlockInput:
+    properties:
+      block_id:
+        type: string
+      content_json:
+        type: string
+      parent_id:
+        type: string
+      position_key:
+        type: string
+      text_content:
+        type: string
+      type:
+        type: string
+    type: object
+  v1.DocumentBlockResponse:
+    properties:
+      block_id:
+        type: string
+      content_json:
+        type: string
+      parent_id:
+        type: string
+      position_key:
+        type: string
+      text_content:
+        type: string
+      type:
+        type: string
+      updated_at:
+        type: string
+      updated_by:
+        type: integer
+      version:
+        type: integer
+    type: object
   v1.DocumentCategoryResponse:
     properties:
       id:
@@ -131,10 +193,53 @@ definitions:
       slug:
         type: string
     type: object
+  v1.DocumentOperationAckResponse:
+    properties:
+      block_id:
+        type: string
+      block_version:
+        type: integer
+      document_id:
+        type: integer
+      document_version:
+        type: integer
+      op_id:
+        type: string
+    type: object
+  v1.DocumentOperationConflictResponse:
+    properties:
+      block:
+        $ref: '#/definitions/v1.DocumentBlockResponse'
+      document_id:
+        type: integer
+      document_version:
+        type: integer
+      op_id:
+        type: string
+    type: object
+  v1.DocumentOperationRequest:
+    properties:
+      base_document_version:
+        type: integer
+      block_id:
+        type: string
+      expected_block_version:
+        type: integer
+      op_id:
+        type: string
+      payload_json:
+        type: string
+      type:
+        type: string
+    type: object
   v1.DocumentResponse:
     properties:
       author_id:
         type: integer
+      blocks:
+        items:
+          $ref: '#/definitions/v1.DocumentBlockResponse'
+        type: array
       category:
         $ref: '#/definitions/v1.DocumentCategoryResponse'
       category_id:
@@ -147,6 +252,8 @@ definitions:
         type: string
       created_at:
         type: string
+      current_version:
+        type: integer
       id:
         type: integer
       published_at:
@@ -298,6 +405,10 @@ definitions:
     type: object
   v1.UpdateDocumentRequest:
     properties:
+      blocks:
+        items:
+          $ref: '#/definitions/v1.DocumentBlockInput'
+        type: array
       category_id:
         type: integer
       confidence:
@@ -618,7 +729,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create a Markdown document and index metadata. Admin only.
+      description: Create a block-structured document. Markdown content is imported
+        into blocks. Admin only.
       parameters:
       - description: Document create request
         in: body
@@ -665,7 +777,8 @@ paths:
       - Admin Documents
   /api/v1/admin/documents/{id}:
     delete:
-      description: Delete document metadata and Markdown file. Admin only.
+      description: Delete document metadata, blocks, operations, and revisions. Admin
+        only.
       parameters:
       - description: Document ID
         in: path
@@ -805,6 +918,97 @@ paths:
       security:
       - BearerAuth: []
       summary: Update document
+      tags:
+      - Admin Documents
+  /api/v1/admin/documents/{id}/collab:
+    get:
+      description: Open a block-level realtime collaboration websocket. Admin only.
+      parameters:
+      - description: Document ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "101":
+          description: Switching Protocols
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Open document collaboration websocket
+      tags:
+      - Admin Documents
+  /api/v1/admin/documents/{id}/ops:
+    post:
+      consumes:
+      - application/json
+      description: Apply idempotent block-level document operations. Admin only.
+      parameters:
+      - description: Document ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Document operations request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.ApplyDocumentOpsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.SwaggerResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/v1.ApplyDocumentOpsResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Apply document operations
       tags:
       - Admin Documents
   /api/v1/admin/tags:

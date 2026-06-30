@@ -38,23 +38,37 @@ type DocumentTagResponse struct {
 }
 
 type DocumentResponse struct {
-	ID          int64                     `json:"id"`
-	Slug        string                    `json:"slug"`
-	Title       string                    `json:"title"`
-	Summary     string                    `json:"summary"`
-	Content     string                    `json:"content,omitempty"`
-	CategoryID  int64                     `json:"category_id"`
-	Category    *DocumentCategoryResponse `json:"category,omitempty"`
-	Tags        []DocumentTagResponse     `json:"tags"`
-	Source      string                    `json:"source"`
-	Status      string                    `json:"status"`
-	Confidence  float64                   `json:"confidence"`
-	WordCount   int                       `json:"word_count"`
-	CoverURL    string                    `json:"cover_url"`
-	AuthorID    int64                     `json:"author_id"`
-	CreatedAt   time.Time                 `json:"created_at"`
-	UpdatedAt   time.Time                 `json:"updated_at"`
-	PublishedAt *time.Time                `json:"published_at,omitempty"`
+	ID             int64                     `json:"id"`
+	Slug           string                    `json:"slug"`
+	Title          string                    `json:"title"`
+	Summary        string                    `json:"summary"`
+	Content        string                    `json:"content,omitempty"`
+	Blocks         []DocumentBlockResponse   `json:"blocks,omitempty"`
+	CategoryID     int64                     `json:"category_id"`
+	Category       *DocumentCategoryResponse `json:"category,omitempty"`
+	Tags           []DocumentTagResponse     `json:"tags"`
+	Source         string                    `json:"source"`
+	Status         string                    `json:"status"`
+	Confidence     float64                   `json:"confidence"`
+	WordCount      int                       `json:"word_count"`
+	CoverURL       string                    `json:"cover_url"`
+	AuthorID       int64                     `json:"author_id"`
+	CurrentVersion int64                     `json:"current_version"`
+	CreatedAt      time.Time                 `json:"created_at"`
+	UpdatedAt      time.Time                 `json:"updated_at"`
+	PublishedAt    *time.Time                `json:"published_at,omitempty"`
+}
+
+type DocumentBlockResponse struct {
+	BlockID     string    `json:"block_id"`
+	ParentID    string    `json:"parent_id"`
+	PositionKey string    `json:"position_key"`
+	Type        string    `json:"type"`
+	ContentJSON string    `json:"content_json"`
+	TextContent string    `json:"text_content"`
+	Version     int64     `json:"version"`
+	UpdatedBy   int64     `json:"updated_by"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 type ListDocumentsRequest struct {
@@ -74,29 +88,75 @@ type ListDocumentsResponse struct {
 }
 
 type CreateDocumentRequest struct {
-	Slug       string  `json:"slug"`
-	Title      string  `json:"title"`
-	Summary    string  `json:"summary"`
-	Content    string  `json:"content"`
-	CategoryID int64   `json:"category_id"`
-	TagIDs     []int64 `json:"tag_ids"`
-	Source     string  `json:"source"`
-	Status     string  `json:"status"`
-	Confidence float64 `json:"confidence"`
-	CoverURL   string  `json:"cover_url"`
+	Slug       string               `json:"slug"`
+	Title      string               `json:"title"`
+	Summary    string               `json:"summary"`
+	Content    string               `json:"content"`
+	CategoryID int64                `json:"category_id"`
+	TagIDs     []int64              `json:"tag_ids"`
+	Source     string               `json:"source"`
+	Status     string               `json:"status"`
+	Confidence float64              `json:"confidence"`
+	CoverURL   string               `json:"cover_url"`
+	Blocks     []DocumentBlockInput `json:"blocks"`
 }
 
 type UpdateDocumentRequest struct {
-	Slug       *string  `json:"slug"`
-	Title      *string  `json:"title"`
-	Summary    *string  `json:"summary"`
-	Content    *string  `json:"content"`
-	CategoryID *int64   `json:"category_id"`
-	TagIDs     *[]int64 `json:"tag_ids"`
-	Source     *string  `json:"source"`
-	Status     *string  `json:"status"`
-	Confidence *float64 `json:"confidence"`
-	CoverURL   *string  `json:"cover_url"`
+	Slug       *string               `json:"slug"`
+	Title      *string               `json:"title"`
+	Summary    *string               `json:"summary"`
+	Content    *string               `json:"content"`
+	CategoryID *int64                `json:"category_id"`
+	TagIDs     *[]int64              `json:"tag_ids"`
+	Source     *string               `json:"source"`
+	Status     *string               `json:"status"`
+	Confidence *float64              `json:"confidence"`
+	CoverURL   *string               `json:"cover_url"`
+	Blocks     *[]DocumentBlockInput `json:"blocks"`
+}
+
+type DocumentBlockInput struct {
+	BlockID     string `json:"block_id"`
+	ParentID    string `json:"parent_id"`
+	PositionKey string `json:"position_key"`
+	Type        string `json:"type"`
+	ContentJSON string `json:"content_json"`
+	TextContent string `json:"text_content"`
+}
+
+type ApplyDocumentOpsRequest struct {
+	Ops []DocumentOperationRequest `json:"ops"`
+}
+
+type DocumentOperationRequest struct {
+	OpID                 string `json:"op_id"`
+	BaseDocumentVersion  int64  `json:"base_document_version"`
+	BlockID              string `json:"block_id"`
+	ExpectedBlockVersion int64  `json:"expected_block_version"`
+	Type                 string `json:"type"`
+	PayloadJSON          string `json:"payload_json"`
+}
+
+type ApplyDocumentOpsResponse struct {
+	Acks           []DocumentOperationAckResponse      `json:"acks"`
+	Conflicts      []DocumentOperationConflictResponse `json:"conflicts,omitempty"`
+	Document       DocumentResponse                    `json:"document"`
+	CurrentVersion int64                               `json:"current_version"`
+}
+
+type DocumentOperationAckResponse struct {
+	OpID            string `json:"op_id"`
+	DocumentID      int64  `json:"document_id"`
+	DocumentVersion int64  `json:"document_version"`
+	BlockID         string `json:"block_id"`
+	BlockVersion    int64  `json:"block_version"`
+}
+
+type DocumentOperationConflictResponse struct {
+	OpID            string                `json:"op_id"`
+	DocumentID      int64                 `json:"document_id"`
+	DocumentVersion int64                 `json:"document_version"`
+	Block           DocumentBlockResponse `json:"block"`
 }
 
 type ListCategoriesResponse struct {
