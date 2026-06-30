@@ -4,6 +4,12 @@ Migration CLI lives in [`main.go`](main.go). Entry scripts: [`migrate.ps1`](../m
 
 ## Common Commands
 
+Start local PostgreSQL first:
+
+```powershell
+docker compose up -d postgres
+```
+
 ```powershell
 .\sql\migrate.ps1
 .\sql\migrate.ps1 -DatabaseUrl 'postgres://knowledge_core:knowledge_core@localhost:5432/knowledge_core?sslmode=disable'
