@@ -1,5 +1,5 @@
-// Package main provides the SQLite migration CLI for Knowledge Core.
-// Package main 提供 Knowledge Core 的 SQLite 迁移命令行工具。
+// Package main provides the PostgreSQL migration CLI for Knowledge Core.
+// Package main 提供 Knowledge Core 的 PostgreSQL 迁移命令行工具。
 package main
 
 import (
@@ -10,18 +10,19 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"net/url"
 	"os"
 	"path/filepath"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
-	_ "modernc.org/sqlite"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-const defaultDBPath = ".knowledge-core/index.db"
+const (
+	defaultDatabaseURL = "postgres://knowledge_core:knowledge_core@localhost:5432/knowledge_core?sslmode=disable"
+	migrationLockID    = int64(0x4b435f6d696772)
+)
 
 type migrationFile struct {
 	Version  string
@@ -39,7 +40,7 @@ func main() {
 
 func run() (err error) {
 	var (
-		dbPath        = flag.String("db", envOrDefault("KNOWLEDGE_CORE_SQLITE_PATH", defaultDBPath), "SQLite database file path")
+		databaseURL   = flag.String("database-url", envOrDefault("KNOWLEDGE_CORE_DATABASE_URL", defaultDatabaseURL), "PostgreSQL database URL")
 		migrationsDir = flag.String("dir", "sql/migrations", "migration SQL directory")
 		force         = flag.Bool("force", false, "re-apply a migration when checksum changed")
 	)
@@ -57,7 +58,7 @@ func run() (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
-	db, err := openSQLite(ctx, *dbPath, 5000)
+	db, err := openPostgres(ctx, *databaseURL)
 	if err != nil {
 		return err
 	}
@@ -67,59 +68,63 @@ func run() (err error) {
 		}
 	}()
 
-	if err := ensureSchemaMigrationsTable(ctx, db); err != nil {
+	if err := withMigrationLock(ctx, db, func() error {
+		if err := ensureSchemaMigrationsTable(ctx, db); err != nil {
+			return err
+		}
+		for _, mf := range files {
+			applied, err := isApplied(ctx, db, mf.Version, mf.Checksum, *force)
+			if err != nil {
+				return err
+			}
+			if applied {
+				fmt.Printf("skip %s\n", mf.Version)
+				continue
+			}
+			if err := applyMigration(ctx, db, mf); err != nil {
+				return err
+			}
+			fmt.Printf("applied %s\n", mf.Version)
+		}
+		return nil
+	}); err != nil {
 		return err
-	}
-	for _, mf := range files {
-		applied, err := isApplied(ctx, db, mf.Version, mf.Checksum, *force)
-		if err != nil {
-			return err
-		}
-		if applied {
-			fmt.Printf("skip %s\n", mf.Version)
-			continue
-		}
-		if err := applyMigration(ctx, db, mf); err != nil {
-			return err
-		}
-		fmt.Printf("applied %s\n", mf.Version)
 	}
 
 	fmt.Println("migrations completed")
 	return nil
 }
 
-func openSQLite(ctx context.Context, path string, busyTimeoutMS int) (*sql.DB, error) {
-	dbPath, err := filepath.Abs(path)
+func openPostgres(ctx context.Context, databaseURL string) (*sql.DB, error) {
+	db, err := sql.Open("pgx", databaseURL)
 	if err != nil {
-		return nil, fmt.Errorf("resolve sqlite path: %w", err)
+		return nil, fmt.Errorf("open postgres: %w", err)
 	}
-	if err := os.MkdirAll(filepath.Dir(dbPath), 0o700); err != nil {
-		return nil, fmt.Errorf("create sqlite directory: %w", err)
-	}
-
-	values := url.Values{}
-	values.Set("_pragma", "busy_timeout("+strconv.Itoa(busyTimeoutMS)+")")
-	db, err := sql.Open("sqlite", "file:"+filepath.ToSlash(dbPath)+"?"+values.Encode())
-	if err != nil {
-		return nil, fmt.Errorf("open sqlite: %w", err)
-	}
-	db.SetMaxOpenConns(1)
-	db.SetMaxIdleConns(1)
-
-	if _, err := db.ExecContext(ctx, "PRAGMA journal_mode=WAL"); err != nil {
-		_ = db.Close()
-		return nil, fmt.Errorf("enable wal: %w", err)
-	}
-	if _, err := db.ExecContext(ctx, "PRAGMA foreign_keys=ON"); err != nil {
-		_ = db.Close()
-		return nil, fmt.Errorf("enable foreign keys: %w", err)
-	}
+	db.SetMaxOpenConns(4)
+	db.SetMaxIdleConns(2)
+	db.SetConnMaxLifetime(30 * time.Minute)
 	if err := db.PingContext(ctx); err != nil {
 		_ = db.Close()
-		return nil, fmt.Errorf("ping sqlite: %w", err)
+		return nil, fmt.Errorf("ping postgres: %w", err)
 	}
 	return db, nil
+}
+
+func withMigrationLock(ctx context.Context, db *sql.DB, fn func() error) error {
+	conn, err := db.Conn(ctx)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	if _, err := conn.ExecContext(ctx, `SELECT pg_advisory_lock($1)`, migrationLockID); err != nil {
+		return fmt.Errorf("acquire migration lock: %w", err)
+	}
+	defer func() {
+		_, _ = conn.ExecContext(context.Background(), `SELECT pg_advisory_unlock($1)`, migrationLockID)
+	}()
+
+	return fn()
 }
 
 func ensureSchemaMigrationsTable(ctx context.Context, db *sql.DB) error {
@@ -127,7 +132,7 @@ func ensureSchemaMigrationsTable(ctx context.Context, db *sql.DB) error {
 CREATE TABLE IF NOT EXISTS schema_migrations (
     version TEXT PRIMARY KEY,
     checksum TEXT NOT NULL,
-    applied_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+    applied_at TIMESTAMPTZ NOT NULL DEFAULT now()
 )`)
 	return err
 }
@@ -143,10 +148,10 @@ func applyMigration(ctx context.Context, db *sql.DB, mf migrationFile) error {
 		return fmt.Errorf("apply %s failed: %w", mf.Version, err)
 	}
 	if _, err := tx.ExecContext(ctx, `
-INSERT INTO schema_migrations (version, checksum) VALUES (?, ?)
+INSERT INTO schema_migrations (version, checksum) VALUES ($1, $2)
 ON CONFLICT(version) DO UPDATE SET
     checksum = excluded.checksum,
-    applied_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')`, mf.Version, mf.Checksum); err != nil {
+    applied_at = now()`, mf.Version, mf.Checksum); err != nil {
 		return fmt.Errorf("record %s failed: %w", mf.Version, err)
 	}
 	return tx.Commit()
@@ -197,7 +202,7 @@ func listMigrationFiles(dir string) ([]migrationFile, error) {
 
 func isApplied(ctx context.Context, db *sql.DB, version, checksum string, force bool) (bool, error) {
 	var existing string
-	err := db.QueryRowContext(ctx, "SELECT checksum FROM schema_migrations WHERE version = ?", version).Scan(&existing)
+	err := db.QueryRowContext(ctx, "SELECT checksum FROM schema_migrations WHERE version = $1", version).Scan(&existing)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return false, nil

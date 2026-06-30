@@ -10,9 +10,9 @@ import (
 // Config 汇总各包共用的运行时配置。
 type Config struct {
 	InsecureServing *options.InsecureServingOptions `mapstructure:"insecure"`
-	SQLite          *options.SQLiteOptions          `mapstructure:"sqlite"`
+	Database        *options.DatabaseOptions        `mapstructure:"database"`
 	JWT             *options.JWTOptions             `mapstructure:"jwt"`
-	Library         *options.LibraryOptions         `mapstructure:"library"`
+	WebSocket       *options.WebSocketOptions       `mapstructure:"websocket"`
 }
 
 var (

@@ -4,23 +4,18 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"os"
-	"path/filepath"
-	"sort"
 	"testing"
 	"time"
 
-	_ "modernc.org/sqlite"
-
 	apperrors "github.com/HappyLadySauce/Knowledge-Core/internal/errors"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/taxonomy"
+	"github.com/HappyLadySauce/Knowledge-Core/internal/testutil"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/user"
 )
 
 func TestDocumentServiceWritesMarkdownAndIndexesPublishedDocuments(t *testing.T) {
 	ctx := context.Background()
 	db := newDocumentTestDB(t)
-	libraryRoot := t.TempDir()
 	taxonomies := taxonomy.NewService(db)
 	category, err := taxonomies.CreateCategory(ctx, taxonomy.CategoryCommand{Name: "Tech", Slug: "tech"})
 	if err != nil {
@@ -30,7 +25,7 @@ func TestDocumentServiceWritesMarkdownAndIndexesPublishedDocuments(t *testing.T)
 	if err != nil {
 		t.Fatalf("create tag failed: %v", err)
 	}
-	service, err := NewService(db, libraryRoot)
+	service, err := NewService(db)
 	if err != nil {
 		t.Fatalf("create document service failed: %v", err)
 	}
@@ -92,13 +87,12 @@ func TestDocumentServiceWritesMarkdownAndIndexesPublishedDocuments(t *testing.T)
 func TestDocumentServiceApplyOpsIdempotencyAndConflict(t *testing.T) {
 	ctx := context.Background()
 	db := newDocumentTestDB(t)
-	libraryRoot := t.TempDir()
 	taxonomies := taxonomy.NewService(db)
 	category, err := taxonomies.CreateCategory(ctx, taxonomy.CategoryCommand{Name: "Tech", Slug: "tech"})
 	if err != nil {
 		t.Fatalf("create category failed: %v", err)
 	}
-	service, err := NewService(db, libraryRoot)
+	service, err := NewService(db)
 	if err != nil {
 		t.Fatalf("create document service failed: %v", err)
 	}
@@ -163,10 +157,67 @@ func TestDocumentServiceApplyOpsIdempotencyAndConflict(t *testing.T) {
 	}
 }
 
+func TestDocumentServiceApplyOpsAcrossBlocksAndPublishedRevisionIsolation(t *testing.T) {
+	ctx := context.Background()
+	db := newDocumentTestDB(t)
+	service, err := NewService(db)
+	if err != nil {
+		t.Fatalf("create document service failed: %v", err)
+	}
+	admin := user.User{ID: 1, Role: user.RoleAdmin}
+	created, err := service.CreateAdmin(ctx, admin, CreateCommand{
+		Slug:    "multi-block-doc",
+		Title:   "Multi Block",
+		Content: "first\n\nsecond",
+		Status:  StatusPublished,
+	})
+	if err != nil {
+		t.Fatalf("create document failed: %v", err)
+	}
+	if len(created.Blocks) != 2 {
+		t.Fatalf("created blocks = %+v, want two blocks", created.Blocks)
+	}
+	publicBefore, err := service.GetPublic(ctx, created.ID)
+	if err != nil {
+		t.Fatalf("get public before edits failed: %v", err)
+	}
+	ops := []Operation{
+		{
+			OpID:                 "multi-op-1",
+			BaseDocumentVersion:  created.CurrentVersion,
+			BlockID:              created.Blocks[0].BlockID,
+			ExpectedBlockVersion: created.Blocks[0].Version,
+			Type:                 OpTypeUpdateBlock,
+			PayloadJSON:          `{"text_content":"first updated"}`,
+		},
+		{
+			OpID:                 "multi-op-2",
+			BaseDocumentVersion:  created.CurrentVersion,
+			BlockID:              created.Blocks[1].BlockID,
+			ExpectedBlockVersion: created.Blocks[1].Version,
+			Type:                 OpTypeUpdateBlock,
+			PayloadJSON:          `{"text_content":"second updated"}`,
+		},
+	}
+	applied, err := service.ApplyOpsAdmin(ctx, admin, created.ID, ApplyOpsCommand{Ops: ops})
+	if err != nil {
+		t.Fatalf("apply block ops failed: %v", err)
+	}
+	if len(applied.Acks) != 2 || applied.Document.CurrentVersion != created.CurrentVersion+2 {
+		t.Fatalf("apply result = %+v, want two acks and version incremented twice", applied)
+	}
+	publicAfter, err := service.GetPublic(ctx, created.ID)
+	if err != nil {
+		t.Fatalf("get public after draft edits failed: %v", err)
+	}
+	if publicAfter.Content != publicBefore.Content {
+		t.Fatalf("public revision changed after draft edits: before=%q after=%q", publicBefore.Content, publicAfter.Content)
+	}
+}
+
 func TestDocumentCategoryFilterUsesPathOnly(t *testing.T) {
 	ctx := context.Background()
 	db := newDocumentTestDB(t)
-	libraryRoot := t.TempDir()
 	taxonomies := taxonomy.NewService(db)
 	tech, err := taxonomies.CreateCategory(ctx, taxonomy.CategoryCommand{Name: "Tech", Slug: "tech"})
 	if err != nil {
@@ -184,7 +235,7 @@ func TestDocumentCategoryFilterUsesPathOnly(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create life ai category failed: %v", err)
 	}
-	service, err := NewService(db, libraryRoot)
+	service, err := NewService(db)
 	if err != nil {
 		t.Fatalf("create document service failed: %v", err)
 	}
@@ -226,70 +277,17 @@ func TestDocumentCategoryFilterUsesPathOnly(t *testing.T) {
 
 func newDocumentTestDB(t *testing.T) *sql.DB {
 	t.Helper()
-	db, err := sql.Open("sqlite", "file:"+filepath.ToSlash(filepath.Join(t.TempDir(), "document.db")))
-	if err != nil {
-		t.Fatalf("open sqlite failed: %v", err)
-	}
-	t.Cleanup(func() {
-		_ = db.Close()
-	})
-	if _, err := db.ExecContext(context.Background(), "PRAGMA foreign_keys=ON"); err != nil {
-		t.Fatalf("enable foreign keys failed: %v", err)
-	}
-	applyDocumentMigrationFiles(t, db)
+	db := testutil.NewPostgresDB(t)
 	// Insert a test admin user so document author_id foreign keys are satisfied.
 	// The migrations no longer auto-create an admin user.
 	// 插入测试 admin 用户以满足文档 author_id 外键约束。
 	// 迁移不再自动创建 admin 用户。
 	if _, err := db.ExecContext(context.Background(), `
 INSERT INTO users (username, email, avatar, bio, password_hash, role, status, token_version, created_at, updated_at)
-VALUES ('admin', '', '', '', '', 'admin', 'active', 0, ?, ?)`,
-		time.Now().UTC().Format(time.RFC3339Nano),
-		time.Now().UTC().Format(time.RFC3339Nano)); err != nil {
+VALUES ('admin', '', '', '', '', 'admin', 'active', 0, $1, $2)`,
+		time.Now().UTC(),
+		time.Now().UTC()); err != nil {
 		t.Fatalf("insert test admin failed: %v", err)
 	}
 	return db
-}
-
-func applyDocumentMigrationFiles(t *testing.T, db *sql.DB) {
-	t.Helper()
-	migrationsDir := filepath.Join(findDocumentRepoRoot(t), "sql", "migrations")
-	entries, err := os.ReadDir(migrationsDir)
-	if err != nil {
-		t.Fatalf("read migrations directory failed: %v", err)
-	}
-	sort.Slice(entries, func(i, j int) bool {
-		return entries[i].Name() < entries[j].Name()
-	})
-	for _, entry := range entries {
-		if entry.IsDir() || filepath.Ext(entry.Name()) != ".sql" {
-			continue
-		}
-		path := filepath.Join(migrationsDir, entry.Name())
-		sqlBytes, err := os.ReadFile(path)
-		if err != nil {
-			t.Fatalf("read migration %s failed: %v", entry.Name(), err)
-		}
-		if _, err := db.ExecContext(context.Background(), string(sqlBytes)); err != nil {
-			t.Fatalf("apply migration %s failed: %v", entry.Name(), err)
-		}
-	}
-}
-
-func findDocumentRepoRoot(t *testing.T) string {
-	t.Helper()
-	dir, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("get working directory failed: %v", err)
-	}
-	for {
-		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
-			return dir
-		}
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			t.Fatalf("repo root not found from %s", dir)
-		}
-		dir = parent
-	}
 }

@@ -2,6 +2,8 @@ package document
 
 import (
 	"net/http"
+	"net/url"
+	"strings"
 	"sync"
 
 	"github.com/gin-gonic/gin"
@@ -57,9 +59,7 @@ func (h *collabHub) broadcast(documentID int64, msg collabMessage) {
 }
 
 var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
+	CheckOrigin: func(r *http.Request) bool { return true },
 }
 
 // Collab opens the block-level realtime collaboration channel.
@@ -83,6 +83,10 @@ func (h *Controller) Collab(c *gin.Context) {
 	}
 	id, ok := documentIDParam(c)
 	if !ok {
+		return
+	}
+	if !originAllowed(c.Request, h.allowedOrigins) {
+		c.JSON(http.StatusForbidden, gin.H{"code": http.StatusForbidden, "message": apperrors.MessageForbidden, "data": nil})
 		return
 	}
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
@@ -143,4 +147,42 @@ func (h *Controller) Collab(c *gin.Context) {
 
 func commonUnauthorized(c *gin.Context) {
 	c.JSON(http.StatusUnauthorized, gin.H{"code": http.StatusUnauthorized, "message": apperrors.MessageUnauthorized, "data": nil})
+}
+
+func originAllowed(r *http.Request, allowedOrigins []string) bool {
+	origin := strings.TrimSpace(r.Header.Get("Origin"))
+	if origin == "" {
+		return true
+	}
+	parsed, err := url.Parse(origin)
+	if err != nil {
+		return false
+	}
+	for _, allowed := range allowedOrigins {
+		if originMatches(parsed, strings.TrimSpace(allowed)) {
+			return true
+		}
+	}
+	return false
+}
+
+func originMatches(origin *url.URL, allowed string) bool {
+	if allowed == "" {
+		return false
+	}
+	if !strings.Contains(allowed, "*") {
+		return strings.EqualFold(origin.String(), allowed)
+	}
+	if !strings.HasSuffix(allowed, ":*") {
+		return false
+	}
+	base := strings.TrimSuffix(allowed, ":*")
+	allowedURL, err := url.Parse(base)
+	if err != nil {
+		return false
+	}
+	if !strings.EqualFold(origin.Scheme, allowedURL.Scheme) {
+		return false
+	}
+	return strings.EqualFold(origin.Hostname(), allowedURL.Hostname())
 }

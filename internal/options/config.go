@@ -88,13 +88,17 @@ func configureEnvBinding(prefix string) {
 }
 
 var KNOWLEDGE_COREEnvBindings = map[string]string{
-	"insecure.bind-address":    "KNOWLEDGE_CORE_BIND_ADDRESS",
-	"insecure.bind-port":       "KNOWLEDGE_CORE_BIND_PORT",
-	"insecure.trusted-proxies": "KNOWLEDGE_CORE_TRUSTED_PROXIES_JSON",
-	"jwt.secret":               "KNOWLEDGE_CORE_JWT_SECRET",
-	"jwt.access-ttl":           "KNOWLEDGE_CORE_JWT_ACCESS_TTL",
-	"jwt.refresh-ttl":          "KNOWLEDGE_CORE_JWT_REFRESH_TTL",
-	"library.path":             "KNOWLEDGE_CORE_LIBRARY_PATH",
+	"insecure.bind-address":      "KNOWLEDGE_CORE_BIND_ADDRESS",
+	"insecure.bind-port":         "KNOWLEDGE_CORE_BIND_PORT",
+	"insecure.trusted-proxies":   "KNOWLEDGE_CORE_TRUSTED_PROXIES_JSON",
+	"database.url":               "KNOWLEDGE_CORE_DATABASE_URL",
+	"database.max-open-conns":    "KNOWLEDGE_CORE_DATABASE_MAX_OPEN_CONNS",
+	"database.max-idle-conns":    "KNOWLEDGE_CORE_DATABASE_MAX_IDLE_CONNS",
+	"database.conn-max-lifetime": "KNOWLEDGE_CORE_DATABASE_CONN_MAX_LIFETIME",
+	"jwt.secret":                 "KNOWLEDGE_CORE_JWT_SECRET",
+	"jwt.access-ttl":             "KNOWLEDGE_CORE_JWT_ACCESS_TTL",
+	"jwt.refresh-ttl":            "KNOWLEDGE_CORE_JWT_REFRESH_TTL",
+	"websocket.allowed-origins":  "KNOWLEDGE_CORE_WEBSOCKET_ALLOWED_ORIGINS_JSON",
 }
 
 // loadViperConfig loads configuration with priority: --config > cwd > ~/basename/.

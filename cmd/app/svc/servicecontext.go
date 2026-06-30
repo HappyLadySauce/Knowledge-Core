@@ -5,12 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"net/url"
-	"os"
-	"path/filepath"
-	"strconv"
 
-	_ "modernc.org/sqlite"
+	_ "github.com/jackc/pgx/v5/stdlib"
 
 	"github.com/HappyLadySauce/Knowledge-Core/internal/config"
 )
@@ -22,23 +18,23 @@ type ServiceContext struct {
 	DB     *sql.DB
 }
 
-// NewServiceContext opens the local SQLite index database and verifies connectivity.
-// NewServiceContext 打开本地 SQLite 索引数据库并校验连通性。
+// NewServiceContext opens PostgreSQL and verifies the required schema.
+// NewServiceContext 打开 PostgreSQL 并校验必要 schema。
 func NewServiceContext(ctx context.Context, cfg *config.Config) (*ServiceContext, error) {
 	if cfg == nil {
 		return nil, fmt.Errorf("config is nil")
 	}
-	if cfg.SQLite == nil {
-		return nil, fmt.Errorf("sqlite config is nil")
+	if cfg.Database == nil {
+		return nil, fmt.Errorf("database config is nil")
 	}
 	if cfg.JWT == nil {
 		return nil, fmt.Errorf("jwt config is nil")
 	}
-	if cfg.Library == nil {
-		return nil, fmt.Errorf("library config is nil")
+	if cfg.WebSocket == nil {
+		return nil, fmt.Errorf("websocket config is nil")
 	}
 
-	db, err := openSQLite(ctx, cfg)
+	db, err := openPostgres(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -62,60 +58,34 @@ func (s *ServiceContext) Close() error {
 	return err
 }
 
-func openSQLite(ctx context.Context, cfg *config.Config) (*sql.DB, error) {
-	dbPath, err := filepath.Abs(cfg.SQLite.Path)
+func openPostgres(ctx context.Context, cfg *config.Config) (*sql.DB, error) {
+	db, err := sql.Open("pgx", cfg.Database.URL)
 	if err != nil {
-		return nil, fmt.Errorf("resolve sqlite path: %w", err)
+		return nil, fmt.Errorf("open postgres: %w", err)
 	}
-	if err := os.MkdirAll(filepath.Dir(dbPath), 0o700); err != nil {
-		return nil, fmt.Errorf("create sqlite directory: %w", err)
-	}
-
-	dsn := sqliteDSN(dbPath, int(cfg.SQLite.BusyTimeout.Milliseconds()))
-	db, err := sql.Open("sqlite", dsn)
-	if err != nil {
-		return nil, fmt.Errorf("open sqlite: %w", err)
-	}
-	db.SetMaxOpenConns(1)
-	db.SetMaxIdleConns(1)
-
-	if _, err := db.ExecContext(ctx, "PRAGMA journal_mode=WAL"); err != nil {
-		_ = db.Close()
-		return nil, fmt.Errorf("enable sqlite wal: %w", err)
-	}
-	if _, err := db.ExecContext(ctx, "PRAGMA foreign_keys=ON"); err != nil {
-		_ = db.Close()
-		return nil, fmt.Errorf("enable sqlite foreign keys: %w", err)
-	}
+	db.SetMaxOpenConns(cfg.Database.MaxOpenConns)
+	db.SetMaxIdleConns(cfg.Database.MaxIdleConns)
+	db.SetConnMaxLifetime(cfg.Database.ConnMaxLifetime)
 	if err := db.PingContext(ctx); err != nil {
 		_ = db.Close()
-		return nil, fmt.Errorf("ping sqlite: %w", err)
+		return nil, fmt.Errorf("ping postgres: %w", err)
 	}
 	return db, nil
 }
 
-func sqliteDSN(path string, busyTimeoutMS int) string {
-	values := url.Values{}
-	values.Set("_pragma", "busy_timeout("+strconv.Itoa(busyTimeoutMS)+")")
-	return "file:" + filepath.ToSlash(path) + "?" + values.Encode()
-}
-
 func verifySchema(ctx context.Context, db *sql.DB) error {
 	requiredTables := []string{
-		"users", "refresh_tokens", "documents", "document_blocks", "document_ops",
-		"document_revisions", "categories", "tags", "document_tags",
+		"users", "refresh_tokens", "login_attempts", "documents", "document_blocks",
+		"document_ops", "document_revisions", "categories", "tags", "document_tags",
 	}
 	for _, table := range requiredTables {
-		var name string
-		err := db.QueryRowContext(ctx, `
-SELECT name
-FROM sqlite_master
-WHERE type = 'table' AND name = ?`, table).Scan(&name)
+		var exists bool
+		err := db.QueryRowContext(ctx, `SELECT to_regclass('public.`+table+`') IS NOT NULL`).Scan(&exists)
 		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				return fmt.Errorf("sqlite schema is not migrated: missing table %s; run make migrate", table)
-			}
-			return fmt.Errorf("verify sqlite schema: %w", err)
+			return fmt.Errorf("verify postgres schema: %w", err)
+		}
+		if !exists {
+			return fmt.Errorf("postgres schema is not migrated: missing table %s; run make migrate", table)
 		}
 	}
 	return nil

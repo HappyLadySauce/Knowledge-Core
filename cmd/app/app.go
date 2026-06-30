@@ -64,9 +64,9 @@ func NewAPICommand(ctx context.Context, basename string) *cobra.Command {
 func run(ctx context.Context, opts *options.Options) error {
 	cfg := &config.Config{
 		InsecureServing: opts.InsecureServing,
-		SQLite:          opts.SQLite,
+		Database:        opts.Database,
 		JWT:             opts.JWT,
-		Library:         opts.Library,
+		WebSocket:       opts.WebSocket,
 	}
 	config.Init(cfg)
 

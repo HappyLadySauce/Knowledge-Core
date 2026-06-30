@@ -1,8 +1,8 @@
-# Knowledge-Core SQLite migration entrypoint for Windows PowerShell.
-# Knowledge-Core SQLite 数据库迁移入口（Windows PowerShell）。
+# Knowledge-Core PostgreSQL migration entrypoint for Windows PowerShell.
+# Knowledge-Core PostgreSQL 数据库迁移入口（Windows PowerShell）。
 
 param(
-    [string]$Db = '',
+    [string]$DatabaseUrl = '',
     [switch]$Force
 )
 
@@ -10,16 +10,16 @@ $ErrorActionPreference = 'Stop'
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 $MigrationsRoot = Join-Path $RepoRoot 'sql\migrations'
 
-if (-not $Db) {
-    $Db = $env:KNOWLEDGE_CORE_SQLITE_PATH
+if (-not $DatabaseUrl) {
+    $DatabaseUrl = $env:KNOWLEDGE_CORE_DATABASE_URL
 }
-if (-not $Db) {
-    $Db = '.knowledge-core/index.db'
+if (-not $DatabaseUrl) {
+    $DatabaseUrl = 'postgres://knowledge_core:knowledge_core@localhost:5432/knowledge_core?sslmode=disable'
 }
 
 $goArgs = @(
     'run', './sql/migrate/main.go',
-    '-db', $Db,
+    '-database-url', $DatabaseUrl,
     '-dir', $MigrationsRoot
 )
 if ($Force) {

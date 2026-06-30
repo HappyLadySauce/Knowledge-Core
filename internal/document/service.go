@@ -18,8 +18,7 @@ type Service struct {
 	taxonomies *taxonomy.Repository
 }
 
-func NewService(db *sql.DB, libraryRoot string) (*Service, error) {
-	_ = libraryRoot
+func NewService(db *sql.DB) (*Service, error) {
 	return &Service{
 		repo:       NewRepository(db),
 		taxonomies: taxonomy.NewRepository(db),

@@ -7,13 +7,10 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"os"
-	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	_ "modernc.org/sqlite"
 
 	"github.com/HappyLadySauce/Knowledge-Core/cmd/app/svc"
 	v1 "github.com/HappyLadySauce/Knowledge-Core/cmd/app/types/v1"
@@ -21,6 +18,7 @@ import (
 	"github.com/HappyLadySauce/Knowledge-Core/internal/config"
 	apperrors "github.com/HappyLadySauce/Knowledge-Core/internal/errors"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/options"
+	"github.com/HappyLadySauce/Knowledge-Core/internal/testutil"
 	internaluser "github.com/HappyLadySauce/Knowledge-Core/internal/user"
 )
 
@@ -199,44 +197,13 @@ func (h *authHarness) request(t *testing.T, method, path string, body any, acces
 
 func newTestDB(t *testing.T) (*sql.DB, *options.JWTOptions) {
 	t.Helper()
-	db, err := sql.Open("sqlite", "file:"+filepath.ToSlash(filepath.Join(t.TempDir(), "auth.db")))
-	if err != nil {
-		t.Fatalf("open sqlite failed: %v", err)
-	}
-	t.Cleanup(func() {
-		_ = db.Close()
-	})
-	if _, err := db.ExecContext(context.Background(), "PRAGMA foreign_keys=ON"); err != nil {
-		t.Fatalf("enable foreign keys failed: %v", err)
-	}
-	applyUsersMigration(t, db)
+	db := testutil.NewPostgresDB(t)
 	return db, &options.JWTOptions{
 		Issuer:     "Knowledge-Core",
 		Secret:     "Knowledge-Core-test-secret-32bytes",
 		AccessTTL:  time.Minute,
 		RefreshTTL: time.Hour,
 	}
-}
-
-func applyUsersMigration(t *testing.T, db *sql.DB) {
-	t.Helper()
-	root := repoRootFromWorkingDir(t)
-	body, err := os.ReadFile(filepath.Join(root, "sql", "migrations", "001_users.sql"))
-	if err != nil {
-		t.Fatalf("read users migration failed: %v", err)
-	}
-	if _, err := db.ExecContext(context.Background(), string(body)); err != nil {
-		t.Fatalf("apply users migration failed: %v", err)
-	}
-}
-
-func repoRootFromWorkingDir(t *testing.T) string {
-	t.Helper()
-	wd, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("get working directory failed: %v", err)
-	}
-	return filepath.Clean(filepath.Join(wd, "..", "..", "..", ".."))
 }
 
 type responseEnvelope[T any] struct {

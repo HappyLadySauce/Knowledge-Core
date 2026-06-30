@@ -12,18 +12,18 @@ import (
 type Options struct {
 	basename        string
 	InsecureServing *options.InsecureServingOptions `mapstructure:"insecure"`
-	SQLite          *options.SQLiteOptions          `mapstructure:"sqlite"`
+	Database        *options.DatabaseOptions        `mapstructure:"database"`
 	JWT             *options.JWTOptions             `mapstructure:"jwt"`
-	Library         *options.LibraryOptions         `mapstructure:"library"`
+	WebSocket       *options.WebSocketOptions       `mapstructure:"websocket"`
 }
 
 func NewOptions(basename string) *Options {
 	return &Options{
 		basename:        basename,
 		InsecureServing: options.NewInsecureServingOptions(),
-		SQLite:          options.NewSQLiteOptions(),
+		Database:        options.NewDatabaseOptions(),
 		JWT:             options.NewJWTOptions(),
-		Library:         options.NewLibraryOptions(),
+		WebSocket:       options.NewWebSocketOptions(),
 	}
 }
 
@@ -40,14 +40,14 @@ func (o *Options) AddFlags(fs *pflag.FlagSet) *flag.NamedFlagSets {
 	insecureServingFS := nfs.FlagSet("Insecure Serving")
 	o.InsecureServing.AddFlags(insecureServingFS)
 
-	sqliteFS := nfs.FlagSet("SQLite")
-	o.SQLite.AddFlags(sqliteFS)
+	databaseFS := nfs.FlagSet("Database")
+	o.Database.AddFlags(databaseFS)
 
 	jwtFS := nfs.FlagSet("JWT")
 	o.JWT.AddFlags(jwtFS)
 
-	libraryFS := nfs.FlagSet("Library")
-	o.Library.AddFlags(libraryFS)
+	websocketFS := nfs.FlagSet("WebSocket")
+	o.WebSocket.AddFlags(websocketFS)
 
 	// Merge all named flag sets into the root command FlagSet.
 	// 将所有命名标志集合并到根命令的 FlagSet。

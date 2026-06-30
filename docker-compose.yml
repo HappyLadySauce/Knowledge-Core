@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: knowledge-core-postgres
+    environment:
+      POSTGRES_USER: knowledge_core
+      POSTGRES_PASSWORD: knowledge_core
+      POSTGRES_DB: knowledge_core
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U knowledge_core -d knowledge_core"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - knowledge-core-postgres-data:/var/lib/postgresql/data
+      - ./sql/docker-init:/docker-entrypoint-initdb.d:ro
+
+volumes:
+  knowledge-core-postgres-data:

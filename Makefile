@@ -38,9 +38,15 @@ KNOWLEDGE_CORE_BIND_ADDRESS ?= 127.0.0.1
 KNOWLEDGE_CORE_BIND_PORT ?= 8080
 KNOWLEDGE_CORE_TRUSTED_PROXIES ?=
 KNOWLEDGE_CORE_TRUSTED_PROXIES_JSON ?= []
+KNOWLEDGE_CORE_DATABASE_URL ?= postgres://knowledge_core:knowledge_core@localhost:5432/knowledge_core?sslmode=disable
+KNOWLEDGE_CORE_TEST_DATABASE_URL ?= postgres://knowledge_core:knowledge_core@localhost:5432/knowledge_core_test?sslmode=disable
+KNOWLEDGE_CORE_DATABASE_MAX_OPEN_CONNS ?= 25
+KNOWLEDGE_CORE_DATABASE_MAX_IDLE_CONNS ?= 5
+KNOWLEDGE_CORE_DATABASE_CONN_MAX_LIFETIME ?= 30m
 KNOWLEDGE_CORE_JWT_SECRET ?=
 KNOWLEDGE_CORE_JWT_ACCESS_TTL ?= 15m
 KNOWLEDGE_CORE_JWT_REFRESH_TTL ?= 168h
+KNOWLEDGE_CORE_WEBSOCKET_ALLOWED_ORIGINS_JSON ?= ["http://localhost:*","http://127.0.0.1:*"]
 export
 
 .PHONY: help deps tidy fmt vet lint check verify build install run run-bin migrate \
@@ -112,12 +118,12 @@ endif
 install:
 	$(GO) install $(CMD)
 
-## migrate: Apply SQLite migrations
+## migrate: Apply PostgreSQL migrations
 migrate:
 ifeq ($(IS_WINDOWS),1)
-	powershell -NoProfile -ExecutionPolicy Bypass -File .\sql\migrate.ps1 -Db ".knowledge-core/index.db"
+	powershell -NoProfile -ExecutionPolicy Bypass -File .\sql\migrate.ps1 -DatabaseUrl "$(KNOWLEDGE_CORE_DATABASE_URL)"
 else
-	KNOWLEDGE_CORE_SQLITE_PATH=".knowledge-core/index.db" ./sql/migrate.sh
+	KNOWLEDGE_CORE_DATABASE_URL="$(KNOWLEDGE_CORE_DATABASE_URL)" ./sql/migrate.sh
 endif
 
 ## run: Run API server with go run

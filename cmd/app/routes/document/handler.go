@@ -17,13 +17,14 @@ import (
 )
 
 type Controller struct {
-	service internaldocument.DocumentService
-	hub     *collabHub
+	service        internaldocument.DocumentService
+	hub            *collabHub
+	allowedOrigins []string
 }
 
 func Init(ctx context.Context, sc *svc.ServiceContext) error {
 	_ = ctx
-	service, err := internaldocument.NewService(sc.DB, sc.Config.Library.Path)
+	service, err := internaldocument.NewService(sc.DB)
 	if err != nil {
 		return err
 	}
@@ -32,7 +33,7 @@ func Init(ctx context.Context, sc *svc.ServiceContext) error {
 }
 
 func RegisterRoutes(group *gin.RouterGroup, service internaldocument.DocumentService, sc *svc.ServiceContext) {
-	controller := &Controller{service: service, hub: newCollabHub()}
+	controller := &Controller{service: service, hub: newCollabHub(), allowedOrigins: sc.Config.WebSocket.AllowedOrigins}
 	group.GET("/documents", controller.ListPublic)
 	group.GET("/documents/:id", controller.GetPublic)
 

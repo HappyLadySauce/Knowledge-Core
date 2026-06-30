@@ -7,15 +7,13 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"os"
-	"path/filepath"
-	"sort"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	_ "modernc.org/sqlite"
+	"github.com/gorilla/websocket"
 
 	authroute "github.com/HappyLadySauce/Knowledge-Core/cmd/app/routes/auth"
 	"github.com/HappyLadySauce/Knowledge-Core/cmd/app/svc"
@@ -27,6 +25,7 @@ import (
 	apperrors "github.com/HappyLadySauce/Knowledge-Core/internal/errors"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/options"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/taxonomy"
+	"github.com/HappyLadySauce/Knowledge-Core/internal/testutil"
 )
 
 func TestDocumentHTTPPublishedVisibilityAndAdminAuth(t *testing.T) {
@@ -68,6 +67,64 @@ func TestDocumentHTTPPublishedVisibilityAndAdminAuth(t *testing.T) {
 	}
 }
 
+func TestDocumentCollabWebSocketSnapshotAckAndUserForbidden(t *testing.T) {
+	harness := newDocumentHarness(t)
+	adminToken := harness.loginAdmin(t)
+	userToken := harness.registerUser(t, "collab-user")
+
+	create := harness.request(t, http.MethodPost, "/api/v1/admin/documents", map[string]any{
+		"title":   "Collab Note",
+		"content": "initial body",
+	}, adminToken.AccessToken)
+	created := decodeEnvelopeData[v1.DocumentResponse](t, create, http.StatusCreated, apperrors.MessageOK)
+	server := httptest.NewServer(harness.router)
+	defer server.Close()
+
+	forbiddenHeader := http.Header{}
+	forbiddenHeader.Set("Authorization", "Bearer "+userToken.AccessToken)
+	forbiddenHeader.Set("Origin", server.URL)
+	forbiddenURL := websocketURL(server.URL, "/api/v1/admin/documents/"+itoa(created.ID)+"/collab")
+	_, forbiddenResponse, err := websocket.DefaultDialer.Dial(forbiddenURL, forbiddenHeader)
+	if err == nil {
+		t.Fatalf("user websocket unexpectedly connected")
+	}
+	if forbiddenResponse == nil || forbiddenResponse.StatusCode != http.StatusForbidden {
+		t.Fatalf("forbidden websocket status = %v, want 403", forbiddenResponse)
+	}
+
+	header := http.Header{}
+	header.Set("Authorization", "Bearer "+adminToken.AccessToken)
+	header.Set("Origin", server.URL)
+	conn, response, err := websocket.DefaultDialer.Dial(forbiddenURL, header)
+	if err != nil {
+		if response != nil {
+			t.Fatalf("admin websocket failed: %v status=%d", err, response.StatusCode)
+		}
+		t.Fatalf("admin websocket failed: %v", err)
+	}
+	defer conn.Close()
+
+	snapshot := readCollabMessage(t, conn, "snapshot")
+	if snapshot.Version != created.CurrentVersion {
+		t.Fatalf("snapshot version = %d, want %d", snapshot.Version, created.CurrentVersion)
+	}
+	op := v1.DocumentOperationRequest{
+		OpID:                 "ws-op-1",
+		BaseDocumentVersion:  created.CurrentVersion,
+		BlockID:              created.Blocks[0].BlockID,
+		ExpectedBlockVersion: created.Blocks[0].Version,
+		Type:                 internaldocument.OpTypeUpdateBlock,
+		PayloadJSON:          `{"text_content":"updated over websocket"}`,
+	}
+	if err := conn.WriteJSON(collabMessage{Type: "op", Ops: []v1.DocumentOperationRequest{op}}); err != nil {
+		t.Fatalf("write websocket op failed: %v", err)
+	}
+	ack := readCollabMessage(t, conn, "ack")
+	if ack.Version != created.CurrentVersion+1 {
+		t.Fatalf("ack version = %d, want %d", ack.Version, created.CurrentVersion+1)
+	}
+}
+
 type documentHarness struct {
 	router     *gin.Engine
 	categoryID int64
@@ -79,7 +136,6 @@ func newDocumentHarness(t *testing.T) *documentHarness {
 	gin.SetMode(gin.TestMode)
 
 	db := newDocumentRouteTestDB(t)
-	libraryRoot := t.TempDir()
 	jwtOptions := &options.JWTOptions{
 		Issuer:     "Knowledge-Core",
 		Secret:     "Knowledge-Core-test-secret-32bytes",
@@ -88,8 +144,8 @@ func newDocumentHarness(t *testing.T) *documentHarness {
 	}
 	sc := &svc.ServiceContext{
 		Config: &config.Config{
-			JWT:     jwtOptions,
-			Library: &options.LibraryOptions{Path: libraryRoot},
+			JWT:       jwtOptions,
+			WebSocket: options.NewWebSocketOptions(),
 		},
 		DB: db,
 	}
@@ -102,7 +158,7 @@ func newDocumentHarness(t *testing.T) *documentHarness {
 	if err != nil {
 		t.Fatalf("create tag failed: %v", err)
 	}
-	documentService, err := internaldocument.NewService(db, libraryRoot)
+	documentService, err := internaldocument.NewService(db)
 	if err != nil {
 		t.Fatalf("create document service failed: %v", err)
 	}
@@ -176,63 +232,32 @@ func decodeEnvelopeData[T any](t *testing.T, response *httptest.ResponseRecorder
 
 func newDocumentRouteTestDB(t *testing.T) *sql.DB {
 	t.Helper()
-	db, err := sql.Open("sqlite", "file:"+filepath.ToSlash(filepath.Join(t.TempDir(), "document-route.db")))
-	if err != nil {
-		t.Fatalf("open sqlite failed: %v", err)
-	}
-	t.Cleanup(func() {
-		_ = db.Close()
-	})
-	if _, err := db.ExecContext(context.Background(), "PRAGMA foreign_keys=ON"); err != nil {
-		t.Fatalf("enable foreign keys failed: %v", err)
-	}
-	applyRouteMigrationFiles(t, db)
-	return db
-}
-
-func applyRouteMigrationFiles(t *testing.T, db *sql.DB) {
-	t.Helper()
-	migrationsDir := filepath.Join(findRouteRepoRoot(t), "sql", "migrations")
-	entries, err := os.ReadDir(migrationsDir)
-	if err != nil {
-		t.Fatalf("read migrations directory failed: %v", err)
-	}
-	sort.Slice(entries, func(i, j int) bool {
-		return entries[i].Name() < entries[j].Name()
-	})
-	for _, entry := range entries {
-		if entry.IsDir() || filepath.Ext(entry.Name()) != ".sql" {
-			continue
-		}
-		path := filepath.Join(migrationsDir, entry.Name())
-		sqlBytes, err := os.ReadFile(path)
-		if err != nil {
-			t.Fatalf("read migration %s failed: %v", entry.Name(), err)
-		}
-		if _, err := db.ExecContext(context.Background(), string(sqlBytes)); err != nil {
-			t.Fatalf("apply migration %s failed: %v", entry.Name(), err)
-		}
-	}
-}
-
-func findRouteRepoRoot(t *testing.T) string {
-	t.Helper()
-	dir, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("get working directory failed: %v", err)
-	}
-	for {
-		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
-			return dir
-		}
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			t.Fatalf("repo root not found from %s", dir)
-		}
-		dir = parent
-	}
+	return testutil.NewPostgresDB(t)
 }
 
 func itoa(id int64) string {
 	return strconv.FormatInt(id, 10)
+}
+
+func websocketURL(baseURL, path string) string {
+	return strings.Replace(baseURL, "http://", "ws://", 1) + path
+}
+
+func readCollabMessage(t *testing.T, conn *websocket.Conn, wantType string) collabMessage {
+	t.Helper()
+	deadline := time.Now().Add(3 * time.Second)
+	for time.Now().Before(deadline) {
+		if err := conn.SetReadDeadline(time.Now().Add(500 * time.Millisecond)); err != nil {
+			t.Fatalf("set websocket read deadline failed: %v", err)
+		}
+		var msg collabMessage
+		if err := conn.ReadJSON(&msg); err != nil {
+			continue
+		}
+		if msg.Type == wantType {
+			return msg
+		}
+	}
+	t.Fatalf("websocket message %q not received", wantType)
+	return collabMessage{}
 }

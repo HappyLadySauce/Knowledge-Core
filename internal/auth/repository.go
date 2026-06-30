@@ -11,8 +11,8 @@ import (
 	"github.com/HappyLadySauce/Knowledge-Core/internal/user"
 )
 
-// Repository persists auth refresh tokens in SQLite.
-// Repository 将认证刷新令牌持久化到 SQLite。
+// Repository persists auth refresh tokens in PostgreSQL.
+// Repository 将认证刷新令牌持久化到 PostgreSQL。
 type Repository struct {
 	db *sql.DB
 }
@@ -26,8 +26,8 @@ func NewRepository(db *sql.DB) *Repository {
 func (r *Repository) storeRefreshToken(ctx context.Context, userID int64, tokenHash string, expiresAt time.Time) error {
 	_, err := r.db.ExecContext(ctx, `
 INSERT INTO refresh_tokens (user_id, token_hash, expires_at, created_at)
-VALUES (?, ?, ?, ?)`,
-		userID, tokenHash, formatTime(expiresAt.UTC()), formatTime(time.Now().UTC()))
+VALUES ($1, $2, $3, $4)`,
+		userID, tokenHash, expiresAt.UTC(), time.Now().UTC())
 	if err != nil {
 		return apperrors.Wrap(apperrors.InternalError, fmt.Errorf("store refresh token: %w", err))
 	}
@@ -42,27 +42,23 @@ func (r *Repository) rotateRefreshToken(ctx context.Context, oldHash, newHash st
 	defer rollbackTx(tx)
 
 	var (
-		tokenID     int64
-		userID      int64
-		expiresText string
-		revokedText sql.NullString
+		tokenID      int64
+		userID       int64
+		expiresAtOld time.Time
+		revokedAt    sql.NullTime
 	)
 	err = tx.QueryRowContext(ctx, `
 SELECT id, user_id, expires_at, revoked_at
 FROM refresh_tokens
-WHERE token_hash = ?`, oldHash).Scan(&tokenID, &userID, &expiresText, &revokedText)
+WHERE token_hash = $1`, oldHash).Scan(&tokenID, &userID, &expiresAtOld, &revokedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return user.User{}, apperrors.InvalidToken
 		}
 		return user.User{}, apperrors.Wrap(apperrors.InternalError, err)
 	}
-	if revokedText.Valid {
+	if revokedAt.Valid {
 		return user.User{}, apperrors.InvalidToken
-	}
-	expiresAtOld, err := parseTime(expiresText)
-	if err != nil {
-		return user.User{}, apperrors.Wrap(apperrors.InternalError, err)
 	}
 	if !expiresAtOld.After(time.Now().UTC()) {
 		return user.User{}, apperrors.InvalidToken
@@ -71,7 +67,7 @@ WHERE token_hash = ?`, oldHash).Scan(&tokenID, &userID, &expiresText, &revokedTe
 	currentUser, err := scanUser(tx.QueryRowContext(ctx, `
 SELECT id, username, COALESCE(email, ''), avatar, bio, role, status, token_version, created_at, updated_at
 FROM users
-WHERE id = ?`, userID))
+WHERE id = $1`, userID))
 	if err != nil {
 		return user.User{}, err
 	}
@@ -82,9 +78,9 @@ WHERE id = ?`, userID))
 	now := time.Now().UTC()
 	result, err := tx.ExecContext(ctx, `
 UPDATE refresh_tokens
-SET revoked_at = ?
-WHERE id = ? AND revoked_at IS NULL`,
-		formatTime(now), tokenID)
+SET revoked_at = $1
+WHERE id = $2 AND revoked_at IS NULL`,
+		now, tokenID)
 	if err != nil {
 		return user.User{}, apperrors.Wrap(apperrors.InternalError, err)
 	}
@@ -97,8 +93,8 @@ WHERE id = ? AND revoked_at IS NULL`,
 	}
 	if _, err := tx.ExecContext(ctx, `
 INSERT INTO refresh_tokens (user_id, token_hash, expires_at, created_at)
-VALUES (?, ?, ?, ?)`,
-		userID, newHash, formatTime(expiresAt.UTC()), formatTime(now)); err != nil {
+VALUES ($1, $2, $3, $4)`,
+		userID, newHash, expiresAt.UTC(), now); err != nil {
 		return user.User{}, apperrors.Wrap(apperrors.InternalError, err)
 	}
 	if err := tx.Commit(); err != nil {
@@ -110,9 +106,9 @@ VALUES (?, ?, ?, ?)`,
 func (r *Repository) revokeRefreshToken(ctx context.Context, userID int64, tokenHash string) error {
 	result, err := r.db.ExecContext(ctx, `
 UPDATE refresh_tokens
-SET revoked_at = ?
-WHERE token_hash = ? AND user_id = ? AND revoked_at IS NULL`,
-		formatTime(time.Now().UTC()), tokenHash, userID)
+SET revoked_at = $1
+WHERE token_hash = $2 AND user_id = $3 AND revoked_at IS NULL`,
+		time.Now().UTC(), tokenHash, userID)
 	if err != nil {
 		return apperrors.Wrap(apperrors.InternalError, err)
 	}
@@ -124,10 +120,6 @@ WHERE token_hash = ? AND user_id = ? AND revoked_at IS NULL`,
 		return apperrors.InvalidToken
 	}
 	return nil
-}
-
-func formatTime(t time.Time) string {
-	return t.UTC().Format(time.RFC3339Nano)
 }
 
 // LoginAttempt captures the current failure state for a user.
@@ -144,10 +136,10 @@ type LoginAttempt struct {
 func (r *Repository) GetLoginAttempt(ctx context.Context, userID int64) (LoginAttempt, error) {
 	var (
 		failedCount int
-		lockedUntil sql.NullString
+		lockedUntil sql.NullTime
 	)
 	err := r.db.QueryRowContext(ctx, `
-SELECT failed_count, locked_until FROM login_attempts WHERE user_id = ?`, userID).
+SELECT failed_count, locked_until FROM login_attempts WHERE user_id = $1`, userID).
 		Scan(&failedCount, &lockedUntil)
 	if err == sql.ErrNoRows {
 		return LoginAttempt{}, nil
@@ -155,14 +147,7 @@ SELECT failed_count, locked_until FROM login_attempts WHERE user_id = ?`, userID
 	if err != nil {
 		return LoginAttempt{}, apperrors.Wrap(apperrors.InternalError, err)
 	}
-	var lockedUntilTime sql.NullTime
-	if lockedUntil.Valid {
-		t, pErr := parseTime(lockedUntil.String)
-		if pErr == nil {
-			lockedUntilTime = sql.NullTime{Time: t, Valid: true}
-		}
-	}
-	return LoginAttempt{FailedCount: failedCount, LockedUntil: lockedUntilTime}, nil
+	return LoginAttempt{FailedCount: failedCount, LockedUntil: lockedUntil}, nil
 }
 
 // RecordFailedLogin increments the failure counter and locks the account when
@@ -176,18 +161,18 @@ func (r *Repository) RecordFailedLogin(ctx context.Context, userID int64, maxAtt
 		var failedCount int
 		err := r.db.QueryRowContext(ctx, `
 INSERT INTO login_attempts (user_id, failed_count, last_failed_at, locked_until)
-VALUES (?, 1, ?, NULL)
+VALUES ($1, 1, $2, NULL)
 ON CONFLICT(user_id) DO UPDATE SET
-    failed_count = failed_count + 1,
+    failed_count = login_attempts.failed_count + 1,
     last_failed_at = excluded.last_failed_at
-RETURNING failed_count`, userID, formatTime(now)).Scan(&failedCount)
+RETURNING login_attempts.failed_count`, userID, now).Scan(&failedCount)
 		if err != nil {
 			return LoginAttempt{}, apperrors.Wrap(apperrors.InternalError, err)
 		}
 		if failedCount >= maxAttempts {
 			lockTime := now.Add(lockDuration)
 			if _, err := r.db.ExecContext(ctx, `
-UPDATE login_attempts SET locked_until = ? WHERE user_id = ?`, formatTime(lockTime), userID); err != nil {
+UPDATE login_attempts SET locked_until = $1 WHERE user_id = $2`, lockTime, userID); err != nil {
 				return LoginAttempt{}, apperrors.Wrap(apperrors.InternalError, err)
 			}
 			lockedUntil = sql.NullTime{Time: lockTime, Valid: true}
@@ -198,10 +183,10 @@ UPDATE login_attempts SET locked_until = ? WHERE user_id = ?`, formatTime(lockTi
 	// maxAttempts == 0 means locking is disabled; just record the failure.
 	if _, err := r.db.ExecContext(ctx, `
 INSERT INTO login_attempts (user_id, failed_count, last_failed_at, locked_until)
-VALUES (?, 1, ?, NULL)
+VALUES ($1, 1, $2, NULL)
 ON CONFLICT(user_id) DO UPDATE SET
-    failed_count = failed_count + 1,
-    last_failed_at = excluded.last_failed_at`, userID, formatTime(now)); err != nil {
+    failed_count = login_attempts.failed_count + 1,
+    last_failed_at = excluded.last_failed_at`, userID, now); err != nil {
 		return LoginAttempt{}, apperrors.Wrap(apperrors.InternalError, err)
 	}
 	return LoginAttempt{FailedCount: 1, LockedUntil: lockedUntil}, nil
@@ -210,40 +195,23 @@ ON CONFLICT(user_id) DO UPDATE SET
 // ResetLoginAttempt clears the failure state after a successful login.
 // ResetLoginAttempt 在成功登录后清除失败状态。
 func (r *Repository) ResetLoginAttempt(ctx context.Context, userID int64) error {
-	if _, err := r.db.ExecContext(ctx, `DELETE FROM login_attempts WHERE user_id = ?`, userID); err != nil {
+	if _, err := r.db.ExecContext(ctx, `DELETE FROM login_attempts WHERE user_id = $1`, userID); err != nil {
 		return apperrors.Wrap(apperrors.InternalError, err)
 	}
 	return nil
 }
 
-func parseTime(value string) (time.Time, error) {
-	return time.Parse(time.RFC3339Nano, value)
-}
-
 func scanUser(row interface {
 	Scan(dest ...any) error
 }) (user.User, error) {
-	var (
-		u                        user.User
-		createdText, updatedText string
-	)
-	err := row.Scan(&u.ID, &u.Username, &u.Email, &u.Avatar, &u.Bio, &u.Role, &u.Status, &u.TokenVersion, &createdText, &updatedText)
+	var u user.User
+	err := row.Scan(&u.ID, &u.Username, &u.Email, &u.Avatar, &u.Bio, &u.Role, &u.Status, &u.TokenVersion, &u.CreatedAt, &u.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return user.User{}, apperrors.NotFound
 		}
 		return user.User{}, apperrors.Wrap(apperrors.InternalError, err)
 	}
-	createdAt, err := parseTime(createdText)
-	if err != nil {
-		return user.User{}, apperrors.Wrap(apperrors.InternalError, err)
-	}
-	updatedAt, err := parseTime(updatedText)
-	if err != nil {
-		return user.User{}, apperrors.Wrap(apperrors.InternalError, err)
-	}
-	u.CreatedAt = createdAt
-	u.UpdatedAt = updatedAt
 	return u, nil
 }
 

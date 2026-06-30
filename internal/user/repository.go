@@ -4,10 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strconv"
 	"strings"
 	"time"
 
 	apperrors "github.com/HappyLadySauce/Knowledge-Core/internal/errors"
+	"github.com/HappyLadySauce/Knowledge-Core/pkg/postgres"
 )
 
 type Repository struct {
@@ -26,35 +28,33 @@ func (r *Repository) Create(ctx context.Context, username, email, passwordHash s
 // CreateWithRole 使用显式角色创建用户（用于 admin 引导）。
 func (r *Repository) CreateWithRole(ctx context.Context, username, email, passwordHash, role string) (User, error) {
 	now := time.Now().UTC()
-	result, err := r.db.ExecContext(ctx, `
+	var id int64
+	err := r.db.QueryRowContext(ctx, `
 INSERT INTO users (username, email, avatar, bio, password_hash, role, status, created_at, updated_at)
-VALUES (?, NULLIF(?, ''), '', '', ?, ?, ?, ?, ?)`,
-		username, email, passwordHash, role, StatusActive, formatTime(now), formatTime(now))
+VALUES ($1, NULLIF($2, ''), '', '', $3, $4, $5, $6, $7)
+RETURNING id`,
+		username, email, passwordHash, role, StatusActive, now, now).Scan(&id)
 	if err != nil {
-		if isSQLiteConstraint(err) {
+		if postgres.IsUniqueViolation(err) {
 			return User{}, apperrors.Conflict
 		}
-		return User{}, apperrors.Wrap(apperrors.InternalError, err)
-	}
-	id, err := result.LastInsertId()
-	if err != nil {
 		return User{}, apperrors.Wrap(apperrors.InternalError, err)
 	}
 	return r.GetByID(ctx, id)
 }
 
 func (r *Repository) GetByID(ctx context.Context, id int64) (User, error) {
-	row := r.db.QueryRowContext(ctx, userSelectSQL+` WHERE id = ?`, id)
+	row := r.db.QueryRowContext(ctx, userSelectSQL+` WHERE id = $1`, id)
 	return scanUser(row)
 }
 
 func (r *Repository) GetRecordByID(ctx context.Context, id int64) (Record, error) {
-	row := r.db.QueryRowContext(ctx, recordSelectSQL+` WHERE id = ?`, id)
+	row := r.db.QueryRowContext(ctx, recordSelectSQL+` WHERE id = $1`, id)
 	return scanRecord(row, apperrors.NotFound)
 }
 
 func (r *Repository) GetRecordByUsername(ctx context.Context, username string) (Record, error) {
-	row := r.db.QueryRowContext(ctx, recordSelectSQL+` WHERE username = ?`, username)
+	row := r.db.QueryRowContext(ctx, recordSelectSQL+` WHERE username = $1`, username)
 	return scanRecord(row, apperrors.InvalidCredentials)
 }
 
@@ -69,7 +69,7 @@ func (r *Repository) List(ctx context.Context, query ListQuery) (ListResult, err
 	args = append(args, query.PageSize, offset)
 	rows, err := r.db.QueryContext(ctx, userSelectSQL+where+`
 ORDER BY id ASC
-LIMIT ? OFFSET ?`, args...)
+LIMIT $`+strconv.Itoa(len(args)-1)+` OFFSET $`+strconv.Itoa(len(args)), args...)
 	if err != nil {
 		return ListResult{}, apperrors.Wrap(apperrors.InternalError, err)
 	}
@@ -96,7 +96,7 @@ func (r *Repository) UpdateProfile(ctx context.Context, id int64, cmd UpdateProf
 	}
 	defer rollbackTx(tx)
 
-	current, err := scanUser(tx.QueryRowContext(ctx, userSelectSQL+` WHERE id = ?`, id))
+	current, err := scanUser(tx.QueryRowContext(ctx, userSelectSQL+` WHERE id = $1`, id))
 	if err != nil {
 		return User{}, err
 	}
@@ -104,10 +104,10 @@ func (r *Repository) UpdateProfile(ctx context.Context, id int64, cmd UpdateProf
 	now := time.Now().UTC()
 	if _, err := tx.ExecContext(ctx, `
 UPDATE users
-SET username = ?, email = NULLIF(?, ''), avatar = ?, bio = ?, updated_at = ?
-WHERE id = ?`,
-		nextUsername, nextEmail, nextAvatar, nextBio, formatTime(now), id); err != nil {
-		if isSQLiteConstraint(err) {
+SET username = $1, email = NULLIF($2, ''), avatar = $3, bio = $4, updated_at = $5
+WHERE id = $6`,
+		nextUsername, nextEmail, nextAvatar, nextBio, now, id); err != nil {
+		if postgres.IsUniqueViolation(err) {
 			return User{}, apperrors.Conflict
 		}
 		return User{}, apperrors.Wrap(apperrors.InternalError, err)
@@ -125,7 +125,7 @@ func (r *Repository) AdminUpdate(ctx context.Context, id int64, cmd AdminUpdateC
 	}
 	defer rollbackTx(tx)
 
-	current, err := scanUser(tx.QueryRowContext(ctx, userSelectSQL+` WHERE id = ?`, id))
+	current, err := scanUser(tx.QueryRowContext(ctx, userSelectSQL+` WHERE id = $1`, id))
 	if err != nil {
 		return User{}, err
 	}
@@ -145,10 +145,10 @@ func (r *Repository) AdminUpdate(ctx context.Context, id int64, cmd AdminUpdateC
 	now := time.Now().UTC()
 	if _, err := tx.ExecContext(ctx, `
 UPDATE users
-SET username = ?, email = NULLIF(?, ''), avatar = ?, bio = ?, status = ?, role = ?, updated_at = ?
-WHERE id = ?`,
-		nextUsername, nextEmail, nextAvatar, nextBio, nextStatus, nextRole, formatTime(now), id); err != nil {
-		if isSQLiteConstraint(err) {
+SET username = $1, email = NULLIF($2, ''), avatar = $3, bio = $4, status = $5, role = $6, updated_at = $7
+WHERE id = $8`,
+		nextUsername, nextEmail, nextAvatar, nextBio, nextStatus, nextRole, now, id); err != nil {
+		if postgres.IsUniqueViolation(err) {
 			return User{}, apperrors.Conflict
 		}
 		return User{}, apperrors.Wrap(apperrors.InternalError, err)
@@ -171,7 +171,7 @@ func (r *Repository) Disable(ctx context.Context, id int64) error {
 	}
 	defer rollbackTx(tx)
 
-	current, err := scanUser(tx.QueryRowContext(ctx, userSelectSQL+` WHERE id = ?`, id))
+	current, err := scanUser(tx.QueryRowContext(ctx, userSelectSQL+` WHERE id = $1`, id))
 	if err != nil {
 		return err
 	}
@@ -181,8 +181,8 @@ func (r *Repository) Disable(ctx context.Context, id int64) error {
 	now := time.Now().UTC()
 	if _, err := tx.ExecContext(ctx, `
 UPDATE users
-SET status = ?, updated_at = ?
-WHERE id = ?`, StatusDisabled, formatTime(now), id); err != nil {
+SET status = $1, updated_at = $2
+WHERE id = $3`, StatusDisabled, now, id); err != nil {
 		return apperrors.Wrap(apperrors.InternalError, err)
 	}
 	if err := revokeRefreshTokensTx(ctx, tx, id, now); err != nil {
@@ -204,8 +204,8 @@ func (r *Repository) UpdatePasswordHash(ctx context.Context, id int64, passwordH
 	now := time.Now().UTC()
 	result, err := tx.ExecContext(ctx, `
 UPDATE users
-SET password_hash = ?, updated_at = ?
-WHERE id = ?`, passwordHash, formatTime(now), id)
+SET password_hash = $1, updated_at = $2
+WHERE id = $3`, passwordHash, now, id)
 	if err != nil {
 		return apperrors.Wrap(apperrors.InternalError, err)
 	}
@@ -244,11 +244,11 @@ func listWhere(query ListQuery) (string, []any) {
 	parts := make([]string, 0, 3)
 	args := make([]any, 0, 3)
 	if query.Role != "" {
-		parts = append(parts, "role = ?")
+		parts = append(parts, "role = $"+strconv.Itoa(len(args)+1))
 		args = append(args, query.Role)
 	}
 	if query.Status != "" {
-		parts = append(parts, "status = ?")
+		parts = append(parts, "status = $"+strconv.Itoa(len(args)+1))
 		args = append(args, query.Status)
 	}
 	if query.Keyword != "" {
@@ -256,7 +256,7 @@ func listWhere(query ListQuery) (string, []any) {
 		// avoiding the full-table scan of LIKE '%kw%'.
 		// 前缀匹配（LIKE 'kw%'）可使用 username/email 唯一索引，
 		// 避免 LIKE '%kw%' 的全表扫描。
-		parts = append(parts, "(username LIKE ? OR email LIKE ?)")
+		parts = append(parts, "(username LIKE $"+strconv.Itoa(len(args)+1)+" OR email LIKE $"+strconv.Itoa(len(args)+2)+")")
 		prefix := query.Keyword + "%"
 		args = append(args, prefix, prefix)
 	}
@@ -316,7 +316,7 @@ func countActiveAdmins(ctx context.Context, queryer interface {
 	err := queryer.QueryRowContext(ctx, `
 SELECT COUNT(*)
 FROM users
-WHERE role = ? AND status = ?`, RoleAdmin, StatusActive).Scan(&count)
+WHERE role = $1 AND status = $2`, RoleAdmin, StatusActive).Scan(&count)
 	if err != nil {
 		return 0, apperrors.Wrap(apperrors.InternalError, err)
 	}
@@ -326,8 +326,8 @@ WHERE role = ? AND status = ?`, RoleAdmin, StatusActive).Scan(&count)
 func revokeRefreshTokensTx(ctx context.Context, tx *sql.Tx, id int64, now time.Time) error {
 	_, err := tx.ExecContext(ctx, `
 UPDATE refresh_tokens
-SET revoked_at = COALESCE(revoked_at, ?)
-WHERE user_id = ? AND revoked_at IS NULL`, formatTime(now), id)
+SET revoked_at = COALESCE(revoked_at, $1)
+WHERE user_id = $2 AND revoked_at IS NULL`, now, id)
 	if err != nil {
 		return apperrors.Wrap(apperrors.InternalError, err)
 	}
@@ -345,63 +345,29 @@ FROM users`
 func scanUser(row interface {
 	Scan(dest ...any) error
 }) (User, error) {
-	var (
-		u                        User
-		createdText, updatedText string
-	)
-	err := row.Scan(&u.ID, &u.Username, &u.Email, &u.Avatar, &u.Bio, &u.Role, &u.Status, &u.TokenVersion, &createdText, &updatedText)
+	var u User
+	err := row.Scan(&u.ID, &u.Username, &u.Email, &u.Avatar, &u.Bio, &u.Role, &u.Status, &u.TokenVersion, &u.CreatedAt, &u.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return User{}, apperrors.NotFound
 		}
 		return User{}, apperrors.Wrap(apperrors.InternalError, err)
 	}
-	createdAt, err := parseTime(createdText)
-	if err != nil {
-		return User{}, apperrors.Wrap(apperrors.InternalError, err)
-	}
-	updatedAt, err := parseTime(updatedText)
-	if err != nil {
-		return User{}, apperrors.Wrap(apperrors.InternalError, err)
-	}
-	u.CreatedAt = createdAt
-	u.UpdatedAt = updatedAt
 	return u, nil
 }
 
 func scanRecord(row interface {
 	Scan(dest ...any) error
 }, missing error) (Record, error) {
-	var (
-		record                   Record
-		createdText, updatedText string
-	)
-	err := row.Scan(&record.ID, &record.Username, &record.Email, &record.Avatar, &record.Bio, &record.PasswordHash, &record.Role, &record.Status, &record.TokenVersion, &createdText, &updatedText)
+	var record Record
+	err := row.Scan(&record.ID, &record.Username, &record.Email, &record.Avatar, &record.Bio, &record.PasswordHash, &record.Role, &record.Status, &record.TokenVersion, &record.CreatedAt, &record.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return Record{}, missing
 		}
 		return Record{}, apperrors.Wrap(apperrors.InternalError, err)
 	}
-	createdAt, err := parseTime(createdText)
-	if err != nil {
-		return Record{}, apperrors.Wrap(apperrors.InternalError, err)
-	}
-	updatedAt, err := parseTime(updatedText)
-	if err != nil {
-		return Record{}, apperrors.Wrap(apperrors.InternalError, err)
-	}
-	record.CreatedAt = createdAt
-	record.UpdatedAt = updatedAt
 	return record, nil
-}
-
-func formatTime(t time.Time) string {
-	return t.UTC().Format(time.RFC3339Nano)
-}
-
-func parseTime(value string) (time.Time, error) {
-	return time.Parse(time.RFC3339Nano, value)
 }
 
 // IncrementTokenVersion bumps token_version for a user, invalidating all
@@ -410,8 +376,8 @@ func parseTime(value string) (time.Time, error) {
 // （充当服务端 JWT 黑名单）。
 func (r *Repository) IncrementTokenVersion(ctx context.Context, id int64) error {
 	result, err := r.db.ExecContext(ctx, `
-UPDATE users SET token_version = token_version + 1, updated_at = ? WHERE id = ?`,
-		formatTime(time.Now().UTC()), id)
+UPDATE users SET token_version = token_version + 1, updated_at = $1 WHERE id = $2`,
+		time.Now().UTC(), id)
 	if err != nil {
 		return apperrors.Wrap(apperrors.InternalError, err)
 	}
@@ -423,10 +389,6 @@ UPDATE users SET token_version = token_version + 1, updated_at = ? WHERE id = ?`
 		return apperrors.NotFound
 	}
 	return nil
-}
-
-func isSQLiteConstraint(err error) bool {
-	return strings.Contains(strings.ToLower(err.Error()), "constraint")
 }
 
 func rollbackTx(tx *sql.Tx) {

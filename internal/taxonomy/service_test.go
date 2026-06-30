@@ -4,15 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"os"
-	"path/filepath"
-	"sort"
 	"testing"
 	"time"
 
-	_ "modernc.org/sqlite"
-
 	apperrors "github.com/HappyLadySauce/Knowledge-Core/internal/errors"
+	"github.com/HappyLadySauce/Knowledge-Core/internal/testutil"
 )
 
 func TestCategoryAndTagCRUD(t *testing.T) {
@@ -158,83 +154,27 @@ func TestUsedTagCannotBeRenamedOrDeleted(t *testing.T) {
 
 func newTaxonomyTestDB(t *testing.T) *sql.DB {
 	t.Helper()
-	db, err := sql.Open("sqlite", "file:"+filepath.ToSlash(filepath.Join(t.TempDir(), "taxonomy.db")))
-	if err != nil {
-		t.Fatalf("open sqlite failed: %v", err)
-	}
-	t.Cleanup(func() {
-		_ = db.Close()
-	})
-	if _, err := db.ExecContext(context.Background(), "PRAGMA foreign_keys=ON"); err != nil {
-		t.Fatalf("enable foreign keys failed: %v", err)
-	}
-	applyMigrationFiles(t, db)
-	return db
-}
-
-func applyMigrationFiles(t *testing.T, db *sql.DB) {
-	t.Helper()
-	migrationsDir := filepath.Join(findRepoRoot(t), "sql", "migrations")
-	entries, err := os.ReadDir(migrationsDir)
-	if err != nil {
-		t.Fatalf("read migrations directory failed: %v", err)
-	}
-	sort.Slice(entries, func(i, j int) bool {
-		return entries[i].Name() < entries[j].Name()
-	})
-	for _, entry := range entries {
-		if entry.IsDir() || filepath.Ext(entry.Name()) != ".sql" {
-			continue
-		}
-		path := filepath.Join(migrationsDir, entry.Name())
-		sqlBytes, err := os.ReadFile(path)
-		if err != nil {
-			t.Fatalf("read migration %s failed: %v", entry.Name(), err)
-		}
-		if _, err := db.ExecContext(context.Background(), string(sqlBytes)); err != nil {
-			t.Fatalf("apply migration %s failed: %v", entry.Name(), err)
-		}
-	}
-}
-
-func findRepoRoot(t *testing.T) string {
-	t.Helper()
-	dir, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("get working directory failed: %v", err)
-	}
-	for {
-		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
-			return dir
-		}
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			t.Fatalf("repo root not found from %s", dir)
-		}
-		dir = parent
-	}
+	return testutil.NewPostgresDB(t)
 }
 
 func insertTaxonomyDocument(t *testing.T, db *sql.DB, slug string, categoryID int64, tagID int64, status string) {
 	t.Helper()
-	now := formatTime(time.Now().UTC())
-	result, err := db.ExecContext(context.Background(), `
+	now := time.Now().UTC()
+	var documentID int64
+	err := db.QueryRowContext(context.Background(), `
 INSERT INTO documents (
     slug, title, summary, category_id, source, status, confidence,
     word_count, search_text, cover_url, current_version, created_at, updated_at
 )
-VALUES (?, ?, '', ?, 'manual', ?, 1, 1, ?, '', 1, ?, ?)`,
-		slug, slug, categoryID, status, slug, now, now)
+VALUES ($1, $2, '', $3, 'manual', $4, 1, 1, $5, '', 1, $6, $7)
+RETURNING id`,
+		slug, slug, categoryID, status, slug, now, now).Scan(&documentID)
 	if err != nil {
 		t.Fatalf("insert document failed: %v", err)
 	}
-	documentID, err := result.LastInsertId()
-	if err != nil {
-		t.Fatalf("read inserted document id failed: %v", err)
-	}
 	if _, err := db.ExecContext(context.Background(), `
 INSERT INTO document_tags (document_id, tag_id)
-VALUES (?, ?)`, documentID, tagID); err != nil {
+VALUES ($1, $2)`, documentID, tagID); err != nil {
 		t.Fatalf("insert document tag failed: %v", err)
 	}
 }

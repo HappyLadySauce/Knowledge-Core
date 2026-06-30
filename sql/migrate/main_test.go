@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestListMigrationFilesSortsTopLevelSQLiteMigrations(t *testing.T) {
+func TestListMigrationFilesSortsTopLevelPostgresMigrations(t *testing.T) {
 	dir := t.TempDir()
 	writeTestFile(t, dir, "002_second.sql", "SELECT 2;")
 	writeTestFile(t, dir, "001_first.sql", "SELECT 1;")
@@ -35,6 +35,7 @@ func TestInitialMigrationDefinesUserAuthTables(t *testing.T) {
 	sqlText := string(body)
 	for _, want := range []string{
 		"CREATE TABLE IF NOT EXISTS users",
+		"id BIGSERIAL PRIMARY KEY",
 		"avatar TEXT NOT NULL DEFAULT ''",
 		"bio TEXT NOT NULL DEFAULT ''",
 		"CREATE TABLE IF NOT EXISTS refresh_tokens",

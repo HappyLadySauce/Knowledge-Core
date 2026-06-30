@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# Knowledge-Core SQLite migration entrypoint for Unix shell.
-# Knowledge-Core SQLite 数据库迁移入口（Unix shell）。
+# Knowledge-Core PostgreSQL migration entrypoint for Unix shell.
+# Knowledge-Core PostgreSQL 数据库迁移入口（Unix shell）。
 
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MIGRATIONS="${ROOT}/sql/migrations"
-DB_PATH="${KNOWLEDGE_CORE_SQLITE_PATH:-.knowledge-core/index.db}"
+DATABASE_URL="${KNOWLEDGE_CORE_DATABASE_URL:-postgres://knowledge_core:knowledge_core@localhost:5432/knowledge_core?sslmode=disable}"
 
-GO_ARGS=(run ./sql/migrate/main.go -db "$DB_PATH" -dir "$MIGRATIONS")
+GO_ARGS=(run ./sql/migrate/main.go -database-url "$DATABASE_URL" -dir "$MIGRATIONS")
 if [[ "${MIGRATION_FORCE:-}" == "1" ]]; then
   GO_ARGS+=(-force)
 fi
