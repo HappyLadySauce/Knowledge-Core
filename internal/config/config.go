@@ -11,6 +11,7 @@ import (
 type Config struct {
 	InsecureServing *options.InsecureServingOptions `mapstructure:"insecure"`
 	Database        *options.DatabaseOptions        `mapstructure:"database"`
+	Redis           *options.RedisOptions           `mapstructure:"redis"`
 	JWT             *options.JWTOptions             `mapstructure:"jwt"`
 	WebSocket       *options.WebSocketOptions       `mapstructure:"websocket"`
 }

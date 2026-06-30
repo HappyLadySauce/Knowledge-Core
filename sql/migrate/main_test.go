@@ -39,6 +39,9 @@ func TestInitialMigrationDefinesUserAuthTables(t *testing.T) {
 		"avatar TEXT NOT NULL DEFAULT ''",
 		"bio TEXT NOT NULL DEFAULT ''",
 		"CREATE TABLE IF NOT EXISTS refresh_tokens",
+		"token_version BIGINT NOT NULL DEFAULT 0",
+		"rotated_to_hash TEXT",
+		"idx_refresh_tokens_user_revoked",
 		"idx_users_role_status",
 	} {
 		if !strings.Contains(sqlText, want) {

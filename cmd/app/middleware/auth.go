@@ -17,7 +17,7 @@ const contextUserKey = "auth.user"
 // AuthMiddleware validates Bearer JWT and stores the current user in Gin context.
 // AuthMiddleware 校验 Bearer JWT 并将当前用户写入 Gin 上下文。
 func AuthMiddleware(sc *svc.ServiceContext) gin.HandlerFunc {
-	service := auth.NewService(sc.DB, sc.Config.JWT)
+	service := auth.NewService(sc.DB, sc.Config.JWT, sc.RefreshTokens)
 	return func(c *gin.Context) {
 		header := strings.TrimSpace(c.GetHeader("Authorization"))
 		if !strings.HasPrefix(header, "Bearer ") {

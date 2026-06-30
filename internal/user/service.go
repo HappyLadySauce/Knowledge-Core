@@ -17,14 +17,23 @@ const (
 	defaultPage       = 1
 	defaultPageSize   = 20
 	maxPageSize       = 100
+
+	revokeReasonPasswordChanged = "password_changed"
+	revokeReasonUserChanged     = "user_changed"
+	revokeReasonUserDisabled    = "user_disabled"
 )
 
 type Service struct {
-	repo *Repository
+	repo          *Repository
+	refreshTokens RefreshTokenRevoker
 }
 
-func NewService(db *sql.DB) UserService {
-	return &Service{repo: NewRepository(db)}
+type RefreshTokenRevoker interface {
+	RevokeUserRefreshTokens(ctx context.Context, userID int64, reason string) error
+}
+
+func NewService(db *sql.DB, refreshTokens RefreshTokenRevoker) UserService {
+	return &Service{repo: NewRepository(db), refreshTokens: refreshTokens}
 }
 
 func (s *Service) GetMe(ctx context.Context, actor User) (User, error) {
@@ -62,9 +71,7 @@ func (s *Service) ChangePassword(ctx context.Context, actor User, cmd ChangePass
 	if err := s.repo.UpdatePasswordHash(ctx, actor.ID, string(hash)); err != nil {
 		return err
 	}
-	// Invalidate all previously issued tokens after a password change.
-	// 修改密码后使所有先前签发的令牌失效。
-	return s.repo.IncrementTokenVersion(ctx, actor.ID)
+	return s.refreshTokens.RevokeUserRefreshTokens(ctx, actor.ID, revokeReasonPasswordChanged)
 }
 
 func (s *Service) ListUsers(ctx context.Context, actor User, query ListQuery) (ListResult, error) {
@@ -118,13 +125,10 @@ func (s *Service) UpdateUser(ctx context.Context, actor User, id int64, cmd Admi
 	if err != nil {
 		return User{}, err
 	}
-	// Invalidate tokens when role or status changes.
-	// 角色或状态变更时使令牌失效。
 	if cmd.Status != nil || cmd.Role != nil {
-		if err := s.repo.IncrementTokenVersion(ctx, id); err != nil {
+		if err := s.refreshTokens.RevokeUserRefreshTokens(ctx, id, revokeReasonUserChanged); err != nil {
 			return User{}, err
 		}
-		updated.TokenVersion++
 	}
 	return updated, nil
 }
@@ -142,9 +146,7 @@ func (s *Service) DeleteUser(ctx context.Context, actor User, id int64) error {
 	if err := s.repo.Disable(ctx, id); err != nil {
 		return err
 	}
-	// Invalidate tokens when a user is disabled.
-	// 禁用用户时使其令牌失效。
-	return s.repo.IncrementTokenVersion(ctx, id)
+	return s.refreshTokens.RevokeUserRefreshTokens(ctx, id, revokeReasonUserDisabled)
 }
 
 func (s *Service) ResetPassword(ctx context.Context, actor User, id int64, password string) error {
@@ -171,9 +173,7 @@ func (s *Service) ResetPassword(ctx context.Context, actor User, id int64, passw
 	if err := s.repo.UpdatePasswordHash(ctx, id, string(hash)); err != nil {
 		return err
 	}
-	// Invalidate tokens after an admin password reset.
-	// 管理员重置密码后使令牌失效。
-	return s.repo.IncrementTokenVersion(ctx, id)
+	return s.refreshTokens.RevokeUserRefreshTokens(ctx, id, revokeReasonPasswordChanged)
 }
 
 func normalizeProfileCommand(cmd UpdateProfileCommand) UpdateProfileCommand {

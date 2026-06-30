@@ -19,9 +19,10 @@ import (
 )
 
 const (
-	bcryptCost        = 12
-	maxLoginAttempts  = 5
-	loginLockDuration = 15 * time.Minute
+	bcryptCost         = 12
+	maxLoginAttempts   = 5
+	loginLockDuration  = 15 * time.Minute
+	revokeReasonLogout = "logout"
 )
 
 // dummyHash is a bcrypt hash of a random value, used to keep Login response time
@@ -43,20 +44,22 @@ var dummyHash = func() []byte {
 // Service implements auth use cases.
 // Service 实现认证服务。
 type Service struct {
-	users       *user.Repository
-	refreshRepo *Repository
-	tokens      *tokenManager
-	jwt         *options.JWTOptions
+	users         *user.Repository
+	attempts      *Repository
+	refreshTokens RefreshTokenStore
+	tokens        *tokenManager
+	jwt           *options.JWTOptions
 }
 
 // NewService creates an auth service.
 // NewService 创建认证服务。
-func NewService(db *sql.DB, jwtOptions *options.JWTOptions) *Service {
+func NewService(db *sql.DB, jwtOptions *options.JWTOptions, refreshTokens RefreshTokenStore) *Service {
 	return &Service{
-		users:       user.NewRepository(db),
-		refreshRepo: NewRepository(db),
-		tokens:      newTokenManager(jwtOptions),
-		jwt:         jwtOptions,
+		users:         user.NewRepository(db),
+		attempts:      NewRepository(db),
+		refreshTokens: refreshTokens,
+		tokens:        newTokenManager(jwtOptions),
+		jwt:           jwtOptions,
 	}
 }
 
@@ -138,7 +141,7 @@ func (s *Service) Login(ctx context.Context, req LoginCommand) (TokenResponse, e
 
 	// Check account lock before verifying credentials.
 	// 验证凭据前检查账户锁定状态。
-	attempt, err := s.refreshRepo.GetLoginAttempt(ctx, record.ID)
+	attempt, err := s.attempts.GetLoginAttempt(ctx, record.ID)
 	if err != nil {
 		return TokenResponse{}, err
 	}
@@ -147,7 +150,7 @@ func (s *Service) Login(ctx context.Context, req LoginCommand) (TokenResponse, e
 	}
 
 	if bcrypt.CompareHashAndPassword([]byte(record.PasswordHash), []byte(req.Password)) != nil {
-		if _, lErr := s.refreshRepo.RecordFailedLogin(ctx, record.ID, maxLoginAttempts, loginLockDuration); lErr != nil {
+		if _, lErr := s.attempts.RecordFailedLogin(ctx, record.ID, maxLoginAttempts, loginLockDuration); lErr != nil {
 			return TokenResponse{}, lErr
 		}
 		return TokenResponse{}, apperrors.InvalidCredentials
@@ -158,7 +161,7 @@ func (s *Service) Login(ctx context.Context, req LoginCommand) (TokenResponse, e
 
 	// Successful login: clear any previous failure state.
 	// 登录成功：清除之前的失败记录。
-	if err := s.refreshRepo.ResetLoginAttempt(ctx, record.ID); err != nil {
+	if err := s.attempts.ResetLoginAttempt(ctx, record.ID); err != nil {
 		return TokenResponse{}, err
 	}
 	return s.issueTokenResponse(ctx, record.User)
@@ -175,7 +178,7 @@ func (s *Service) Refresh(ctx context.Context, req RefreshCommand) (TokenRespons
 	if err != nil {
 		return TokenResponse{}, apperrors.Wrap(apperrors.InternalError, err)
 	}
-	currentUser, err := s.refreshRepo.rotateRefreshToken(ctx, refreshTokenHash(plain), newHash, time.Now().UTC().Add(s.jwt.RefreshTTL))
+	currentUser, err := s.refreshTokens.RotateRefreshToken(ctx, refreshTokenHash(plain), newHash, time.Now().UTC().Add(s.jwt.RefreshTTL))
 	if err != nil {
 		return TokenResponse{}, err
 	}
@@ -200,7 +203,7 @@ func (s *Service) Logout(ctx context.Context, req LogoutCommand) error {
 	if plain == "" || req.UserID <= 0 {
 		return apperrors.InvalidToken
 	}
-	return s.refreshRepo.revokeRefreshToken(ctx, req.UserID, refreshTokenHash(plain))
+	return s.refreshTokens.RevokeRefreshToken(ctx, req.UserID, refreshTokenHash(plain), revokeReasonLogout)
 }
 
 // CurrentUser returns the active user behind an access token.
@@ -238,7 +241,7 @@ func (s *Service) issueTokenResponse(ctx context.Context, currentUser user.User)
 	if err != nil {
 		return TokenResponse{}, apperrors.Wrap(apperrors.InternalError, err)
 	}
-	if err := s.refreshRepo.storeRefreshToken(ctx, currentUser.ID, refreshHash, time.Now().UTC().Add(s.jwt.RefreshTTL)); err != nil {
+	if err := s.refreshTokens.StoreRefreshToken(ctx, currentUser, refreshHash, time.Now().UTC().Add(s.jwt.RefreshTTL)); err != nil {
 		return TokenResponse{}, err
 	}
 	return TokenResponse{

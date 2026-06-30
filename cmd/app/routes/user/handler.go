@@ -21,14 +21,14 @@ type Controller struct {
 }
 
 func NewController(sc *svc.ServiceContext) *Controller {
-	return &Controller{service: internaluser.NewService(sc.DB)}
+	return &Controller{service: internaluser.NewService(sc.DB, sc.RefreshTokens)}
 }
 
 // Init registers user routes.
 // Init 注册用户路由。
 func Init(ctx context.Context, sc *svc.ServiceContext) {
 	_ = ctx
-	RegisterRoutes(router.V1(), internaluser.NewService(sc.DB), sc)
+	RegisterRoutes(router.V1(), internaluser.NewService(sc.DB, sc.RefreshTokens), sc)
 }
 
 // RegisterRoutes attaches user profile and admin user management routes.

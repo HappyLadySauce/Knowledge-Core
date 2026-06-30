@@ -73,7 +73,7 @@ AI Agent 层
 
 ```powershell
 copy .env.example .env
-docker compose up -d postgres
+docker compose up -d postgres redis
 make migrate
 make run
 ```
@@ -88,6 +88,12 @@ postgres://knowledge_core:knowledge_core@localhost:5432/knowledge_core?sslmode=d
 
 ```text
 postgres://knowledge_core:knowledge_core@localhost:5432/knowledge_core_test?sslmode=disable
+```
+
+默认 Redis 连接：
+
+```text
+redis://localhost:6379/0
 ```
 
 JWT 密钥为空或使用示例弱默认值时，开发环境会生成本次会话随机密钥；生产环境必须设置唯一的 `KNOWLEDGE_CORE_JWT_SECRET`，否则重启后旧 token 会失效。
@@ -154,10 +160,11 @@ type User struct {
 
 ### 认证方式
 
-- JWT Token（Access Token + Refresh Token）
-- Access Token 有效期 2 小时，Refresh Token 7 天
-- Token 存储在 httpOnly Cookie 中
-- 后端中间件校验 Role 字段进行权限控制
+- Access Token 使用 JWT，后端中间件校验 `role` 与 `token_version`。
+- Refresh Token 明文只返回给客户端，服务端只保存 SHA-256 hash。
+- Redis 保存活跃 refresh token 会话元数据，PostgreSQL `refresh_tokens` 保留审计与 Redis 故障降级。
+- Refresh 时即使 Redis 命中也会强校验 PostgreSQL 中的撤销、过期、用户状态和 `token_version`。
+- 修改密码、禁用用户、角色/状态变化会递增 `token_version` 并撤销该用户全部 refresh token。
 
 ### API 路由
 

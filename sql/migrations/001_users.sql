@@ -25,9 +25,13 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     token_hash TEXT NOT NULL UNIQUE,
+    token_version BIGINT NOT NULL DEFAULT 0,
     expires_at TIMESTAMPTZ NOT NULL,
     created_at TIMESTAMPTZ NOT NULL,
-    revoked_at TIMESTAMPTZ
+    revoked_at TIMESTAMPTZ,
+    last_used_at TIMESTAMPTZ,
+    rotated_to_hash TEXT,
+    revoked_reason TEXT NOT NULL DEFAULT ''
 );
 
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id
@@ -35,6 +39,12 @@ ON refresh_tokens (user_id);
 
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_expires_at
 ON refresh_tokens (expires_at);
+
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_revoked
+ON refresh_tokens (user_id, revoked_at);
+
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_rotated_to_hash
+ON refresh_tokens (rotated_to_hash);
 
 CREATE TABLE IF NOT EXISTS login_attempts (
     user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,

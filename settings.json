@@ -10,6 +10,16 @@
     "max-idle-conns": "${KNOWLEDGE_CORE_DATABASE_MAX_IDLE_CONNS}",
     "conn-max-lifetime": "${KNOWLEDGE_CORE_DATABASE_CONN_MAX_LIFETIME}"
   },
+  "redis": {
+    "enabled": "${KNOWLEDGE_CORE_REDIS_ENABLED}",
+    "required": "${KNOWLEDGE_CORE_REDIS_REQUIRED}",
+    "url": "${KNOWLEDGE_CORE_REDIS_URL}",
+    "key-prefix": "${KNOWLEDGE_CORE_REDIS_KEY_PREFIX}",
+    "pool-size": "${KNOWLEDGE_CORE_REDIS_POOL_SIZE}",
+    "dial-timeout": "${KNOWLEDGE_CORE_REDIS_DIAL_TIMEOUT}",
+    "read-timeout": "${KNOWLEDGE_CORE_REDIS_READ_TIMEOUT}",
+    "write-timeout": "${KNOWLEDGE_CORE_REDIS_WRITE_TIMEOUT}"
+  },
   "jwt": {
     "secret": "${KNOWLEDGE_CORE_JWT_SECRET}",
     "access-ttl": "${KNOWLEDGE_CORE_JWT_ACCESS_TTL}",

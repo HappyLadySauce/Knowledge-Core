@@ -7,15 +7,20 @@ import (
 	"fmt"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/redis/go-redis/v9"
+	"k8s.io/klog/v2"
 
 	"github.com/HappyLadySauce/Knowledge-Core/internal/config"
+	"github.com/HappyLadySauce/Knowledge-Core/internal/session"
 )
 
 // ServiceContext wires shared infrastructure for HTTP handlers and background work.
 // ServiceContext 为 HTTP 处理器与后台任务提供共享的基础设施连接。
 type ServiceContext struct {
-	Config *config.Config
-	DB     *sql.DB
+	Config        *config.Config
+	DB            *sql.DB
+	Redis         *redis.Client
+	RefreshTokens *session.Store
 }
 
 // NewServiceContext opens PostgreSQL and verifies the required schema.
@@ -30,6 +35,9 @@ func NewServiceContext(ctx context.Context, cfg *config.Config) (*ServiceContext
 	if cfg.JWT == nil {
 		return nil, fmt.Errorf("jwt config is nil")
 	}
+	if cfg.Redis == nil {
+		return nil, fmt.Errorf("redis config is nil")
+	}
 	if cfg.WebSocket == nil {
 		return nil, fmt.Errorf("websocket config is nil")
 	}
@@ -42,9 +50,16 @@ func NewServiceContext(ctx context.Context, cfg *config.Config) (*ServiceContext
 		_ = db.Close()
 		return nil, err
 	}
+	redisClient, err := openRedis(ctx, cfg)
+	if err != nil {
+		_ = db.Close()
+		return nil, err
+	}
 	return &ServiceContext{
-		Config: cfg,
-		DB:     db,
+		Config:        cfg,
+		DB:            db,
+		Redis:         redisClient,
+		RefreshTokens: session.NewStore(db, redisClient, session.Options{KeyPrefix: cfg.Redis.KeyPrefix}),
 	}, nil
 }
 
@@ -54,6 +69,9 @@ func (s *ServiceContext) Close() error {
 	var err error
 	if s.DB != nil {
 		err = errors.Join(err, s.DB.Close())
+	}
+	if s.Redis != nil {
+		err = errors.Join(err, s.Redis.Close())
 	}
 	return err
 }
@@ -73,6 +91,31 @@ func openPostgres(ctx context.Context, cfg *config.Config) (*sql.DB, error) {
 	return db, nil
 }
 
+func openRedis(ctx context.Context, cfg *config.Config) (*redis.Client, error) {
+	if cfg.Redis == nil || !cfg.Redis.Enabled {
+		klog.Info("redis disabled; refresh token sessions will use postgres fallback only")
+		return nil, nil
+	}
+	opts, err := redis.ParseURL(cfg.Redis.URL)
+	if err != nil {
+		return nil, fmt.Errorf("parse redis url: %w", err)
+	}
+	opts.PoolSize = cfg.Redis.PoolSize
+	opts.DialTimeout = cfg.Redis.DialTimeout
+	opts.ReadTimeout = cfg.Redis.ReadTimeout
+	opts.WriteTimeout = cfg.Redis.WriteTimeout
+	client := redis.NewClient(opts)
+	if err := client.Ping(ctx).Err(); err != nil {
+		_ = client.Close()
+		if cfg.Redis.Required {
+			return nil, fmt.Errorf("ping redis: %w", err)
+		}
+		klog.ErrorS(err, "redis unavailable; refresh token sessions will use postgres fallback")
+		return nil, nil
+	}
+	return client, nil
+}
+
 func verifySchema(ctx context.Context, db *sql.DB) error {
 	requiredTables := []string{
 		"users", "refresh_tokens", "login_attempts", "documents", "document_blocks",
@@ -86,6 +129,26 @@ func verifySchema(ctx context.Context, db *sql.DB) error {
 		}
 		if !exists {
 			return fmt.Errorf("postgres schema is not migrated: missing table %s; run make migrate", table)
+		}
+	}
+	requiredColumns := map[string][]string{
+		"refresh_tokens": {"token_version", "last_used_at", "rotated_to_hash", "revoked_reason"},
+	}
+	for table, columns := range requiredColumns {
+		for _, column := range columns {
+			var exists bool
+			err := db.QueryRowContext(ctx, `
+SELECT EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = $1 AND column_name = $2
+)`, table, column).Scan(&exists)
+			if err != nil {
+				return fmt.Errorf("verify postgres schema columns: %w", err)
+			}
+			if !exists {
+				return fmt.Errorf("postgres schema is not migrated: missing column %s.%s; run make migrate", table, column)
+			}
 		}
 	}
 	return nil

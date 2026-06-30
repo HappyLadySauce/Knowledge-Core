@@ -65,6 +65,7 @@ func run(ctx context.Context, opts *options.Options) error {
 	cfg := &config.Config{
 		InsecureServing: opts.InsecureServing,
 		Database:        opts.Database,
+		Redis:           opts.Redis,
 		JWT:             opts.JWT,
 		WebSocket:       opts.WebSocket,
 	}
@@ -86,7 +87,7 @@ func run(ctx context.Context, opts *options.Options) error {
 
 	// Bootstrap the initial admin user when none exists.
 	// 引导创建初始 admin 用户（若不存在）。
-	if err := auth.NewService(sc.DB, sc.Config.JWT).EnsureAdmin(ctx); err != nil {
+	if err := auth.NewService(sc.DB, sc.Config.JWT, sc.RefreshTokens).EnsureAdmin(ctx); err != nil {
 		return err
 	}
 

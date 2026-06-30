@@ -143,20 +143,18 @@ func (r *Repository) AdminUpdate(ctx context.Context, id int64, cmd AdminUpdateC
 	}
 
 	now := time.Now().UTC()
+	invalidateTokens := nextStatus != current.Status || nextRole != current.Role
 	if _, err := tx.ExecContext(ctx, `
 UPDATE users
-SET username = $1, email = NULLIF($2, ''), avatar = $3, bio = $4, status = $5, role = $6, updated_at = $7
-WHERE id = $8`,
-		nextUsername, nextEmail, nextAvatar, nextBio, nextStatus, nextRole, now, id); err != nil {
+SET username = $1, email = NULLIF($2, ''), avatar = $3, bio = $4, status = $5, role = $6,
+    token_version = CASE WHEN $7 THEN token_version + 1 ELSE token_version END,
+    updated_at = $8
+WHERE id = $9`,
+		nextUsername, nextEmail, nextAvatar, nextBio, nextStatus, nextRole, invalidateTokens, now, id); err != nil {
 		if postgres.IsUniqueViolation(err) {
 			return User{}, apperrors.Conflict
 		}
 		return User{}, apperrors.Wrap(apperrors.InternalError, err)
-	}
-	if nextStatus == StatusDisabled || nextRole != current.Role {
-		if err := revokeRefreshTokensTx(ctx, tx, id, now); err != nil {
-			return User{}, err
-		}
 	}
 	if err := tx.Commit(); err != nil {
 		return User{}, apperrors.Wrap(apperrors.InternalError, err)
@@ -181,12 +179,9 @@ func (r *Repository) Disable(ctx context.Context, id int64) error {
 	now := time.Now().UTC()
 	if _, err := tx.ExecContext(ctx, `
 UPDATE users
-SET status = $1, updated_at = $2
+SET status = $1, token_version = token_version + 1, updated_at = $2
 WHERE id = $3`, StatusDisabled, now, id); err != nil {
 		return apperrors.Wrap(apperrors.InternalError, err)
-	}
-	if err := revokeRefreshTokensTx(ctx, tx, id, now); err != nil {
-		return err
 	}
 	if err := tx.Commit(); err != nil {
 		return apperrors.Wrap(apperrors.InternalError, err)
@@ -204,7 +199,7 @@ func (r *Repository) UpdatePasswordHash(ctx context.Context, id int64, passwordH
 	now := time.Now().UTC()
 	result, err := tx.ExecContext(ctx, `
 UPDATE users
-SET password_hash = $1, updated_at = $2
+SET password_hash = $1, token_version = token_version + 1, updated_at = $2
 WHERE id = $3`, passwordHash, now, id)
 	if err != nil {
 		return apperrors.Wrap(apperrors.InternalError, err)
@@ -215,24 +210,6 @@ WHERE id = $3`, passwordHash, now, id)
 	}
 	if affected == 0 {
 		return apperrors.NotFound
-	}
-	if err := revokeRefreshTokensTx(ctx, tx, id, now); err != nil {
-		return err
-	}
-	if err := tx.Commit(); err != nil {
-		return apperrors.Wrap(apperrors.InternalError, err)
-	}
-	return nil
-}
-
-func (r *Repository) RevokeRefreshTokens(ctx context.Context, id int64) error {
-	tx, err := r.db.BeginTx(ctx, nil)
-	if err != nil {
-		return apperrors.Wrap(apperrors.InternalError, err)
-	}
-	defer rollbackTx(tx)
-	if err := revokeRefreshTokensTx(ctx, tx, id, time.Now().UTC()); err != nil {
-		return err
 	}
 	if err := tx.Commit(); err != nil {
 		return apperrors.Wrap(apperrors.InternalError, err)
@@ -323,17 +300,6 @@ WHERE role = $1 AND status = $2`, RoleAdmin, StatusActive).Scan(&count)
 	return count, nil
 }
 
-func revokeRefreshTokensTx(ctx context.Context, tx *sql.Tx, id int64, now time.Time) error {
-	_, err := tx.ExecContext(ctx, `
-UPDATE refresh_tokens
-SET revoked_at = COALESCE(revoked_at, $1)
-WHERE user_id = $2 AND revoked_at IS NULL`, now, id)
-	if err != nil {
-		return apperrors.Wrap(apperrors.InternalError, err)
-	}
-	return nil
-}
-
 const userSelectSQL = `
 SELECT id, username, COALESCE(email, ''), avatar, bio, role, status, token_version, created_at, updated_at
 FROM users`
@@ -368,27 +334,6 @@ func scanRecord(row interface {
 		return Record{}, apperrors.Wrap(apperrors.InternalError, err)
 	}
 	return record, nil
-}
-
-// IncrementTokenVersion bumps token_version for a user, invalidating all
-// previously issued JWT access tokens (acts as a server-side JWT blacklist).
-// IncrementTokenVersion 递增用户的 token_version，使所有先前签发的 JWT 访问令牌失效
-// （充当服务端 JWT 黑名单）。
-func (r *Repository) IncrementTokenVersion(ctx context.Context, id int64) error {
-	result, err := r.db.ExecContext(ctx, `
-UPDATE users SET token_version = token_version + 1, updated_at = $1 WHERE id = $2`,
-		time.Now().UTC(), id)
-	if err != nil {
-		return apperrors.Wrap(apperrors.InternalError, err)
-	}
-	affected, err := result.RowsAffected()
-	if err != nil {
-		return apperrors.Wrap(apperrors.InternalError, err)
-	}
-	if affected != 1 {
-		return apperrors.NotFound
-	}
-	return nil
 }
 
 func rollbackTx(tx *sql.Tx) {

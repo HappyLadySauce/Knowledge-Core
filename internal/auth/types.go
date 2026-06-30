@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"time"
 
 	"github.com/HappyLadySauce/Knowledge-Core/internal/user"
 )
@@ -45,4 +46,10 @@ type AuthService interface {
 	Refresh(ctx context.Context, req RefreshCommand) (TokenResponse, error)
 	Logout(ctx context.Context, req LogoutCommand) error
 	CurrentUser(ctx context.Context, rawToken string) (user.User, error)
+}
+
+type RefreshTokenStore interface {
+	StoreRefreshToken(ctx context.Context, currentUser user.User, tokenHash string, expiresAt time.Time) error
+	RotateRefreshToken(ctx context.Context, oldHash, newHash string, expiresAt time.Time) (user.User, error)
+	RevokeRefreshToken(ctx context.Context, userID int64, tokenHash, reason string) error
 }

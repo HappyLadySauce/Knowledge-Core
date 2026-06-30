@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/HappyLadySauce/Knowledge-Core/cmd/app/svc"
 	v1 "github.com/HappyLadySauce/Knowledge-Core/cmd/app/types/v1"
@@ -18,6 +19,7 @@ import (
 	"github.com/HappyLadySauce/Knowledge-Core/internal/config"
 	apperrors "github.com/HappyLadySauce/Knowledge-Core/internal/errors"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/options"
+	"github.com/HappyLadySauce/Knowledge-Core/internal/session"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/testutil"
 	internaluser "github.com/HappyLadySauce/Knowledge-Core/internal/user"
 )
@@ -47,6 +49,14 @@ func TestRegisterLoginAndRefreshReturnTokenEnvelope(t *testing.T) {
 	if loggedIn.AccessToken == "" || loggedIn.RefreshToken == "" || loggedIn.TokenType != internalauth.TokenTypeBearer {
 		t.Fatalf("login should return OAuth2 token response in data: %+v", loggedIn)
 	}
+	if active := harness.countActiveRefreshTokens(t); active == 0 {
+		t.Fatalf("expected refresh token audit rows after login")
+	}
+	if keys := harness.countRedisRefreshTokenKeys(t); keys == 0 {
+		t.Fatalf("expected redis refresh token keys after login")
+	}
+
+	harness.deleteRedisRefreshTokenKeys(t)
 
 	refresh := harness.request(t, http.MethodPost, "/api/v1/auth/refresh", map[string]any{
 		"refresh_token": loggedIn.RefreshToken,
@@ -54,6 +64,9 @@ func TestRegisterLoginAndRefreshReturnTokenEnvelope(t *testing.T) {
 	rotated := decodeEnvelopeData[v1.TokenResponse](t, refresh, http.StatusOK, apperrors.MessageOK)
 	if rotated.RefreshToken == "" || rotated.RefreshToken == loggedIn.RefreshToken {
 		t.Fatalf("refresh token was not rotated")
+	}
+	if keys := harness.countRedisRefreshTokenKeys(t); keys == 0 {
+		t.Fatalf("expected refresh fallback to repopulate redis")
 	}
 
 	oldRefresh := harness.request(t, http.MethodPost, "/api/v1/auth/refresh", map[string]any{
@@ -88,6 +101,38 @@ func TestLogoutRevokesRefreshToken(t *testing.T) {
 		"refresh_token": token.RefreshToken,
 	}, "")
 	decodeEnvelopeData[any](t, refresh, http.StatusUnauthorized, apperrors.MessageUnauthorized)
+}
+
+func TestRefreshRejectsRevokedTokenEvenWhenRedisKeyExists(t *testing.T) {
+	harness := newAuthHarness(t)
+	token := harness.registerUser(t, "revoked-redis-user")
+	if keys := harness.countRedisRefreshTokenKeys(t); keys == 0 {
+		t.Fatalf("expected redis refresh token key before sql revoke")
+	}
+
+	if _, err := harness.db.ExecContext(context.Background(), `
+UPDATE refresh_tokens
+SET revoked_at = $1, revoked_reason = 'test_sql_revoke'
+WHERE user_id = $2 AND revoked_at IS NULL`, time.Now().UTC(), token.User.ID); err != nil {
+		t.Fatalf("sql revoke refresh token failed: %v", err)
+	}
+	refresh := harness.request(t, http.MethodPost, "/api/v1/auth/refresh", map[string]any{
+		"refresh_token": token.RefreshToken,
+	}, "")
+	decodeEnvelopeData[any](t, refresh, http.StatusUnauthorized, apperrors.MessageUnauthorized)
+}
+
+func TestRefreshUsesPostgresFallbackWhenRedisUnavailable(t *testing.T) {
+	harness := newAuthHarnessWithoutRedis(t)
+	token := harness.registerUser(t, "fallback-user")
+
+	refresh := harness.request(t, http.MethodPost, "/api/v1/auth/refresh", map[string]any{
+		"refresh_token": token.RefreshToken,
+	}, "")
+	rotated := decodeEnvelopeData[v1.TokenResponse](t, refresh, http.StatusOK, apperrors.MessageOK)
+	if rotated.RefreshToken == "" || rotated.RefreshToken == token.RefreshToken {
+		t.Fatalf("refresh token was not rotated with postgres fallback")
+	}
 }
 
 func TestBadAuthRequestsReturnEnvelope(t *testing.T) {
@@ -153,7 +198,10 @@ func TestJWTSecretValidationRejectsShortSecretAndGeneratesFallback(t *testing.T)
 }
 
 type authHarness struct {
-	router *gin.Engine
+	router      *gin.Engine
+	db          *sql.DB
+	redisPrefix string
+	redisClient *redis.Client
 }
 
 func newAuthHarness(t *testing.T) *authHarness {
@@ -161,11 +209,15 @@ func newAuthHarness(t *testing.T) *authHarness {
 	gin.SetMode(gin.TestMode)
 
 	db, jwtOptions := newTestDB(t)
+	redisClient, redisPrefix := testutil.NewRedisClient(t)
+	refreshStore := session.NewStore(db, redisClient, session.Options{KeyPrefix: redisPrefix})
 	sc := &svc.ServiceContext{
-		Config: &config.Config{JWT: jwtOptions},
-		DB:     db,
+		Config:        &config.Config{JWT: jwtOptions},
+		DB:            db,
+		Redis:         redisClient,
+		RefreshTokens: refreshStore,
 	}
-	authSvc := internalauth.NewService(db, jwtOptions)
+	authSvc := internalauth.NewService(db, jwtOptions, refreshStore)
 	// Bootstrap admin so TestDefaultAdminCanLogin can verify the default admin.
 	// 引导创建 admin 用户，使 TestDefaultAdminCanLogin 可验证默认管理员。
 	t.Setenv("KNOWLEDGE_CORE_ADMIN_PASSWORD", "ChangeMe_123456!")
@@ -174,7 +226,28 @@ func newAuthHarness(t *testing.T) *authHarness {
 	}
 	router := gin.New()
 	RegisterRoutes(router.Group("/api/v1"), authSvc, sc)
-	return &authHarness{router: router}
+	return &authHarness{router: router, db: db, redisPrefix: redisPrefix, redisClient: redisClient}
+}
+
+func newAuthHarnessWithoutRedis(t *testing.T) *authHarness {
+	t.Helper()
+	gin.SetMode(gin.TestMode)
+
+	db, jwtOptions := newTestDB(t)
+	refreshStore := session.NewStore(db, nil, session.Options{KeyPrefix: "knowledge-core-test-no-redis"})
+	sc := &svc.ServiceContext{
+		Config:        &config.Config{JWT: jwtOptions},
+		DB:            db,
+		RefreshTokens: refreshStore,
+	}
+	authSvc := internalauth.NewService(db, jwtOptions, refreshStore)
+	t.Setenv("KNOWLEDGE_CORE_ADMIN_PASSWORD", "ChangeMe_123456!")
+	if err := authSvc.EnsureAdmin(context.Background()); err != nil {
+		t.Fatalf("bootstrap admin failed: %v", err)
+	}
+	router := gin.New()
+	RegisterRoutes(router.Group("/api/v1"), authSvc, sc)
+	return &authHarness{router: router, db: db}
 }
 
 func (h *authHarness) registerUser(t *testing.T, username string) v1.TokenResponse {
@@ -204,6 +277,55 @@ func (h *authHarness) request(t *testing.T, method, path string, body any, acces
 	response := httptest.NewRecorder()
 	h.router.ServeHTTP(response, req)
 	return response
+}
+
+func (h *authHarness) countActiveRefreshTokens(t *testing.T) int {
+	t.Helper()
+	var count int
+	if err := h.db.QueryRowContext(context.Background(), `SELECT COUNT(*) FROM refresh_tokens WHERE revoked_at IS NULL`).Scan(&count); err != nil {
+		t.Fatalf("count refresh tokens failed: %v", err)
+	}
+	return count
+}
+
+func (h *authHarness) countRedisRefreshTokenKeys(t *testing.T) int {
+	t.Helper()
+	if h.redisClient == nil {
+		return 0
+	}
+	return len(h.scanRedisRefreshTokenKeys(t))
+}
+
+func (h *authHarness) deleteRedisRefreshTokenKeys(t *testing.T) {
+	t.Helper()
+	keys := h.scanRedisRefreshTokenKeys(t)
+	if len(keys) > 0 {
+		if err := h.redisClient.Del(context.Background(), keys...).Err(); err != nil {
+			t.Fatalf("delete redis refresh token keys failed: %v", err)
+		}
+	}
+}
+
+func (h *authHarness) scanRedisRefreshTokenKeys(t *testing.T) []string {
+	t.Helper()
+	if h.redisClient == nil {
+		return nil
+	}
+	ctx := context.Background()
+	pattern := h.redisPrefix + ":auth:refresh:token:*"
+	var cursor uint64
+	var keys []string
+	for {
+		batch, next, err := h.redisClient.Scan(ctx, cursor, pattern, 100).Result()
+		if err != nil {
+			t.Fatalf("scan redis refresh token keys failed: %v", err)
+		}
+		keys = append(keys, batch...)
+		if next == 0 {
+			return keys
+		}
+		cursor = next
+	}
 }
 
 func newTestDB(t *testing.T) (*sql.DB, *options.JWTOptions) {

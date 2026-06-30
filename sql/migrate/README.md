@@ -10,6 +10,12 @@ Start local PostgreSQL first:
 docker compose up -d postgres
 ```
 
+For the full API runtime and integration tests, start Redis too:
+
+```powershell
+docker compose up -d postgres redis
+```
+
 ```powershell
 .\sql\migrate.ps1
 .\sql\migrate.ps1 -DatabaseUrl 'postgres://knowledge_core:knowledge_core@localhost:5432/knowledge_core?sslmode=disable'

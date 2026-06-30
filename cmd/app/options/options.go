@@ -13,6 +13,7 @@ type Options struct {
 	basename        string
 	InsecureServing *options.InsecureServingOptions `mapstructure:"insecure"`
 	Database        *options.DatabaseOptions        `mapstructure:"database"`
+	Redis           *options.RedisOptions           `mapstructure:"redis"`
 	JWT             *options.JWTOptions             `mapstructure:"jwt"`
 	WebSocket       *options.WebSocketOptions       `mapstructure:"websocket"`
 }
@@ -22,6 +23,7 @@ func NewOptions(basename string) *Options {
 		basename:        basename,
 		InsecureServing: options.NewInsecureServingOptions(),
 		Database:        options.NewDatabaseOptions(),
+		Redis:           options.NewRedisOptions(),
 		JWT:             options.NewJWTOptions(),
 		WebSocket:       options.NewWebSocketOptions(),
 	}
@@ -42,6 +44,9 @@ func (o *Options) AddFlags(fs *pflag.FlagSet) *flag.NamedFlagSets {
 
 	databaseFS := nfs.FlagSet("Database")
 	o.Database.AddFlags(databaseFS)
+
+	redisFS := nfs.FlagSet("Redis")
+	o.Redis.AddFlags(redisFS)
 
 	jwtFS := nfs.FlagSet("JWT")
 	o.JWT.AddFlags(jwtFS)
