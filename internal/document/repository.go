@@ -27,10 +27,10 @@ func (r *Repository) List(ctx context.Context, query ListQuery) (ListResult, err
 	}
 
 	offset := (query.Page - 1) * query.PageSize
-	args = append(args, query.PageSize, offset)
+	listArgs := append(append([]any{}, args...), query.PageSize, offset)
 	rows, err := r.db.QueryContext(ctx, documentSelectSQL+where+`
 ORDER BY d.updated_at DESC, d.id DESC
-LIMIT ? OFFSET ?`, args...)
+LIMIT ? OFFSET ?`, listArgs...)
 	if err != nil {
 		return ListResult{}, apperrors.Wrap(apperrors.InternalError, err)
 	}
@@ -42,17 +42,70 @@ LIMIT ? OFFSET ?`, args...)
 		if err != nil {
 			return ListResult{}, err
 		}
-		tags, err := r.listDocumentTags(ctx, item.ID)
-		if err != nil {
-			return ListResult{}, err
-		}
-		item.Tags = tags
 		items = append(items, item)
 	}
 	if err := rows.Err(); err != nil {
 		return ListResult{}, apperrors.Wrap(apperrors.InternalError, err)
 	}
+
+	// Batch-load tags for all documents in one query to avoid N+1.
+	// 批量查询所有文档的标签，避免 N+1 查询。
+	if len(items) > 0 {
+		tagsByDoc, err := r.listTagsByDocumentIDs(ctx, documentIDs(items))
+		if err != nil {
+			return ListResult{}, err
+		}
+		for i := range items {
+			items[i].Tags = tagsByDoc[items[i].ID]
+		}
+	}
 	return ListResult{Items: items, Total: total, Page: query.Page, PageSize: query.PageSize}, nil
+}
+
+func documentIDs(items []Document) []int64 {
+	ids := make([]int64, 0, len(items))
+	for _, item := range items {
+		ids = append(ids, item.ID)
+	}
+	return ids
+}
+
+// listTagsByDocumentIDs fetches tags for multiple documents in a single query.
+// listTagsByDocumentIDs 单次查询获取多个文档的标签。
+func (r *Repository) listTagsByDocumentIDs(ctx context.Context, ids []int64) (map[int64][]TagSummary, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	placeholders := make([]string, 0, len(ids))
+	args := make([]any, 0, len(ids))
+	for _, id := range ids {
+		placeholders = append(placeholders, "?")
+		args = append(args, id)
+	}
+	rows, err := r.db.QueryContext(ctx, `
+SELECT dt.document_id, t.id, t.name, t.slug
+FROM document_tags dt
+JOIN tags t ON t.id = dt.tag_id
+WHERE dt.document_id IN (`+strings.Join(placeholders, ",")+`)
+ORDER BY t.name ASC`, args...)
+	if err != nil {
+		return nil, apperrors.Wrap(apperrors.InternalError, err)
+	}
+	defer rows.Close()
+
+	result := make(map[int64][]TagSummary, len(ids))
+	for rows.Next() {
+		var docID int64
+		var tag TagSummary
+		if err := rows.Scan(&docID, &tag.ID, &tag.Name, &tag.Slug); err != nil {
+			return nil, apperrors.Wrap(apperrors.InternalError, err)
+		}
+		result[docID] = append(result[docID], tag)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, apperrors.Wrap(apperrors.InternalError, err)
+	}
+	return result, nil
 }
 
 func (r *Repository) GetByID(ctx context.Context, id int64) (Document, error) {
@@ -211,8 +264,10 @@ func listWhere(query ListQuery) (string, []any) {
 		args = append(args, query.Status)
 	}
 	if query.Q != "" {
-		parts = append(parts, "d.search_text LIKE ?")
-		args = append(args, "%"+query.Q+"%")
+		// Use FTS5 MATCH via subquery instead of LIKE '%q%' full-table scan.
+		// 使用 FTS5 MATCH 子查询替代 LIKE '%q%' 全表扫描。
+		parts = append(parts, "d.id IN (SELECT rowid FROM documents_fts WHERE documents_fts MATCH ?)")
+		args = append(args, fts5Phrase(query.Q))
 	}
 	if query.Category != "" {
 		parts = append(parts, "c.path = ?")
@@ -230,6 +285,14 @@ WHERE dt.document_id = d.id AND (t.slug = ? OR t.name = ?)
 		return "", args
 	}
 	return " WHERE " + strings.Join(parts, " AND "), args
+}
+
+// fts5Phrase wraps user input as an FTS5 phrase query so special characters
+// (*, :, ", etc.) are treated as literals instead of FTS5 operators.
+// fts5Phrase 将用户输入包装为 FTS5 短语查询，使特殊字符（*、:、"等）
+// 被视为字面量而非 FTS5 操作符。
+func fts5Phrase(s string) string {
+	return `"` + strings.ReplaceAll(s, `"`, `""`) + `"`
 }
 
 func scanDocument(row interface {

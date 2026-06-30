@@ -1497,7 +1497,12 @@ const docTemplate = `{
         },
         "/api/v1/auth/logout": {
             "post": {
-                "description": "Revoke one refresh token. Access tokens remain valid until their normal expiry.",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Revoke one refresh token belonging to the authenticated user.",
                 "consumes": [
                     "application/json"
                 ],

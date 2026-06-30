@@ -69,7 +69,7 @@ WHERE token_hash = ?`, oldHash).Scan(&tokenID, &userID, &expiresText, &revokedTe
 	}
 
 	currentUser, err := scanUser(tx.QueryRowContext(ctx, `
-SELECT id, username, COALESCE(email, ''), avatar, bio, role, status, created_at, updated_at
+SELECT id, username, COALESCE(email, ''), avatar, bio, role, status, token_version, created_at, updated_at
 FROM users
 WHERE id = ?`, userID))
 	if err != nil {
@@ -107,12 +107,12 @@ VALUES (?, ?, ?, ?)`,
 	return currentUser, nil
 }
 
-func (r *Repository) revokeRefreshToken(ctx context.Context, tokenHash string) error {
+func (r *Repository) revokeRefreshToken(ctx context.Context, userID int64, tokenHash string) error {
 	result, err := r.db.ExecContext(ctx, `
 UPDATE refresh_tokens
 SET revoked_at = ?
-WHERE token_hash = ? AND revoked_at IS NULL`,
-		formatTime(time.Now().UTC()), tokenHash)
+WHERE token_hash = ? AND user_id = ? AND revoked_at IS NULL`,
+		formatTime(time.Now().UTC()), tokenHash, userID)
 	if err != nil {
 		return apperrors.Wrap(apperrors.InternalError, err)
 	}
@@ -130,6 +130,92 @@ func formatTime(t time.Time) string {
 	return t.UTC().Format(time.RFC3339Nano)
 }
 
+// LoginAttempt captures the current failure state for a user.
+// LoginAttempt 记录用户当前的登录失败状态。
+type LoginAttempt struct {
+	FailedCount int
+	LockedUntil sql.NullTime
+}
+
+// GetLoginAttempt returns the current login attempt state for a user.
+// A zero-value LoginAttempt is returned when no record exists yet.
+// GetLoginAttempt 返回用户当前的登录尝试状态。
+// 不存在记录时返回零值 LoginAttempt。
+func (r *Repository) GetLoginAttempt(ctx context.Context, userID int64) (LoginAttempt, error) {
+	var (
+		failedCount int
+		lockedUntil sql.NullString
+	)
+	err := r.db.QueryRowContext(ctx, `
+SELECT failed_count, locked_until FROM login_attempts WHERE user_id = ?`, userID).
+		Scan(&failedCount, &lockedUntil)
+	if err == sql.ErrNoRows {
+		return LoginAttempt{}, nil
+	}
+	if err != nil {
+		return LoginAttempt{}, apperrors.Wrap(apperrors.InternalError, err)
+	}
+	var lockedUntilTime sql.NullTime
+	if lockedUntil.Valid {
+		t, pErr := parseTime(lockedUntil.String)
+		if pErr == nil {
+			lockedUntilTime = sql.NullTime{Time: t, Valid: true}
+		}
+	}
+	return LoginAttempt{FailedCount: failedCount, LockedUntil: lockedUntilTime}, nil
+}
+
+// RecordFailedLogin increments the failure counter and locks the account when
+// the count reaches maxAttempts. Returns the updated attempt state.
+// RecordFailedLogin 递增失败计数器，当计数达到 maxAttempts 时锁定账户。
+// 返回更新后的尝试状态。
+func (r *Repository) RecordFailedLogin(ctx context.Context, userID int64, maxAttempts int, lockDuration time.Duration) (LoginAttempt, error) {
+	now := time.Now().UTC()
+	lockedUntil := sql.NullTime{}
+	if maxAttempts > 0 {
+		var failedCount int
+		err := r.db.QueryRowContext(ctx, `
+INSERT INTO login_attempts (user_id, failed_count, last_failed_at, locked_until)
+VALUES (?, 1, ?, NULL)
+ON CONFLICT(user_id) DO UPDATE SET
+    failed_count = failed_count + 1,
+    last_failed_at = excluded.last_failed_at
+RETURNING failed_count`, userID, formatTime(now)).Scan(&failedCount)
+		if err != nil {
+			return LoginAttempt{}, apperrors.Wrap(apperrors.InternalError, err)
+		}
+		if failedCount >= maxAttempts {
+			lockTime := now.Add(lockDuration)
+			if _, err := r.db.ExecContext(ctx, `
+UPDATE login_attempts SET locked_until = ? WHERE user_id = ?`, formatTime(lockTime), userID); err != nil {
+				return LoginAttempt{}, apperrors.Wrap(apperrors.InternalError, err)
+			}
+			lockedUntil = sql.NullTime{Time: lockTime, Valid: true}
+			return LoginAttempt{FailedCount: failedCount, LockedUntil: lockedUntil}, nil
+		}
+		return LoginAttempt{FailedCount: failedCount, LockedUntil: lockedUntil}, nil
+	}
+	// maxAttempts == 0 means locking is disabled; just record the failure.
+	if _, err := r.db.ExecContext(ctx, `
+INSERT INTO login_attempts (user_id, failed_count, last_failed_at, locked_until)
+VALUES (?, 1, ?, NULL)
+ON CONFLICT(user_id) DO UPDATE SET
+    failed_count = failed_count + 1,
+    last_failed_at = excluded.last_failed_at`, userID, formatTime(now)); err != nil {
+		return LoginAttempt{}, apperrors.Wrap(apperrors.InternalError, err)
+	}
+	return LoginAttempt{FailedCount: 1, LockedUntil: lockedUntil}, nil
+}
+
+// ResetLoginAttempt clears the failure state after a successful login.
+// ResetLoginAttempt 在成功登录后清除失败状态。
+func (r *Repository) ResetLoginAttempt(ctx context.Context, userID int64) error {
+	if _, err := r.db.ExecContext(ctx, `DELETE FROM login_attempts WHERE user_id = ?`, userID); err != nil {
+		return apperrors.Wrap(apperrors.InternalError, err)
+	}
+	return nil
+}
+
 func parseTime(value string) (time.Time, error) {
 	return time.Parse(time.RFC3339Nano, value)
 }
@@ -141,7 +227,7 @@ func scanUser(row interface {
 		u                        user.User
 		createdText, updatedText string
 	)
-	err := row.Scan(&u.ID, &u.Username, &u.Email, &u.Avatar, &u.Bio, &u.Role, &u.Status, &createdText, &updatedText)
+	err := row.Scan(&u.ID, &u.Username, &u.Email, &u.Avatar, &u.Bio, &u.Role, &u.Status, &u.TokenVersion, &createdText, &updatedText)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return user.User{}, apperrors.NotFound

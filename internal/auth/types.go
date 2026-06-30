@@ -36,6 +36,7 @@ type RefreshCommand struct {
 
 type LogoutCommand struct {
 	RefreshToken string
+	UserID       int64
 }
 
 type AuthService interface {

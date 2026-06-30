@@ -83,7 +83,7 @@ func TestLogoutRevokesRefreshToken(t *testing.T) {
 
 	logout := harness.request(t, http.MethodPost, "/api/v1/auth/logout", map[string]any{
 		"refresh_token": token.RefreshToken,
-	}, "")
+	}, token.AccessToken)
 	decodeEnvelopeData[any](t, logout, http.StatusOK, apperrors.MessageOK)
 
 	refresh := harness.request(t, http.MethodPost, "/api/v1/auth/refresh", map[string]any{
@@ -114,11 +114,11 @@ func TestBadAuthRequestsReturnEnvelope(t *testing.T) {
 	decodeEnvelopeData[any](t, wrongPassword, http.StatusUnauthorized, apperrors.MessageUnauthorized)
 
 	badLogout := harness.request(t, http.MethodPost, "/api/v1/auth/logout", map[string]any{}, "")
-	decodeEnvelopeData[any](t, badLogout, http.StatusBadRequest, apperrors.MessageInvalidRequest)
+	decodeEnvelopeData[any](t, badLogout, http.StatusUnauthorized, apperrors.MessageUnauthorized)
 
 	invalidLogout := harness.request(t, http.MethodPost, "/api/v1/auth/logout", map[string]any{
 		"refresh_token": "invalid-refresh-token",
-	}, "")
+	}, "invalid-access-token")
 	decodeEnvelopeData[any](t, invalidLogout, http.StatusUnauthorized, apperrors.MessageUnauthorized)
 }
 
@@ -156,8 +156,15 @@ func newAuthHarness(t *testing.T) *authHarness {
 		Config: &config.Config{JWT: jwtOptions},
 		DB:     db,
 	}
+	authSvc := internalauth.NewService(db, jwtOptions)
+	// Bootstrap admin so TestDefaultAdminCanLogin can verify the default admin.
+	// 引导创建 admin 用户，使 TestDefaultAdminCanLogin 可验证默认管理员。
+	t.Setenv("KNOWLEDGE_CORE_ADMIN_PASSWORD", "ChangeMe_123456!")
+	if err := authSvc.EnsureAdmin(context.Background()); err != nil {
+		t.Fatalf("bootstrap admin failed: %v", err)
+	}
 	router := gin.New()
-	RegisterRoutes(router.Group("/api/v1"), internalauth.NewService(db, jwtOptions), sc)
+	RegisterRoutes(router.Group("/api/v1"), authSvc, sc)
 	return &authHarness{router: router}
 }
 

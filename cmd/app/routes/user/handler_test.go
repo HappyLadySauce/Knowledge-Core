@@ -182,9 +182,16 @@ func newUserHarness(t *testing.T) *userHarness {
 		Config: &config.Config{JWT: jwtOptions},
 		DB:     db,
 	}
+	authSvc := internalauth.NewService(db, jwtOptions)
+	// Bootstrap admin so loginAdmin can authenticate.
+	// 引导创建 admin 用户，使 loginAdmin 可认证。
+	t.Setenv("KNOWLEDGE_CORE_ADMIN_PASSWORD", "ChangeMe_123456!")
+	if err := authSvc.EnsureAdmin(context.Background()); err != nil {
+		t.Fatalf("bootstrap admin failed: %v", err)
+	}
 	router := gin.New()
 	group := router.Group("/api/v1")
-	authroute.RegisterRoutes(group, internalauth.NewService(db, jwtOptions), sc)
+	authroute.RegisterRoutes(group, authSvc, sc)
 	RegisterRoutes(group, internaluser.NewService(db), sc)
 	return &userHarness{router: router}
 }

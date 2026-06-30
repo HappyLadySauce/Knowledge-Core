@@ -59,7 +59,12 @@ func (s *Service) ChangePassword(ctx context.Context, actor User, cmd ChangePass
 	if err != nil {
 		return apperrors.Wrap(apperrors.InternalError, err)
 	}
-	return s.repo.UpdatePasswordHash(ctx, actor.ID, string(hash))
+	if err := s.repo.UpdatePasswordHash(ctx, actor.ID, string(hash)); err != nil {
+		return err
+	}
+	// Invalidate all previously issued tokens after a password change.
+	// 修改密码后使所有先前签发的令牌失效。
+	return s.repo.IncrementTokenVersion(ctx, actor.ID)
 }
 
 func (s *Service) ListUsers(ctx context.Context, actor User, query ListQuery) (ListResult, error) {
@@ -109,7 +114,19 @@ func (s *Service) UpdateUser(ctx context.Context, actor User, id int64, cmd Admi
 	if actor.ID == id && (cmd.Status != nil || cmd.Role != nil) {
 		return User{}, fmt.Errorf("%w: admin cannot change own role or status", apperrors.Forbidden)
 	}
-	return s.repo.AdminUpdate(ctx, id, cmd)
+	updated, err := s.repo.AdminUpdate(ctx, id, cmd)
+	if err != nil {
+		return User{}, err
+	}
+	// Invalidate tokens when role or status changes.
+	// 角色或状态变更时使令牌失效。
+	if cmd.Status != nil || cmd.Role != nil {
+		if err := s.repo.IncrementTokenVersion(ctx, id); err != nil {
+			return User{}, err
+		}
+		updated.TokenVersion++
+	}
+	return updated, nil
 }
 
 func (s *Service) DeleteUser(ctx context.Context, actor User, id int64) error {
@@ -122,7 +139,12 @@ func (s *Service) DeleteUser(ctx context.Context, actor User, id int64) error {
 	if actor.ID == id {
 		return fmt.Errorf("%w: admin cannot delete self", apperrors.Forbidden)
 	}
-	return s.repo.Disable(ctx, id)
+	if err := s.repo.Disable(ctx, id); err != nil {
+		return err
+	}
+	// Invalidate tokens when a user is disabled.
+	// 禁用用户时使其令牌失效。
+	return s.repo.IncrementTokenVersion(ctx, id)
 }
 
 func (s *Service) ResetPassword(ctx context.Context, actor User, id int64, password string) error {
@@ -146,7 +168,12 @@ func (s *Service) ResetPassword(ctx context.Context, actor User, id int64, passw
 	if err != nil {
 		return apperrors.Wrap(apperrors.InternalError, err)
 	}
-	return s.repo.UpdatePasswordHash(ctx, id, string(hash))
+	if err := s.repo.UpdatePasswordHash(ctx, id, string(hash)); err != nil {
+		return err
+	}
+	// Invalidate tokens after an admin password reset.
+	// 管理员重置密码后使令牌失效。
+	return s.repo.IncrementTokenVersion(ctx, id)
 }
 
 func normalizeProfileCommand(cmd UpdateProfileCommand) UpdateProfileCommand {

@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash TEXT NOT NULL,
     role TEXT NOT NULL CHECK (role IN ('admin', 'user')),
     status TEXT NOT NULL CHECK (status IN ('active', 'disabled')),
+    token_version INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 );
@@ -30,17 +31,10 @@ ON refresh_tokens (user_id);
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_expires_at
 ON refresh_tokens (expires_at);
 
-INSERT INTO users (username, email, avatar, bio, password_hash, role, status, created_at, updated_at)
-SELECT
-    'admin',
-    NULL,
-    '',
-    '',
-    '$2a$12$jT69G2EI/FYC1aePkf4bFu6ooPuj2Vc8ln8Zc5gTnrTELu3Lf7vnq',
-    'admin',
-    'active',
-    strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
-    strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
-WHERE NOT EXISTS (
-    SELECT 1 FROM users WHERE username = 'admin'
+CREATE TABLE IF NOT EXISTS login_attempts (
+    user_id INTEGER PRIMARY KEY,
+    failed_count INTEGER NOT NULL DEFAULT 0,
+    last_failed_at TEXT,
+    locked_until TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"k8s.io/klog/v2"
 
+	"github.com/HappyLadySauce/Knowledge-Core/cmd/app/middleware"
 	"github.com/HappyLadySauce/Knowledge-Core/cmd/app/router"
 	"github.com/HappyLadySauce/Knowledge-Core/cmd/app/svc"
 	"github.com/HappyLadySauce/Knowledge-Core/cmd/app/types/common"
@@ -32,13 +33,14 @@ func Init(ctx context.Context, sc *svc.ServiceContext) {
 // RegisterRoutes attaches auth and admin routes to the API group.
 // RegisterRoutes 将认证与 admin 路由挂载到 API 分组。
 func RegisterRoutes(group *gin.RouterGroup, service auth.AuthService, sc *svc.ServiceContext) {
-	_ = sc
 	controller := &Controller{service: service}
 	authGroup := group.Group("/auth")
 	authGroup.POST("/register", controller.Register)
 	authGroup.POST("/login", controller.Login)
 	authGroup.POST("/refresh", controller.Refresh)
-	authGroup.POST("/logout", controller.Logout)
+	// Logout requires authentication so refresh token ownership can be verified.
+	// Logout 需要认证，以便验证 refresh token 归属。
+	authGroup.POST("/logout", middleware.AuthMiddleware(sc), controller.Logout)
 }
 
 // Register creates a normal user and returns OAuth2-compatible tokens.
@@ -134,10 +136,11 @@ func (h *Controller) Refresh(c *gin.Context) {
 // Logout revokes one refresh token.
 // Logout 撤销单个刷新令牌。
 // @Summary Logout
-// @Description Revoke one refresh token. Access tokens remain valid until their normal expiry.
+// @Description Revoke one refresh token belonging to the authenticated user.
 // @Tags Auth
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param request body v1.LogoutRequest true "Logout request"
 // @Success 200 {object} common.SwaggerResponse
 // @Failure 400 {object} common.SwaggerErrorResponse
@@ -145,6 +148,11 @@ func (h *Controller) Refresh(c *gin.Context) {
 // @Failure 500 {object} common.SwaggerErrorResponse
 // @Router /api/v1/auth/logout [post]
 func (h *Controller) Logout(c *gin.Context) {
+	currentUser, ok := middleware.UserFromContext(c)
+	if !ok {
+		common.Error(c, apperrors.InvalidToken)
+		return
+	}
 	var req v1.LogoutRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		common.Error(c, apperrors.InvalidRequest)
@@ -152,6 +160,7 @@ func (h *Controller) Logout(c *gin.Context) {
 	}
 	if err := h.service.Logout(c.Request.Context(), auth.LogoutCommand{
 		RefreshToken: req.RefreshToken,
+		UserID:       currentUser.ID,
 	}); err != nil {
 		writeServiceError(c, err)
 		return

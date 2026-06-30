@@ -109,7 +109,14 @@ func newDocumentHarness(t *testing.T) *documentHarness {
 
 	router := gin.New()
 	group := router.Group("/api/v1")
-	authroute.RegisterRoutes(group, internalauth.NewService(db, jwtOptions), sc)
+	authSvc := internalauth.NewService(db, jwtOptions)
+	// Bootstrap admin so loginAdmin can authenticate.
+	// 引导创建 admin 用户，使 loginAdmin 可认证。
+	t.Setenv("KNOWLEDGE_CORE_ADMIN_PASSWORD", "ChangeMe_123456!")
+	if err := authSvc.EnsureAdmin(context.Background()); err != nil {
+		t.Fatalf("bootstrap admin failed: %v", err)
+	}
+	authroute.RegisterRoutes(group, authSvc, sc)
 	RegisterRoutes(group, documentService, sc)
 	return &documentHarness{router: router, categoryID: category.ID, tagID: tag.ID}
 }

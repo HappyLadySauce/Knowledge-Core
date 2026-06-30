@@ -15,6 +15,7 @@ const (
 	CodeInvalidRequest     = "invalid_request"
 	CodeInvalidCredentials = "invalid_credentials"
 	CodeUserDisabled       = "user_disabled"
+	CodeUserLocked         = "user_locked"
 	CodeConflict           = "conflict"
 	CodeForbidden          = "forbidden"
 	CodeNotFound           = "not_found"
@@ -26,6 +27,7 @@ var (
 	InvalidRequest     = New(CodeInvalidRequest, http.StatusBadRequest, MessageInvalidRequest)
 	InvalidCredentials = New(CodeInvalidCredentials, http.StatusUnauthorized, MessageUnauthorized)
 	UserDisabled       = New(CodeUserDisabled, http.StatusUnauthorized, MessageUnauthorized)
+	UserLocked         = New(CodeUserLocked, http.StatusTooManyRequests, "too_many_requests")
 	Conflict           = New(CodeConflict, http.StatusConflict, MessageConflict)
 	Forbidden          = New(CodeForbidden, http.StatusForbidden, MessageForbidden)
 	NotFound           = New(CodeNotFound, http.StatusNotFound, MessageNotFound)

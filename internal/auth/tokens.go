@@ -16,7 +16,8 @@ import (
 )
 
 type Claims struct {
-	Role string `json:"role"`
+	Role         string `json:"role"`
+	TokenVersion int64  `json:"ver"`
 	jwt.RegisteredClaims
 }
 
@@ -32,7 +33,8 @@ func (m *tokenManager) issueAccessToken(currentUser user.User) (string, int64, e
 	now := time.Now().UTC()
 	expiresAt := now.Add(m.opts.AccessTTL)
 	claims := Claims{
-		Role: currentUser.Role,
+		Role:         currentUser.Role,
+		TokenVersion: currentUser.TokenVersion,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    m.opts.Issuer,
 			Subject:   fmt.Sprintf("%d", currentUser.ID),

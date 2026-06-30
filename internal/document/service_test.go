@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	_ "modernc.org/sqlite"
 
@@ -234,6 +235,17 @@ func newDocumentTestDB(t *testing.T) *sql.DB {
 		t.Fatalf("enable foreign keys failed: %v", err)
 	}
 	applyDocumentMigrationFiles(t, db)
+	// Insert a test admin user so document author_id foreign keys are satisfied.
+	// The migrations no longer auto-create an admin user.
+	// 插入测试 admin 用户以满足文档 author_id 外键约束。
+	// 迁移不再自动创建 admin 用户。
+	if _, err := db.ExecContext(context.Background(), `
+INSERT INTO users (username, email, avatar, bio, password_hash, role, status, token_version, created_at, updated_at)
+VALUES ('admin', '', '', '', '', 'admin', 'active', 0, ?, ?)`,
+		time.Now().UTC().Format(time.RFC3339Nano),
+		time.Now().UTC().Format(time.RFC3339Nano)); err != nil {
+		t.Fatalf("insert test admin failed: %v", err)
+	}
 	return db
 }
 

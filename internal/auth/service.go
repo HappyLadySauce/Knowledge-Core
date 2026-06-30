@@ -2,19 +2,43 @@ package auth
 
 import (
 	"context"
+	"crypto/rand"
 	"database/sql"
+	"encoding/hex"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
+	"k8s.io/klog/v2"
 
 	apperrors "github.com/HappyLadySauce/Knowledge-Core/internal/errors"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/options"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/user"
 )
 
-const bcryptCost = 12
+const (
+	bcryptCost        = 12
+	maxLoginAttempts  = 5
+	loginLockDuration = 15 * time.Minute
+)
+
+// dummyHash is a bcrypt hash of a random value, used to keep Login response time
+// constant when the username does not exist (prevents timing-based user enumeration).
+// dummyHash 是随机值的 bcrypt 哈希，用于在用户名不存在时保持 Login 响应时间恒定，
+// 防止基于时序的用户名枚举攻击。
+var dummyHash = func() []byte {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		panic("generate dummy hash: " + err.Error())
+	}
+	h, err := bcrypt.GenerateFromPassword(b, bcryptCost)
+	if err != nil {
+		panic("generate dummy hash: " + err.Error())
+	}
+	return h
+}()
 
 // Service implements auth use cases.
 // Service 实现认证服务。
@@ -34,6 +58,47 @@ func NewService(db *sql.DB, jwtOptions *options.JWTOptions) *Service {
 		tokens:      newTokenManager(jwtOptions),
 		jwt:         jwtOptions,
 	}
+}
+
+// EnsureAdmin creates the initial admin user when none exists. The password is
+// read from KNOWLEDGE_CORE_ADMIN_PASSWORD; if unset, a random password is generated
+// and logged once. This replaces the deprecated hardcoded hash in migrations.
+// EnsureAdmin 在不存在 admin 用户时创建初始管理员。密码从 KNOWLEDGE_CORE_ADMIN_PASSWORD
+// 读取；若未设置则生成随机密码并记录日志一次。替代迁移脚本中已废弃的硬编码哈希。
+func (s *Service) EnsureAdmin(ctx context.Context) error {
+	const adminUsername = "admin"
+	_, err := s.users.GetRecordByUsername(ctx, adminUsername)
+	if err == nil {
+		return nil
+	}
+	if !apperrors.Is(err, apperrors.InvalidCredentials) {
+		return err
+	}
+
+	password := os.Getenv("KNOWLEDGE_CORE_ADMIN_PASSWORD")
+	generated := false
+	if password == "" {
+		b := make([]byte, 16)
+		if _, randErr := rand.Read(b); randErr != nil {
+			return apperrors.Wrap(apperrors.InternalError, randErr)
+		}
+		password = hex.EncodeToString(b)
+		generated = true
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcryptCost)
+	if err != nil {
+		return apperrors.Wrap(apperrors.InternalError, err)
+	}
+	if _, err := s.users.CreateWithRole(ctx, adminUsername, "", string(hash), user.RoleAdmin); err != nil {
+		return err
+	}
+	if generated {
+		klog.Info("bootstrap admin user created with a random password; set KNOWLEDGE_CORE_ADMIN_PASSWORD to control it. Username: admin")
+	} else {
+		klog.Info("bootstrap admin user created from KNOWLEDGE_CORE_ADMIN_PASSWORD")
+	}
+	return nil
 }
 
 // Register creates an active user account and immediately issues tokens.
@@ -62,13 +127,39 @@ func (s *Service) Register(ctx context.Context, req RegisterCommand) (TokenRespo
 func (s *Service) Login(ctx context.Context, req LoginCommand) (TokenResponse, error) {
 	record, err := s.users.GetRecordByUsername(ctx, user.NormalizeUsername(req.Username))
 	if err != nil {
+		if apperrors.Is(err, apperrors.InvalidCredentials) {
+			// Username not found: run a dummy bcrypt compare so response time
+			// matches the found case, preventing timing-based user enumeration.
+			// 用户名不存在：执行虚拟 bcrypt 比较使响应时间与存在时一致，防止时序枚举。
+			_ = bcrypt.CompareHashAndPassword(dummyHash, []byte(req.Password))
+		}
 		return TokenResponse{}, err
 	}
+
+	// Check account lock before verifying credentials.
+	// 验证凭据前检查账户锁定状态。
+	attempt, err := s.refreshRepo.GetLoginAttempt(ctx, record.ID)
+	if err != nil {
+		return TokenResponse{}, err
+	}
+	if attempt.LockedUntil.Valid && time.Now().Before(attempt.LockedUntil.Time) {
+		return TokenResponse{}, apperrors.UserLocked
+	}
+
 	if bcrypt.CompareHashAndPassword([]byte(record.PasswordHash), []byte(req.Password)) != nil {
+		if _, lErr := s.refreshRepo.RecordFailedLogin(ctx, record.ID, maxLoginAttempts, loginLockDuration); lErr != nil {
+			return TokenResponse{}, lErr
+		}
 		return TokenResponse{}, apperrors.InvalidCredentials
 	}
 	if record.Status != user.StatusActive {
 		return TokenResponse{}, apperrors.UserDisabled
+	}
+
+	// Successful login: clear any previous failure state.
+	// 登录成功：清除之前的失败记录。
+	if err := s.refreshRepo.ResetLoginAttempt(ctx, record.ID); err != nil {
+		return TokenResponse{}, err
 	}
 	return s.issueTokenResponse(ctx, record.User)
 }
@@ -102,14 +193,14 @@ func (s *Service) Refresh(ctx context.Context, req RefreshCommand) (TokenRespons
 	}, nil
 }
 
-// Logout revokes one refresh token.
-// Logout 撤销单个刷新令牌。
+// Logout revokes one refresh token belonging to the authenticated user.
+// Logout 撤销属于当前认证用户的单个刷新令牌。
 func (s *Service) Logout(ctx context.Context, req LogoutCommand) error {
 	plain := strings.TrimSpace(req.RefreshToken)
-	if plain == "" {
+	if plain == "" || req.UserID <= 0 {
 		return apperrors.InvalidToken
 	}
-	return s.refreshRepo.revokeRefreshToken(ctx, refreshTokenHash(plain))
+	return s.refreshRepo.revokeRefreshToken(ctx, req.UserID, refreshTokenHash(plain))
 }
 
 // CurrentUser returns the active user behind an access token.
@@ -129,6 +220,11 @@ func (s *Service) CurrentUser(ctx context.Context, rawToken string) (user.User, 
 	}
 	if currentUser.Status != user.StatusActive {
 		return user.User{}, apperrors.UserDisabled
+	}
+	// Reject tokens issued before the latest token_version bump (JWT blacklist).
+	// 拒绝在最近一次 token_version 递增之前签发的令牌（JWT 黑名单）。
+	if claims.TokenVersion != currentUser.TokenVersion {
+		return user.User{}, apperrors.InvalidToken
 	}
 	return currentUser, nil
 }

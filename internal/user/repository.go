@@ -19,11 +19,17 @@ func NewRepository(db *sql.DB) *Repository {
 }
 
 func (r *Repository) Create(ctx context.Context, username, email, passwordHash string) (User, error) {
+	return r.CreateWithRole(ctx, username, email, passwordHash, RoleUser)
+}
+
+// CreateWithRole creates a user with an explicit role (used for admin bootstrap).
+// CreateWithRole 使用显式角色创建用户（用于 admin 引导）。
+func (r *Repository) CreateWithRole(ctx context.Context, username, email, passwordHash, role string) (User, error) {
 	now := time.Now().UTC()
 	result, err := r.db.ExecContext(ctx, `
 INSERT INTO users (username, email, avatar, bio, password_hash, role, status, created_at, updated_at)
 VALUES (?, NULLIF(?, ''), '', '', ?, ?, ?, ?, ?)`,
-		username, email, passwordHash, RoleUser, StatusActive, formatTime(now), formatTime(now))
+		username, email, passwordHash, role, StatusActive, formatTime(now), formatTime(now))
 	if err != nil {
 		if isSQLiteConstraint(err) {
 			return User{}, apperrors.Conflict
@@ -246,9 +252,13 @@ func listWhere(query ListQuery) (string, []any) {
 		args = append(args, query.Status)
 	}
 	if query.Keyword != "" {
+		// Prefix match (LIKE 'kw%') can use the username/email unique indexes,
+		// avoiding the full-table scan of LIKE '%kw%'.
+		// 前缀匹配（LIKE 'kw%'）可使用 username/email 唯一索引，
+		// 避免 LIKE '%kw%' 的全表扫描。
 		parts = append(parts, "(username LIKE ? OR email LIKE ?)")
-		like := "%" + query.Keyword + "%"
-		args = append(args, like, like)
+		prefix := query.Keyword + "%"
+		args = append(args, prefix, prefix)
 	}
 	if len(parts) == 0 {
 		return "", args
@@ -325,11 +335,11 @@ WHERE user_id = ? AND revoked_at IS NULL`, formatTime(now), id)
 }
 
 const userSelectSQL = `
-SELECT id, username, COALESCE(email, ''), avatar, bio, role, status, created_at, updated_at
+SELECT id, username, COALESCE(email, ''), avatar, bio, role, status, token_version, created_at, updated_at
 FROM users`
 
 const recordSelectSQL = `
-SELECT id, username, COALESCE(email, ''), avatar, bio, password_hash, role, status, created_at, updated_at
+SELECT id, username, COALESCE(email, ''), avatar, bio, password_hash, role, status, token_version, created_at, updated_at
 FROM users`
 
 func scanUser(row interface {
@@ -339,7 +349,7 @@ func scanUser(row interface {
 		u                        User
 		createdText, updatedText string
 	)
-	err := row.Scan(&u.ID, &u.Username, &u.Email, &u.Avatar, &u.Bio, &u.Role, &u.Status, &createdText, &updatedText)
+	err := row.Scan(&u.ID, &u.Username, &u.Email, &u.Avatar, &u.Bio, &u.Role, &u.Status, &u.TokenVersion, &createdText, &updatedText)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return User{}, apperrors.NotFound
@@ -366,7 +376,7 @@ func scanRecord(row interface {
 		record                   Record
 		createdText, updatedText string
 	)
-	err := row.Scan(&record.ID, &record.Username, &record.Email, &record.Avatar, &record.Bio, &record.PasswordHash, &record.Role, &record.Status, &createdText, &updatedText)
+	err := row.Scan(&record.ID, &record.Username, &record.Email, &record.Avatar, &record.Bio, &record.PasswordHash, &record.Role, &record.Status, &record.TokenVersion, &createdText, &updatedText)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return Record{}, missing
@@ -392,6 +402,27 @@ func formatTime(t time.Time) string {
 
 func parseTime(value string) (time.Time, error) {
 	return time.Parse(time.RFC3339Nano, value)
+}
+
+// IncrementTokenVersion bumps token_version for a user, invalidating all
+// previously issued JWT access tokens (acts as a server-side JWT blacklist).
+// IncrementTokenVersion 递增用户的 token_version，使所有先前签发的 JWT 访问令牌失效
+// （充当服务端 JWT 黑名单）。
+func (r *Repository) IncrementTokenVersion(ctx context.Context, id int64) error {
+	result, err := r.db.ExecContext(ctx, `
+UPDATE users SET token_version = token_version + 1, updated_at = ? WHERE id = ?`,
+		formatTime(time.Now().UTC()), id)
+	if err != nil {
+		return apperrors.Wrap(apperrors.InternalError, err)
+	}
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return apperrors.Wrap(apperrors.InternalError, err)
+	}
+	if affected != 1 {
+		return apperrors.NotFound
+	}
+	return nil
 }
 
 func isSQLiteConstraint(err error) bool {

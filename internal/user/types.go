@@ -16,15 +16,16 @@ const (
 // User is the domain account model.
 // User 是领域层账户模型。
 type User struct {
-	ID        int64
-	Username  string
-	Email     string
-	Avatar    string
-	Bio       string
-	Role      string
-	Status    string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID           int64
+	Username     string
+	Email        string
+	Avatar       string
+	Bio          string
+	Role         string
+	Status       string
+	TokenVersion int64
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
 // Record includes private credential data for password verification.

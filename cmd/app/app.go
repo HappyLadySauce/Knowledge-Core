@@ -20,6 +20,7 @@ import (
 	taxonomyroute "github.com/HappyLadySauce/Knowledge-Core/cmd/app/routes/taxonomy"
 	userroute "github.com/HappyLadySauce/Knowledge-Core/cmd/app/routes/user"
 	"github.com/HappyLadySauce/Knowledge-Core/cmd/app/svc"
+	"github.com/HappyLadySauce/Knowledge-Core/internal/auth"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/config"
 )
 
@@ -82,6 +83,12 @@ func run(ctx context.Context, opts *options.Options) error {
 			klog.ErrorS(closeErr, "failed to close service context")
 		}
 	}()
+
+	// Bootstrap the initial admin user when none exists.
+	// 引导创建初始 admin 用户（若不存在）。
+	if err := auth.NewService(sc.DB, sc.Config.JWT).EnsureAdmin(ctx); err != nil {
+		return err
+	}
 
 	// Initialize HTTP route handlers after the service context is ready.
 	// 在服务上下文就绪后初始化 HTTP 路由处理器。
