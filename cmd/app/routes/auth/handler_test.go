@@ -129,14 +129,25 @@ func TestAuthMeRouteIsRemoved(t *testing.T) {
 	}
 }
 
-func TestJWTSecretValidationRejectsShortOrEmptySecret(t *testing.T) {
-	for _, secret := range []string{"", "short"} {
+func TestJWTSecretValidationRejectsShortSecretAndGeneratesFallback(t *testing.T) {
+	short := options.NewJWTOptions()
+	short.Secret = "short"
+	short.AccessTTL = time.Minute
+	short.RefreshTTL = time.Hour
+	if err := short.Validate(); err == nil {
+		t.Fatalf("expected short jwt secret to fail validation")
+	}
+
+	for _, secret := range []string{"", "Knowledge-Core-dev-secret-change-me-32bytes"} {
 		opts := options.NewJWTOptions()
 		opts.Secret = secret
 		opts.AccessTTL = time.Minute
 		opts.RefreshTTL = time.Hour
-		if err := opts.Validate(); err == nil {
-			t.Fatalf("expected jwt secret %q to fail validation", secret)
+		if err := opts.Validate(); err != nil {
+			t.Fatalf("expected jwt secret %q to generate fallback, got %v", secret, err)
+		}
+		if len(opts.Secret) < 32 || opts.Secret == secret {
+			t.Fatalf("jwt secret fallback was not generated for %q", secret)
 		}
 	}
 }

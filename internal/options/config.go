@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -198,10 +199,12 @@ func readConfigFile(path string) error {
 		return fmt.Errorf("cannot read config file %s: %w", path, err)
 	}
 
-	// Support ${ENV_VAR} expansion inside config files so values can be injected via the environment (e.g. from Make).
-	// 支持配置文件内的 ${ENV_VAR} 展开，以便通过环境变量注入配置（例如由 Makefile 传入）。
-	expanded := os.ExpandEnv(string(b))
 	ext := strings.TrimPrefix(filepath.Ext(path), ".")
+	// Support ${ENV_VAR} expansion inside config files so values can be injected via the environment (e.g. from Make).
+	// JSON config placeholders are string values, so expanded environment values must be JSON-string escaped.
+	// 支持配置文件内的 ${ENV_VAR} 展开，以便通过环境变量注入配置（例如由 Makefile 传入）。
+	// JSON 配置中的占位符位于字符串内，因此环境变量值必须按 JSON 字符串内容转义。
+	expanded := expandConfigEnv(ext, string(b))
 	if ext != "" {
 		viper.SetConfigType(ext)
 	}
@@ -210,4 +213,14 @@ func readConfigFile(path string) error {
 	}
 	loadedConfigPath = path
 	return nil
+}
+
+func expandConfigEnv(ext, body string) string {
+	if strings.EqualFold(ext, "json") {
+		return os.Expand(body, func(key string) string {
+			quoted := strconv.Quote(os.Getenv(key))
+			return strings.TrimSuffix(strings.TrimPrefix(quoted, `"`), `"`)
+		})
+	}
+	return os.ExpandEnv(body)
 }

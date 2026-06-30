@@ -52,11 +52,18 @@ func (j *JWTOptions) Validate() error {
 	if j.Issuer == "" {
 		j.Issuer = defaultJWTIssuer
 	}
-	if len(j.Secret) < jwtMinSecretLen {
-		errs = errors.Join(errs, fmt.Errorf("jwt secret must be at least %d bytes, got %d", jwtMinSecretLen, len(j.Secret)))
+	if j.Secret == "" {
+		if err := j.generateSessionSecret("jwt secret not configured; generated a random secret for this session. Set KNOWLEDGE_CORE_JWT_SECRET for stable tokens across restarts."); err != nil {
+			errs = errors.Join(errs, err)
+		}
 	}
 	if _, weak := weakSecrets[j.Secret]; weak {
-		errs = errors.Join(errs, fmt.Errorf("jwt secret is a known weak default; set a unique secret via KNOWLEDGE_CORE_JWT_SECRET"))
+		if err := j.generateSessionSecret("jwt secret is a known weak default; generated a random secret for this session. Set a unique KNOWLEDGE_CORE_JWT_SECRET for stable tokens across restarts."); err != nil {
+			errs = errors.Join(errs, err)
+		}
+	}
+	if j.Secret != "" && len(j.Secret) < jwtMinSecretLen {
+		errs = errors.Join(errs, fmt.Errorf("jwt secret must be at least %d bytes, got %d", jwtMinSecretLen, len(j.Secret)))
 	}
 	if j.AccessTTL <= 0 {
 		errs = errors.Join(errs, fmt.Errorf("jwt access-ttl must be > 0, got %s", j.AccessTTL))
@@ -67,16 +74,18 @@ func (j *JWTOptions) Validate() error {
 	if j.AccessTTL > 0 && j.RefreshTTL > 0 && j.RefreshTTL <= j.AccessTTL {
 		errs = errors.Join(errs, fmt.Errorf("jwt refresh-ttl must be greater than access-ttl"))
 	}
-	if j.Secret == "" {
-		b := make([]byte, 32)
-		if _, err := rand.Read(b); err != nil {
-			errs = errors.Join(errs, fmt.Errorf("generate jwt secret: %v", err))
-		}
-		j.Secret = hex.EncodeToString(b)
-		klog.Warning("jwt secret not configured; generated a random secret for this session. Set KNOWLEDGE_CORE_JWT_SECRET for stable tokens across restarts.")
-	}
 
 	return errs
+}
+
+func (j *JWTOptions) generateSessionSecret(message string) error {
+	b := make([]byte, 32)
+	if _, err := rand.Read(b); err != nil {
+		return fmt.Errorf("generate jwt secret: %v", err)
+	}
+	j.Secret = hex.EncodeToString(b)
+	klog.Warning(message)
+	return nil
 }
 
 // AddFlags registers JWT flags on the supplied FlagSet.
