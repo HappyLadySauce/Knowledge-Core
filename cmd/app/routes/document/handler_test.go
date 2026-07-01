@@ -143,7 +143,7 @@ func newDocumentHarness(t *testing.T) *documentHarness {
 		AccessTTL:  time.Minute,
 		RefreshTTL: time.Hour,
 	}
-	redisClient, redisPrefix := testutil.NewRedisClient(t)
+	redisClient, redisPrefix := testutil.NewCacheClient(t)
 	refreshStore := session.NewStore(db, redisClient, session.Options{KeyPrefix: redisPrefix})
 	sc := &svc.ServiceContext{
 		Config: &config.Config{
@@ -237,7 +237,7 @@ func decodeEnvelopeData[T any](t *testing.T, response *httptest.ResponseRecorder
 
 func newDocumentRouteTestDB(t *testing.T) *sql.DB {
 	t.Helper()
-	return testutil.NewPostgresDB(t)
+	return testutil.NewDB(t)
 }
 
 func itoa(id int64) string {

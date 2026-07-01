@@ -19,9 +19,9 @@ const defaultDatabaseURL = "postgres://knowledge_core:knowledge_core@localhost:5
 
 var schemaCounter uint64
 
-// NewPostgresDB creates an isolated PostgreSQL schema and applies all migrations.
-// NewPostgresDB 创建隔离的 PostgreSQL schema 并执行全部迁移。
-func NewPostgresDB(t testing.TB) *sql.DB {
+// NewDB creates an isolated database schema and applies all migrations.
+// NewDB 创建隔离的数据库 schema 并执行全部迁移。
+func NewDB(t testing.TB) *sql.DB {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -34,13 +34,13 @@ func NewPostgresDB(t testing.TB) *sql.DB {
 
 	db, err := sql.Open("pgx", databaseURL)
 	if err != nil {
-		t.Fatalf("open postgres failed: %v", err)
+		t.Fatalf("open database failed: %v", err)
 	}
 	db.SetMaxOpenConns(1)
 	db.SetMaxIdleConns(1)
 	if err := db.PingContext(ctx); err != nil {
 		_ = db.Close()
-		t.Fatalf("ping postgres failed: %v", err)
+		t.Fatalf("ping database failed: %v", err)
 	}
 	if _, err := db.ExecContext(ctx, `CREATE SCHEMA `+quoteIdentifier(schema)); err != nil {
 		_ = db.Close()

@@ -277,7 +277,7 @@ func TestDocumentCategoryFilterUsesPathOnly(t *testing.T) {
 
 func newDocumentTestDB(t *testing.T) *sql.DB {
 	t.Helper()
-	db := testutil.NewPostgresDB(t)
+	db := testutil.NewDB(t)
 	// Insert a test admin user so document author_id foreign keys are satisfied.
 	// The migrations no longer auto-create an admin user.
 	// 插入测试 admin 用户以满足文档 author_id 外键约束。

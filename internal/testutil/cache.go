@@ -12,24 +12,24 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-const defaultTestRedisURL = "redis://localhost:6379/15"
+const defaultRedisURL = "redis://localhost:6379/0"
 
 var redisCounter uint64
 
-// NewRedisClient creates a Redis client and an isolated key prefix for tests.
-// NewRedisClient 为测试创建 Redis 客户端与隔离 key 前缀。
-func NewRedisClient(t testing.TB) (*redis.Client, string) {
+// NewCacheClient creates a cache client and an isolated key prefix.
+// NewCacheClient 创建缓存客户端与隔离 key 前缀。
+func NewCacheClient(t testing.TB) (*redis.Client, string) {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	redisURL := strings.TrimSpace(os.Getenv("KNOWLEDGE_CORE_TEST_REDIS_URL"))
+	redisURL := strings.TrimSpace(os.Getenv("KNOWLEDGE_CORE_REDIS_URL"))
 	if redisURL == "" {
-		redisURL = defaultTestRedisURL
+		redisURL = defaultRedisURL
 	}
 	opts, err := redis.ParseURL(redisURL)
 	if err != nil {
-		t.Fatalf("parse test redis url failed: %v", err)
+		t.Fatalf("parse redis url failed: %v", err)
 	}
 	client := redis.NewClient(opts)
 	if err := client.Ping(ctx).Err(); err != nil {

@@ -154,7 +154,7 @@ func TestUsedTagCannotBeRenamedOrDeleted(t *testing.T) {
 
 func newTaxonomyTestDB(t *testing.T) *sql.DB {
 	t.Helper()
-	return testutil.NewPostgresDB(t)
+	return testutil.NewDB(t)
 }
 
 func insertTaxonomyDocument(t *testing.T, db *sql.DB, slug string, categoryID int64, tagID int64, status string) {

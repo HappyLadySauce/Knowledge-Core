@@ -209,7 +209,7 @@ func newAuthHarness(t *testing.T) *authHarness {
 	gin.SetMode(gin.TestMode)
 
 	db, jwtOptions := newTestDB(t)
-	redisClient, redisPrefix := testutil.NewRedisClient(t)
+	redisClient, redisPrefix := testutil.NewCacheClient(t)
 	refreshStore := session.NewStore(db, redisClient, session.Options{KeyPrefix: redisPrefix})
 	sc := &svc.ServiceContext{
 		Config:        &config.Config{JWT: jwtOptions},
@@ -330,7 +330,7 @@ func (h *authHarness) scanRedisRefreshTokenKeys(t *testing.T) []string {
 
 func newTestDB(t *testing.T) (*sql.DB, *options.JWTOptions) {
 	t.Helper()
-	db := testutil.NewPostgresDB(t)
+	db := testutil.NewDB(t)
 	return db, &options.JWTOptions{
 		Issuer:     "Knowledge-Core",
 		Secret:     "Knowledge-Core-test-secret-32bytes",

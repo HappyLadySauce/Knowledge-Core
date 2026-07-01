@@ -14,7 +14,7 @@ import (
 
 func newDocumentBenchDB(b testing.TB) *sql.DB {
 	b.Helper()
-	db := testutil.NewPostgresDB(b)
+	db := testutil.NewDB(b)
 	if _, err := db.ExecContext(context.Background(), `
 INSERT INTO users (username, email, avatar, bio, password_hash, role, status, token_version, created_at, updated_at)
 VALUES ('admin', '', '', '', '', 'admin', 'active', 0, $1, $2)`,

@@ -99,8 +99,8 @@ func TestRevokeUserRefreshTokensDeletesRedisSessions(t *testing.T) {
 
 func newSessionTestStore(t *testing.T) (*sql.DB, *Store) {
 	t.Helper()
-	db := testutil.NewPostgresDB(t)
-	redisClient, prefix := testutil.NewRedisClient(t)
+	db := testutil.NewDB(t)
+	redisClient, prefix := testutil.NewCacheClient(t)
 	return db, NewStore(db, redisClient, Options{KeyPrefix: prefix})
 }
 
