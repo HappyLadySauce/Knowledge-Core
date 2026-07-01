@@ -59,7 +59,7 @@ func NewServiceContext(ctx context.Context, cfg *config.Config) (*ServiceContext
 		Config:        cfg,
 		DB:            db,
 		Redis:         redisClient,
-		RefreshTokens: session.NewStore(db, redisClient, session.Options{KeyPrefix: cfg.Redis.KeyPrefix}),
+		RefreshTokens: session.NewStore(db, redisClient, session.Options{}),
 	}, nil
 }
 
@@ -92,24 +92,13 @@ func openPostgres(ctx context.Context, cfg *config.Config) (*sql.DB, error) {
 }
 
 func openRedis(ctx context.Context, cfg *config.Config) (*redis.Client, error) {
-	if cfg.Redis == nil || !cfg.Redis.Enabled {
-		klog.Info("redis disabled; refresh token sessions will use postgres fallback only")
-		return nil, nil
-	}
 	opts, err := redis.ParseURL(cfg.Redis.URL)
 	if err != nil {
 		return nil, fmt.Errorf("parse redis url: %w", err)
 	}
-	opts.PoolSize = cfg.Redis.PoolSize
-	opts.DialTimeout = cfg.Redis.DialTimeout
-	opts.ReadTimeout = cfg.Redis.ReadTimeout
-	opts.WriteTimeout = cfg.Redis.WriteTimeout
 	client := redis.NewClient(opts)
 	if err := client.Ping(ctx).Err(); err != nil {
 		_ = client.Close()
-		if cfg.Redis.Required {
-			return nil, fmt.Errorf("ping redis: %w", err)
-		}
 		klog.ErrorS(err, "redis unavailable; refresh token sessions will use postgres fallback")
 		return nil, nil
 	}
