@@ -16,7 +16,7 @@ import (
 )
 
 type Controller struct {
-	service auth.AuthService
+	service *auth.Service
 }
 
 func NewController(sc *svc.ServiceContext) *Controller {
@@ -32,7 +32,7 @@ func Init(ctx context.Context, sc *svc.ServiceContext) {
 
 // RegisterRoutes attaches auth and admin routes to the API group.
 // RegisterRoutes 将认证与 admin 路由挂载到 API 分组。
-func RegisterRoutes(group *gin.RouterGroup, service auth.AuthService, sc *svc.ServiceContext) {
+func RegisterRoutes(group *gin.RouterGroup, service *auth.Service, sc *svc.ServiceContext) {
 	controller := &Controller{service: service}
 	authGroup := group.Group("/auth")
 	authGroup.POST("/register", controller.Register)

@@ -26,10 +26,10 @@ type redisRefreshToken struct {
 	CreatedAt    time.Time `json:"created_at"`
 }
 
-// StoreRefreshToken records a new refresh token in PostgreSQL and best-effort
+// storeRefreshToken records a new refresh token in PostgreSQL and best-effort
 // writes the active session metadata to Redis.
-// StoreRefreshToken 将新 refresh token 写入 PostgreSQL，并尽力写入 Redis 活跃会话元数据。
-func (s *Service) StoreRefreshToken(ctx context.Context, currentUser user.User, tokenHash string, expiresAt time.Time) error {
+// storeRefreshToken 将新 refresh token 写入 PostgreSQL，并尽力写入 Redis 活跃会话元数据。
+func (s *Service) storeRefreshToken(ctx context.Context, currentUser user.User, tokenHash string, expiresAt time.Time) error {
 	now := time.Now().UTC()
 	if _, err := s.db.ExecContext(ctx, `
 INSERT INTO refresh_tokens (user_id, token_hash, token_version, expires_at, created_at)
@@ -41,10 +41,10 @@ VALUES ($1, $2, $3, $4, $5)`,
 	return nil
 }
 
-// RotateRefreshToken atomically revokes oldHash, inserts newHash, and returns
+// rotateRefreshToken atomically revokes oldHash, inserts newHash, and returns
 // the active user snapshot used for issuing the next access token.
-// RotateRefreshToken 原子撤销 oldHash、插入 newHash，并返回用于签发新访问令牌的活跃用户快照。
-func (s *Service) RotateRefreshToken(ctx context.Context, oldHash, newHash string, expiresAt time.Time) (user.User, error) {
+// rotateRefreshToken 原子撤销 oldHash、插入 newHash，并返回用于签发新访问令牌的活跃用户快照。
+func (s *Service) rotateRefreshToken(ctx context.Context, oldHash, newHash string, expiresAt time.Time) (user.User, error) {
 	oldHash = strings.TrimSpace(oldHash)
 	newHash = strings.TrimSpace(newHash)
 	if oldHash == "" || newHash == "" {
@@ -120,9 +120,9 @@ VALUES ($1, $2, $3, $4, $5)`,
 	return currentUser, nil
 }
 
-// RevokeRefreshToken revokes one refresh token for a user.
-// RevokeRefreshToken 撤销用户的单个 refresh token。
-func (s *Service) RevokeRefreshToken(ctx context.Context, userID int64, tokenHash, reason string) error {
+// revokeRefreshToken revokes one refresh token for a user.
+// revokeRefreshToken 撤销用户的单个 refresh token。
+func (s *Service) revokeRefreshToken(ctx context.Context, userID int64, tokenHash, reason string) error {
 	tokenHash = strings.TrimSpace(tokenHash)
 	if userID <= 0 || tokenHash == "" {
 		return apperrors.InvalidToken

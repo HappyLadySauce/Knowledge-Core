@@ -13,12 +13,12 @@ import (
 	"github.com/HappyLadySauce/Knowledge-Core/internal/user"
 )
 
-func TestStoreRefreshTokenWritesAuditAndRedis(t *testing.T) {
+func TestRefreshTokenIssueWritesAuditAndRedis(t *testing.T) {
 	ctx := context.Background()
-	db, store := newSessionTestStore(t)
-	currentUser := insertSessionTestUser(t, db, "session-user")
+	db, service := newAuthTestService(t)
+	currentUser := insertAuthTestUser(t, db, "session-user")
 
-	if err := store.StoreRefreshToken(ctx, currentUser, "hash-1", time.Now().UTC().Add(time.Hour)); err != nil {
+	if err := service.storeRefreshToken(ctx, currentUser, "hash-1", time.Now().UTC().Add(time.Hour)); err != nil {
 		t.Fatalf("store refresh token failed: %v", err)
 	}
 
@@ -29,33 +29,33 @@ func TestStoreRefreshTokenWritesAuditAndRedis(t *testing.T) {
 	if count != 1 {
 		t.Fatalf("active refresh token audit count = %d, want 1", count)
 	}
-	if err := store.redis.Get(ctx, store.tokenKey("hash-1")).Err(); err != nil {
+	if err := service.redis.Get(ctx, service.tokenKey("hash-1")).Err(); err != nil {
 		t.Fatalf("redis refresh token key missing: %v", err)
 	}
 }
 
-func TestRotateRefreshTokenIsSingleUseAndRepopulatesRedis(t *testing.T) {
+func TestRefreshTokenRotationIsSingleUseAndRepopulatesRedis(t *testing.T) {
 	ctx := context.Background()
-	db, store := newSessionTestStore(t)
-	currentUser := insertSessionTestUser(t, db, "rotate-user")
-	if err := store.StoreRefreshToken(ctx, currentUser, "old-hash", time.Now().UTC().Add(time.Hour)); err != nil {
+	db, service := newAuthTestService(t)
+	currentUser := insertAuthTestUser(t, db, "rotate-user")
+	if err := service.storeRefreshToken(ctx, currentUser, "old-hash", time.Now().UTC().Add(time.Hour)); err != nil {
 		t.Fatalf("store old refresh token failed: %v", err)
 	}
-	if err := store.redis.Del(ctx, store.tokenKey("old-hash")).Err(); err != nil {
+	if err := service.redis.Del(ctx, service.tokenKey("old-hash")).Err(); err != nil {
 		t.Fatalf("delete redis token key failed: %v", err)
 	}
 
-	rotatedUser, err := store.RotateRefreshToken(ctx, "old-hash", "new-hash", time.Now().UTC().Add(time.Hour))
+	rotatedUser, err := service.rotateRefreshToken(ctx, "old-hash", "new-hash", time.Now().UTC().Add(time.Hour))
 	if err != nil {
 		t.Fatalf("rotate refresh token failed: %v", err)
 	}
 	if rotatedUser.ID != currentUser.ID {
 		t.Fatalf("rotated user id = %d, want %d", rotatedUser.ID, currentUser.ID)
 	}
-	if _, err := store.RotateRefreshToken(ctx, "old-hash", "next-hash", time.Now().UTC().Add(time.Hour)); !errors.Is(err, apperrors.InvalidToken) {
+	if _, err := service.rotateRefreshToken(ctx, "old-hash", "next-hash", time.Now().UTC().Add(time.Hour)); !errors.Is(err, apperrors.InvalidToken) {
 		t.Fatalf("second rotate error = %v, want invalid token", err)
 	}
-	if err := store.redis.Get(ctx, store.tokenKey("new-hash")).Err(); err != nil {
+	if err := service.redis.Get(ctx, service.tokenKey("new-hash")).Err(); err != nil {
 		t.Fatalf("redis new refresh token key missing after fallback rotate: %v", err)
 	}
 
@@ -73,19 +73,19 @@ WHERE token_hash = 'old-hash'`).Scan(&revokedReason, &rotatedTo); err != nil {
 
 func TestRevokeUserRefreshTokensDeletesRedisSessions(t *testing.T) {
 	ctx := context.Background()
-	db, store := newSessionTestStore(t)
-	currentUser := insertSessionTestUser(t, db, "revoke-user")
+	db, service := newAuthTestService(t)
+	currentUser := insertAuthTestUser(t, db, "revoke-user")
 	for _, tokenHash := range []string{"hash-a", "hash-b"} {
-		if err := store.StoreRefreshToken(ctx, currentUser, tokenHash, time.Now().UTC().Add(time.Hour)); err != nil {
+		if err := service.storeRefreshToken(ctx, currentUser, tokenHash, time.Now().UTC().Add(time.Hour)); err != nil {
 			t.Fatalf("store refresh token %s failed: %v", tokenHash, err)
 		}
 	}
 
-	if err := store.RevokeUserRefreshTokens(ctx, currentUser.ID, "user_disabled"); err != nil {
+	if err := service.RevokeUserRefreshTokens(ctx, currentUser.ID, "user_disabled"); err != nil {
 		t.Fatalf("revoke user refresh tokens failed: %v", err)
 	}
 	for _, tokenHash := range []string{"hash-a", "hash-b"} {
-		if err := store.redis.Get(ctx, store.tokenKey(tokenHash)).Err(); err == nil {
+		if err := service.redis.Get(ctx, service.tokenKey(tokenHash)).Err(); err == nil {
 			t.Fatalf("redis key %s still exists after user revoke", tokenHash)
 		}
 	}
@@ -98,7 +98,7 @@ func TestRevokeUserRefreshTokensDeletesRedisSessions(t *testing.T) {
 	}
 }
 
-func newSessionTestStore(t *testing.T) (*sql.DB, *Service) {
+func newAuthTestService(t *testing.T) (*sql.DB, *Service) {
 	t.Helper()
 	db := testutil.NewDB(t)
 	redisClient, prefix := testutil.NewCacheClient(t)
@@ -114,7 +114,7 @@ func testJWTOptions() *options.JWTOptions {
 	}
 }
 
-func insertSessionTestUser(t *testing.T, db *sql.DB, username string) user.User {
+func insertAuthTestUser(t *testing.T, db *sql.DB, username string) user.User {
 	t.Helper()
 	now := time.Now().UTC()
 	var id int64

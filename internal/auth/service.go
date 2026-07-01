@@ -23,6 +23,7 @@ const (
 	bcryptCost         = 12
 	maxLoginAttempts   = 5
 	loginLockDuration  = 15 * time.Minute
+	defaultKeyPrefix   = "knowledge-core"
 	revokeReasonLogout = "logout"
 )
 
@@ -54,6 +55,12 @@ type Service struct {
 	keyPrefix string
 }
 
+// ServiceOptions controls auth service internals.
+// ServiceOptions 控制认证服务内部选项。
+type ServiceOptions struct {
+	KeyPrefix string
+}
+
 // NewService creates an auth service.
 // NewService 创建认证服务。
 func NewService(db *sql.DB, jwt *options.JWTOptions, redisClient *redis.Client, opts ...ServiceOptions) *Service {
@@ -66,6 +73,18 @@ func NewService(db *sql.DB, jwt *options.JWTOptions, redisClient *redis.Client, 
 		attempts:  NewRepository(db),
 		keyPrefix: serviceOptions.KeyPrefix,
 	}
+}
+
+func normalizeServiceOptions(opts ...ServiceOptions) ServiceOptions {
+	options := ServiceOptions{KeyPrefix: defaultKeyPrefix}
+	if len(opts) > 0 {
+		options = opts[0]
+	}
+	options.KeyPrefix = strings.Trim(strings.TrimSpace(options.KeyPrefix), ":")
+	if options.KeyPrefix == "" {
+		options.KeyPrefix = defaultKeyPrefix
+	}
+	return options
 }
 
 // EnsureAdmin creates the initial admin user when none exists. The password is
@@ -155,7 +174,7 @@ func (s *Service) Login(ctx context.Context, req LoginCommand) (TokenResponse, e
 	}
 
 	if bcrypt.CompareHashAndPassword([]byte(record.PasswordHash), []byte(req.Password)) != nil {
-		if _, lErr := s.attempts.RecordFailedLogin(ctx, record.ID, maxLoginAttempts, loginLockDuration); lErr != nil {
+		if lErr := s.attempts.RecordFailedLogin(ctx, record.ID); lErr != nil {
 			return TokenResponse{}, lErr
 		}
 		return TokenResponse{}, apperrors.InvalidCredentials
@@ -183,7 +202,7 @@ func (s *Service) Refresh(ctx context.Context, req RefreshCommand) (TokenRespons
 	if err != nil {
 		return TokenResponse{}, apperrors.Wrap(apperrors.InternalError, err)
 	}
-	currentUser, err := s.RotateRefreshToken(ctx, refreshTokenHash(plain), newHash, time.Now().UTC().Add(s.jwt.RefreshTTL))
+	currentUser, err := s.rotateRefreshToken(ctx, refreshTokenHash(plain), newHash, time.Now().UTC().Add(s.jwt.RefreshTTL))
 	if err != nil {
 		return TokenResponse{}, err
 	}
@@ -208,7 +227,7 @@ func (s *Service) Logout(ctx context.Context, req LogoutCommand) error {
 	if plain == "" || req.UserID <= 0 {
 		return apperrors.InvalidToken
 	}
-	return s.RevokeRefreshToken(ctx, req.UserID, refreshTokenHash(plain), revokeReasonLogout)
+	return s.revokeRefreshToken(ctx, req.UserID, refreshTokenHash(plain), revokeReasonLogout)
 }
 
 // CurrentUser returns the active user behind an access token.
@@ -246,7 +265,7 @@ func (s *Service) issueTokenResponse(ctx context.Context, currentUser user.User)
 	if err != nil {
 		return TokenResponse{}, apperrors.Wrap(apperrors.InternalError, err)
 	}
-	if err := s.StoreRefreshToken(ctx, currentUser, refreshHash, time.Now().UTC().Add(s.jwt.RefreshTTL)); err != nil {
+	if err := s.storeRefreshToken(ctx, currentUser, refreshHash, time.Now().UTC().Add(s.jwt.RefreshTTL)); err != nil {
 		return TokenResponse{}, err
 	}
 	return TokenResponse{
