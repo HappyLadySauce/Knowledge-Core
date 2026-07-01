@@ -39,7 +39,6 @@ KNOWLEDGE_CORE_BIND_PORT ?= 8080
 KNOWLEDGE_CORE_TRUSTED_PROXIES ?=
 KNOWLEDGE_CORE_TRUSTED_PROXIES_JSON ?= []
 KNOWLEDGE_CORE_DATABASE_URL ?= postgres://knowledge_core:knowledge_core@localhost:5432/knowledge_core?sslmode=disable
-KNOWLEDGE_CORE_TEST_DATABASE_URL ?= postgres://knowledge_core:knowledge_core@localhost:5432/knowledge_core_test?sslmode=disable
 KNOWLEDGE_CORE_DATABASE_MAX_OPEN_CONNS ?= 25
 KNOWLEDGE_CORE_DATABASE_MAX_IDLE_CONNS ?= 5
 KNOWLEDGE_CORE_DATABASE_CONN_MAX_LIFETIME ?= 30m

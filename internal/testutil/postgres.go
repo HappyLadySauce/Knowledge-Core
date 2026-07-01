@@ -15,7 +15,7 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-const defaultTestDatabaseURL = "postgres://knowledge_core:knowledge_core@localhost:5432/knowledge_core_test?sslmode=disable"
+const defaultDatabaseURL = "postgres://knowledge_core:knowledge_core@localhost:5432/knowledge_core?sslmode=disable"
 
 var schemaCounter uint64
 
@@ -26,9 +26,9 @@ func NewPostgresDB(t testing.TB) *sql.DB {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	databaseURL := strings.TrimSpace(os.Getenv("KNOWLEDGE_CORE_TEST_DATABASE_URL"))
+	databaseURL := strings.TrimSpace(os.Getenv("KNOWLEDGE_CORE_DATABASE_URL"))
 	if databaseURL == "" {
-		databaseURL = defaultTestDatabaseURL
+		databaseURL = defaultDatabaseURL
 	}
 	schema := fmt.Sprintf("test_%d_%d_%d", os.Getpid(), time.Now().UnixNano(), atomic.AddUint64(&schemaCounter, 1))
 

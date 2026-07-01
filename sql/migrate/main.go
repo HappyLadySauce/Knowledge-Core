@@ -10,6 +10,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"sort"
@@ -58,6 +59,10 @@ func run() (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
+	if err := ensureDatabase(ctx, *databaseURL); err != nil {
+		return err
+	}
+
 	db, err := openPostgres(ctx, *databaseURL)
 	if err != nil {
 		return err
@@ -93,6 +98,59 @@ func run() (err error) {
 
 	fmt.Println("migrations completed")
 	return nil
+}
+
+// ensureDatabase creates the target database when it does not exist yet.
+// ensureDatabase 在目标库不存在时创建数据库。
+func ensureDatabase(ctx context.Context, databaseURL string) error {
+	dbName, adminURL, err := databaseURLs(databaseURL)
+	if err != nil {
+		return err
+	}
+
+	adminDB, err := sql.Open("pgx", adminURL)
+	if err != nil {
+		return fmt.Errorf("open postgres admin connection: %w", err)
+	}
+	defer adminDB.Close()
+
+	if err := adminDB.PingContext(ctx); err != nil {
+		return fmt.Errorf("ping postgres admin connection: %w", err)
+	}
+
+	var exists bool
+	if err := adminDB.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM pg_database WHERE datname = $1)`, dbName).Scan(&exists); err != nil {
+		return fmt.Errorf("check database %s: %w", dbName, err)
+	}
+	if exists {
+		return nil
+	}
+
+	if _, err := adminDB.ExecContext(ctx, `CREATE DATABASE `+quoteIdentifier(dbName)); err != nil {
+		return fmt.Errorf("create database %s: %w", dbName, err)
+	}
+	fmt.Printf("created database %s\n", dbName)
+	return nil
+}
+
+func databaseURLs(rawURL string) (dbName, adminURL string, err error) {
+	parsed, err := url.Parse(strings.TrimSpace(rawURL))
+	if err != nil {
+		return "", "", fmt.Errorf("parse database url: %w", err)
+	}
+	dbName = strings.TrimSpace(strings.TrimPrefix(parsed.Path, "/"))
+	if dbName == "" {
+		return "", "", fmt.Errorf("database name missing in url")
+	}
+
+	admin := *parsed
+	admin.Path = "/postgres"
+	admin.RawPath = ""
+	return dbName, admin.String(), nil
+}
+
+func quoteIdentifier(value string) string {
+	return `"` + strings.ReplaceAll(value, `"`, `""`) + `"`
 }
 
 func openPostgres(ctx context.Context, databaseURL string) (*sql.DB, error) {

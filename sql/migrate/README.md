@@ -30,4 +30,4 @@ MIGRATION_FORCE=1 ./sql/migrate.sh
 
 ## Behavior
 
-The migrator scans top-level numeric `.sql` files under `sql/migrations`, applies them in lexical order, and records `version`, `checksum`, and `applied_at` in `schema_migrations`. A PostgreSQL advisory lock prevents concurrent migration runs.
+The migrator connects to the `postgres` maintenance database first and creates the target database from `KNOWLEDGE_CORE_DATABASE_URL` when it does not exist yet. It then scans top-level numeric `.sql` files under `sql/migrations`, applies them in lexical order, and records `version`, `checksum`, and `applied_at` in `schema_migrations`. A PostgreSQL advisory lock prevents concurrent migration runs.

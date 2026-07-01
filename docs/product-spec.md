@@ -78,17 +78,13 @@ make migrate
 make run
 ```
 
-默认数据库连接：
+默认数据库连接（开发与测试共用）：
 
 ```text
 postgres://knowledge_core:knowledge_core@localhost:5432/knowledge_core?sslmode=disable
 ```
 
-测试数据库：
-
-```text
-postgres://knowledge_core:knowledge_core@localhost:5432/knowledge_core_test?sslmode=disable
-```
+`make migrate` 会在目标库不存在时自动创建数据库。
 
 默认 Redis 连接：
 

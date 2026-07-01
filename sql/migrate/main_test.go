@@ -7,6 +7,19 @@ import (
 	"testing"
 )
 
+func TestDatabaseURLsParsesTargetAndAdminConnection(t *testing.T) {
+	dbName, adminURL, err := databaseURLs("postgres://knowledge_core:knowledge_core@localhost:5432/knowledge_core?sslmode=disable")
+	if err != nil {
+		t.Fatalf("databaseURLs failed: %v", err)
+	}
+	if dbName != "knowledge_core" {
+		t.Fatalf("unexpected database name: %s", dbName)
+	}
+	if !strings.Contains(adminURL, "/postgres") {
+		t.Fatalf("unexpected admin url: %s", adminURL)
+	}
+}
+
 func TestListMigrationFilesSortsTopLevelPostgresMigrations(t *testing.T) {
 	dir := t.TempDir()
 	writeTestFile(t, dir, "002_second.sql", "SELECT 2;")

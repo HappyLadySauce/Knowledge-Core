@@ -15,7 +15,6 @@ services:
       retries: 20
     volumes:
       - knowledge-core-postgres-data:/var/lib/postgresql/data
-      - ./sql/docker-init:/docker-entrypoint-initdb.d:ro
   redis:
     image: redis:7-alpine
     container_name: knowledge-core-redis
