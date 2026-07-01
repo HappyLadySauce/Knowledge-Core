@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/redis/go-redis/v9"
 	"golang.org/x/crypto/bcrypt"
 	"k8s.io/klog/v2"
 
@@ -44,22 +45,26 @@ var dummyHash = func() []byte {
 // Service implements auth use cases.
 // Service 实现认证服务。
 type Service struct {
-	users         *user.Repository
-	attempts      *Repository
-	refreshTokens RefreshTokenStore
-	tokens        *tokenManager
-	jwt           *options.JWTOptions
+	db       *sql.DB
+	redis    *redis.Client
+	jwt      *options.JWTOptions
+	users    *user.Repository
+	attempts *Repository
+
+	keyPrefix string
 }
 
 // NewService creates an auth service.
 // NewService 创建认证服务。
-func NewService(db *sql.DB, jwtOptions *options.JWTOptions, refreshTokens RefreshTokenStore) *Service {
+func NewService(db *sql.DB, jwt *options.JWTOptions, redisClient *redis.Client, opts ...ServiceOptions) *Service {
+	serviceOptions := normalizeServiceOptions(opts...)
 	return &Service{
-		users:         user.NewRepository(db),
-		attempts:      NewRepository(db),
-		refreshTokens: refreshTokens,
-		tokens:        newTokenManager(jwtOptions),
-		jwt:           jwtOptions,
+		db:        db,
+		redis:     redisClient,
+		jwt:       jwt,
+		users:     user.NewRepository(db),
+		attempts:  NewRepository(db),
+		keyPrefix: serviceOptions.KeyPrefix,
 	}
 }
 
@@ -178,11 +183,11 @@ func (s *Service) Refresh(ctx context.Context, req RefreshCommand) (TokenRespons
 	if err != nil {
 		return TokenResponse{}, apperrors.Wrap(apperrors.InternalError, err)
 	}
-	currentUser, err := s.refreshTokens.RotateRefreshToken(ctx, refreshTokenHash(plain), newHash, time.Now().UTC().Add(s.jwt.RefreshTTL))
+	currentUser, err := s.RotateRefreshToken(ctx, refreshTokenHash(plain), newHash, time.Now().UTC().Add(s.jwt.RefreshTTL))
 	if err != nil {
 		return TokenResponse{}, err
 	}
-	accessToken, expiresIn, err := s.tokens.issueAccessToken(currentUser)
+	accessToken, expiresIn, err := s.issueAccessToken(currentUser)
 	if err != nil {
 		return TokenResponse{}, apperrors.Wrap(apperrors.InternalError, err)
 	}
@@ -203,13 +208,13 @@ func (s *Service) Logout(ctx context.Context, req LogoutCommand) error {
 	if plain == "" || req.UserID <= 0 {
 		return apperrors.InvalidToken
 	}
-	return s.refreshTokens.RevokeRefreshToken(ctx, req.UserID, refreshTokenHash(plain), revokeReasonLogout)
+	return s.RevokeRefreshToken(ctx, req.UserID, refreshTokenHash(plain), revokeReasonLogout)
 }
 
 // CurrentUser returns the active user behind an access token.
 // CurrentUser 返回访问令牌对应的 active 用户。
 func (s *Service) CurrentUser(ctx context.Context, rawToken string) (user.User, error) {
-	claims, err := s.tokens.parseAccessToken(rawToken)
+	claims, err := s.parseAccessToken(rawToken)
 	if err != nil {
 		return user.User{}, err
 	}
@@ -233,7 +238,7 @@ func (s *Service) CurrentUser(ctx context.Context, rawToken string) (user.User, 
 }
 
 func (s *Service) issueTokenResponse(ctx context.Context, currentUser user.User) (TokenResponse, error) {
-	accessToken, expiresIn, err := s.tokens.issueAccessToken(currentUser)
+	accessToken, expiresIn, err := s.issueAccessToken(currentUser)
 	if err != nil {
 		return TokenResponse{}, apperrors.Wrap(apperrors.InternalError, err)
 	}
@@ -241,7 +246,7 @@ func (s *Service) issueTokenResponse(ctx context.Context, currentUser user.User)
 	if err != nil {
 		return TokenResponse{}, apperrors.Wrap(apperrors.InternalError, err)
 	}
-	if err := s.refreshTokens.StoreRefreshToken(ctx, currentUser, refreshHash, time.Now().UTC().Add(s.jwt.RefreshTTL)); err != nil {
+	if err := s.StoreRefreshToken(ctx, currentUser, refreshHash, time.Now().UTC().Add(s.jwt.RefreshTTL)); err != nil {
 		return TokenResponse{}, err
 	}
 	return TokenResponse{

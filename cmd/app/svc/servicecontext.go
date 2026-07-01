@@ -10,17 +10,17 @@ import (
 	"github.com/redis/go-redis/v9"
 	"k8s.io/klog/v2"
 
+	"github.com/HappyLadySauce/Knowledge-Core/internal/auth"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/config"
-	"github.com/HappyLadySauce/Knowledge-Core/internal/session"
 )
 
 // ServiceContext wires shared infrastructure for HTTP handlers and background work.
 // ServiceContext 为 HTTP 处理器与后台任务提供共享的基础设施连接。
 type ServiceContext struct {
-	Config        *config.Config
-	DB            *sql.DB
-	Redis         *redis.Client
-	RefreshTokens *session.Store
+	Config *config.Config
+	DB     *sql.DB
+	Redis  *redis.Client
+	Auth   *auth.Service
 }
 
 // NewServiceContext opens PostgreSQL and verifies the required schema.
@@ -56,10 +56,10 @@ func NewServiceContext(ctx context.Context, cfg *config.Config) (*ServiceContext
 		return nil, err
 	}
 	return &ServiceContext{
-		Config:        cfg,
-		DB:            db,
-		Redis:         redisClient,
-		RefreshTokens: session.NewStore(db, redisClient, session.Options{}),
+		Config: cfg,
+		DB:     db,
+		Redis:  redisClient,
+		Auth:   auth.NewService(db, cfg.JWT, redisClient),
 	}, nil
 }
 

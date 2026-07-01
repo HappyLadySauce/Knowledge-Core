@@ -1,4 +1,4 @@
-package session
+package auth
 
 import (
 	"context"
@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/redis/go-redis/v9"
 	"k8s.io/klog/v2"
 
 	apperrors "github.com/HappyLadySauce/Knowledge-Core/internal/errors"
@@ -17,24 +16,8 @@ import (
 )
 
 const (
-	reasonRotated    = "rotated"
-	defaultKeyPrefix = "knowledge-core"
+	reasonRotated = "rotated"
 )
-
-// Options controls Redis key names for refresh-token sessions.
-// Options 控制 refresh token 会话的 Redis key 命名。
-type Options struct {
-	KeyPrefix string
-}
-
-// Store persists refresh-token audit state in PostgreSQL and active session
-// metadata in Redis.
-// Store 将 refresh token 审计状态持久化到 PostgreSQL，并将活跃会话元数据写入 Redis。
-type Store struct {
-	db      *sql.DB
-	redis   *redis.Client
-	options Options
-}
 
 type redisRefreshToken struct {
 	UserID       int64     `json:"user_id"`
@@ -43,18 +26,10 @@ type redisRefreshToken struct {
 	CreatedAt    time.Time `json:"created_at"`
 }
 
-// NewStore creates a refresh-token store. redisClient may be nil, in which
-// case PostgreSQL remains the fallback source of truth.
-// NewStore 创建 refresh token 存储。redisClient 可为空，此时 PostgreSQL 作为兜底真相源。
-func NewStore(db *sql.DB, redisClient *redis.Client, opts Options) *Store {
-	opts.KeyPrefix = normalizeKeyPrefix(opts.KeyPrefix)
-	return &Store{db: db, redis: redisClient, options: opts}
-}
-
 // StoreRefreshToken records a new refresh token in PostgreSQL and best-effort
 // writes the active session metadata to Redis.
 // StoreRefreshToken 将新 refresh token 写入 PostgreSQL，并尽力写入 Redis 活跃会话元数据。
-func (s *Store) StoreRefreshToken(ctx context.Context, currentUser user.User, tokenHash string, expiresAt time.Time) error {
+func (s *Service) StoreRefreshToken(ctx context.Context, currentUser user.User, tokenHash string, expiresAt time.Time) error {
 	now := time.Now().UTC()
 	if _, err := s.db.ExecContext(ctx, `
 INSERT INTO refresh_tokens (user_id, token_hash, token_version, expires_at, created_at)
@@ -69,7 +44,7 @@ VALUES ($1, $2, $3, $4, $5)`,
 // RotateRefreshToken atomically revokes oldHash, inserts newHash, and returns
 // the active user snapshot used for issuing the next access token.
 // RotateRefreshToken 原子撤销 oldHash、插入 newHash，并返回用于签发新访问令牌的活跃用户快照。
-func (s *Store) RotateRefreshToken(ctx context.Context, oldHash, newHash string, expiresAt time.Time) (user.User, error) {
+func (s *Service) RotateRefreshToken(ctx context.Context, oldHash, newHash string, expiresAt time.Time) (user.User, error) {
 	oldHash = strings.TrimSpace(oldHash)
 	newHash = strings.TrimSpace(newHash)
 	if oldHash == "" || newHash == "" {
@@ -147,7 +122,7 @@ VALUES ($1, $2, $3, $4, $5)`,
 
 // RevokeRefreshToken revokes one refresh token for a user.
 // RevokeRefreshToken 撤销用户的单个 refresh token。
-func (s *Store) RevokeRefreshToken(ctx context.Context, userID int64, tokenHash, reason string) error {
+func (s *Service) RevokeRefreshToken(ctx context.Context, userID int64, tokenHash, reason string) error {
 	tokenHash = strings.TrimSpace(tokenHash)
 	if userID <= 0 || tokenHash == "" {
 		return apperrors.InvalidToken
@@ -172,7 +147,7 @@ RETURNING token_hash`,
 
 // RevokeUserRefreshTokens revokes all active refresh tokens for one user.
 // RevokeUserRefreshTokens 撤销单个用户的所有活跃 refresh token。
-func (s *Store) RevokeUserRefreshTokens(ctx context.Context, userID int64, reason string) error {
+func (s *Service) RevokeUserRefreshTokens(ctx context.Context, userID int64, reason string) error {
 	if userID <= 0 {
 		return apperrors.InvalidRequest
 	}
@@ -203,7 +178,7 @@ RETURNING token_hash`,
 	return nil
 }
 
-func (s *Store) storeRedisBestEffort(ctx context.Context, currentUser user.User, tokenHash string, expiresAt, createdAt time.Time) {
+func (s *Service) storeRedisBestEffort(ctx context.Context, currentUser user.User, tokenHash string, expiresAt, createdAt time.Time) {
 	if s.redis == nil {
 		return
 	}
@@ -230,7 +205,7 @@ func (s *Store) storeRedisBestEffort(ctx context.Context, currentUser user.User,
 	}
 }
 
-func (s *Store) deleteRedisBestEffort(ctx context.Context, userID int64, tokenHash string) {
+func (s *Service) deleteRedisBestEffort(ctx context.Context, userID int64, tokenHash string) {
 	if s.redis == nil {
 		return
 	}
@@ -242,7 +217,7 @@ func (s *Store) deleteRedisBestEffort(ctx context.Context, userID int64, tokenHa
 	}
 }
 
-func (s *Store) deleteUserRedisBestEffort(ctx context.Context, userID int64, tokenHashes []string) {
+func (s *Service) deleteUserRedisBestEffort(ctx context.Context, userID int64, tokenHashes []string) {
 	if s.redis == nil {
 		return
 	}
@@ -256,20 +231,12 @@ func (s *Store) deleteUserRedisBestEffort(ctx context.Context, userID int64, tok
 	}
 }
 
-func (s *Store) tokenKey(tokenHash string) string {
-	return s.options.KeyPrefix + ":auth:refresh:token:" + tokenHash
+func (s *Service) tokenKey(tokenHash string) string {
+	return s.keyPrefix + ":auth:refresh:token:" + tokenHash
 }
 
-func (s *Store) userKey(userID int64) string {
-	return fmt.Sprintf("%s:auth:refresh:user:%d", s.options.KeyPrefix, userID)
-}
-
-func normalizeKeyPrefix(prefix string) string {
-	prefix = strings.Trim(strings.TrimSpace(prefix), ":")
-	if prefix == "" {
-		return defaultKeyPrefix
-	}
-	return prefix
+func (s *Service) userKey(userID int64) string {
+	return fmt.Sprintf("%s:auth:refresh:user:%d", s.keyPrefix, userID)
 }
 
 func normalizeReason(reason string) string {

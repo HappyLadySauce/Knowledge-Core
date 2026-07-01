@@ -2,12 +2,14 @@ package auth
 
 import (
 	"context"
-	"time"
+	"strings"
 
 	"github.com/HappyLadySauce/Knowledge-Core/internal/user"
 )
 
 const TokenTypeBearer = "Bearer"
+
+const defaultKeyPrefix = "knowledge-core"
 
 // TokenResponse carries issued OAuth2-compatible token fields.
 // TokenResponse 携带已签发的 OAuth2 兼容令牌字段。
@@ -48,8 +50,20 @@ type AuthService interface {
 	CurrentUser(ctx context.Context, rawToken string) (user.User, error)
 }
 
-type RefreshTokenStore interface {
-	StoreRefreshToken(ctx context.Context, currentUser user.User, tokenHash string, expiresAt time.Time) error
-	RotateRefreshToken(ctx context.Context, oldHash, newHash string, expiresAt time.Time) (user.User, error)
-	RevokeRefreshToken(ctx context.Context, userID int64, tokenHash, reason string) error
+// ServiceOptions controls auth service internals.
+// ServiceOptions 控制认证服务内部选项。
+type ServiceOptions struct {
+	KeyPrefix string
+}
+
+func normalizeServiceOptions(opts ...ServiceOptions) ServiceOptions {
+	options := ServiceOptions{KeyPrefix: defaultKeyPrefix}
+	if len(opts) > 0 {
+		options = opts[0]
+	}
+	options.KeyPrefix = strings.Trim(strings.TrimSpace(options.KeyPrefix), ":")
+	if options.KeyPrefix == "" {
+		options.KeyPrefix = defaultKeyPrefix
+	}
+	return options
 }

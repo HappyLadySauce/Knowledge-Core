@@ -19,7 +19,6 @@ import (
 	"github.com/HappyLadySauce/Knowledge-Core/internal/config"
 	apperrors "github.com/HappyLadySauce/Knowledge-Core/internal/errors"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/options"
-	"github.com/HappyLadySauce/Knowledge-Core/internal/session"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/testutil"
 	internaluser "github.com/HappyLadySauce/Knowledge-Core/internal/user"
 )
@@ -210,14 +209,13 @@ func newAuthHarness(t *testing.T) *authHarness {
 
 	db, jwtOptions := newTestDB(t)
 	redisClient, redisPrefix := testutil.NewCacheClient(t)
-	refreshStore := session.NewStore(db, redisClient, session.Options{KeyPrefix: redisPrefix})
+	authSvc := internalauth.NewService(db, jwtOptions, redisClient, internalauth.ServiceOptions{KeyPrefix: redisPrefix})
 	sc := &svc.ServiceContext{
-		Config:        &config.Config{JWT: jwtOptions},
-		DB:            db,
-		Redis:         redisClient,
-		RefreshTokens: refreshStore,
+		Config: &config.Config{JWT: jwtOptions},
+		DB:     db,
+		Redis:  redisClient,
+		Auth:   authSvc,
 	}
-	authSvc := internalauth.NewService(db, jwtOptions, refreshStore)
 	// Bootstrap admin so TestDefaultAdminCanLogin can verify the default admin.
 	// 引导创建 admin 用户，使 TestDefaultAdminCanLogin 可验证默认管理员。
 	t.Setenv("KNOWLEDGE_CORE_ADMIN_PASSWORD", "ChangeMe_123456!")
@@ -234,13 +232,12 @@ func newAuthHarnessWithoutRedis(t *testing.T) *authHarness {
 	gin.SetMode(gin.TestMode)
 
 	db, jwtOptions := newTestDB(t)
-	refreshStore := session.NewStore(db, nil, session.Options{KeyPrefix: "knowledge-core-test-no-redis"})
+	authSvc := internalauth.NewService(db, jwtOptions, nil, internalauth.ServiceOptions{KeyPrefix: "knowledge-core-test-no-redis"})
 	sc := &svc.ServiceContext{
-		Config:        &config.Config{JWT: jwtOptions},
-		DB:            db,
-		RefreshTokens: refreshStore,
+		Config: &config.Config{JWT: jwtOptions},
+		DB:     db,
+		Auth:   authSvc,
 	}
-	authSvc := internalauth.NewService(db, jwtOptions, refreshStore)
 	t.Setenv("KNOWLEDGE_CORE_ADMIN_PASSWORD", "ChangeMe_123456!")
 	if err := authSvc.EnsureAdmin(context.Background()); err != nil {
 		t.Fatalf("bootstrap admin failed: %v", err)

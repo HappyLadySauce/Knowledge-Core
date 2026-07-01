@@ -1,4 +1,4 @@
-package session
+package auth
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"time"
 
 	apperrors "github.com/HappyLadySauce/Knowledge-Core/internal/errors"
+	"github.com/HappyLadySauce/Knowledge-Core/internal/options"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/testutil"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/user"
 )
@@ -97,11 +98,20 @@ func TestRevokeUserRefreshTokensDeletesRedisSessions(t *testing.T) {
 	}
 }
 
-func newSessionTestStore(t *testing.T) (*sql.DB, *Store) {
+func newSessionTestStore(t *testing.T) (*sql.DB, *Service) {
 	t.Helper()
 	db := testutil.NewDB(t)
 	redisClient, prefix := testutil.NewCacheClient(t)
-	return db, NewStore(db, redisClient, Options{KeyPrefix: prefix})
+	return db, NewService(db, testJWTOptions(), redisClient, ServiceOptions{KeyPrefix: prefix})
+}
+
+func testJWTOptions() *options.JWTOptions {
+	return &options.JWTOptions{
+		Issuer:     "Knowledge-Core",
+		Secret:     "Knowledge-Core-test-secret-32bytes",
+		AccessTTL:  time.Minute,
+		RefreshTTL: time.Hour,
+	}
 }
 
 func insertSessionTestUser(t *testing.T, db *sql.DB, username string) user.User {

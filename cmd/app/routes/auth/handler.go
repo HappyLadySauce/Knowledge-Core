@@ -20,14 +20,14 @@ type Controller struct {
 }
 
 func NewController(sc *svc.ServiceContext) *Controller {
-	return &Controller{service: auth.NewService(sc.DB, sc.Config.JWT, sc.RefreshTokens)}
+	return &Controller{service: sc.Auth}
 }
 
 // Init registers auth routes.
 // Init 注册认证路由。
 func Init(ctx context.Context, sc *svc.ServiceContext) {
 	_ = ctx
-	RegisterRoutes(router.V1(), auth.NewService(sc.DB, sc.Config.JWT, sc.RefreshTokens), sc)
+	RegisterRoutes(router.V1(), sc.Auth, sc)
 }
 
 // RegisterRoutes attaches auth and admin routes to the API group.

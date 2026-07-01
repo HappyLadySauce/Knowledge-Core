@@ -24,7 +24,6 @@ import (
 	internaldocument "github.com/HappyLadySauce/Knowledge-Core/internal/document"
 	apperrors "github.com/HappyLadySauce/Knowledge-Core/internal/errors"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/options"
-	"github.com/HappyLadySauce/Knowledge-Core/internal/session"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/taxonomy"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/testutil"
 )
@@ -144,15 +143,15 @@ func newDocumentHarness(t *testing.T) *documentHarness {
 		RefreshTTL: time.Hour,
 	}
 	redisClient, redisPrefix := testutil.NewCacheClient(t)
-	refreshStore := session.NewStore(db, redisClient, session.Options{KeyPrefix: redisPrefix})
+	authSvc := internalauth.NewService(db, jwtOptions, redisClient, internalauth.ServiceOptions{KeyPrefix: redisPrefix})
 	sc := &svc.ServiceContext{
 		Config: &config.Config{
 			JWT:       jwtOptions,
 			WebSocket: options.NewWebSocketOptions(),
 		},
-		DB:            db,
-		Redis:         redisClient,
-		RefreshTokens: refreshStore,
+		DB:    db,
+		Redis: redisClient,
+		Auth:  authSvc,
 	}
 	taxonomies := taxonomy.NewService(db)
 	category, err := taxonomies.CreateCategory(context.Background(), taxonomy.CategoryCommand{Name: "Tech", Slug: "tech"})
@@ -170,7 +169,6 @@ func newDocumentHarness(t *testing.T) *documentHarness {
 
 	router := gin.New()
 	group := router.Group("/api/v1")
-	authSvc := internalauth.NewService(db, jwtOptions, refreshStore)
 	// Bootstrap admin so loginAdmin can authenticate.
 	// 引导创建 admin 用户，使 loginAdmin 可认证。
 	t.Setenv("KNOWLEDGE_CORE_ADMIN_PASSWORD", "ChangeMe_123456!")

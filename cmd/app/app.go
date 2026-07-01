@@ -20,7 +20,6 @@ import (
 	taxonomyroute "github.com/HappyLadySauce/Knowledge-Core/cmd/app/routes/taxonomy"
 	userroute "github.com/HappyLadySauce/Knowledge-Core/cmd/app/routes/user"
 	"github.com/HappyLadySauce/Knowledge-Core/cmd/app/svc"
-	"github.com/HappyLadySauce/Knowledge-Core/internal/auth"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/config"
 )
 
@@ -87,7 +86,7 @@ func run(ctx context.Context, opts *options.Options) error {
 
 	// Bootstrap the initial admin user when none exists.
 	// 引导创建初始 admin 用户（若不存在）。
-	if err := auth.NewService(sc.DB, sc.Config.JWT, sc.RefreshTokens).EnsureAdmin(ctx); err != nil {
+	if err := sc.Auth.EnsureAdmin(ctx); err != nil {
 		return err
 	}
 

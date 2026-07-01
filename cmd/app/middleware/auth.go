@@ -7,7 +7,6 @@ import (
 
 	"github.com/HappyLadySauce/Knowledge-Core/cmd/app/svc"
 	"github.com/HappyLadySauce/Knowledge-Core/cmd/app/types/common"
-	"github.com/HappyLadySauce/Knowledge-Core/internal/auth"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/errors"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/user"
 )
@@ -17,7 +16,6 @@ const contextUserKey = "auth.user"
 // AuthMiddleware validates Bearer JWT and stores the current user in Gin context.
 // AuthMiddleware 校验 Bearer JWT 并将当前用户写入 Gin 上下文。
 func AuthMiddleware(sc *svc.ServiceContext) gin.HandlerFunc {
-	service := auth.NewService(sc.DB, sc.Config.JWT, sc.RefreshTokens)
 	return func(c *gin.Context) {
 		header := strings.TrimSpace(c.GetHeader("Authorization"))
 		if !strings.HasPrefix(header, "Bearer ") {
@@ -26,7 +24,7 @@ func AuthMiddleware(sc *svc.ServiceContext) gin.HandlerFunc {
 			return
 		}
 		token := strings.TrimSpace(strings.TrimPrefix(header, "Bearer "))
-		user, err := service.CurrentUser(c.Request.Context(), token)
+		user, err := sc.Auth.CurrentUser(c.Request.Context(), token)
 		if err != nil {
 			common.Error(c, err)
 			c.Abort()

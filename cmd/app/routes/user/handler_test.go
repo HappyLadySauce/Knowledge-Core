@@ -20,7 +20,6 @@ import (
 	"github.com/HappyLadySauce/Knowledge-Core/internal/config"
 	apperrors "github.com/HappyLadySauce/Knowledge-Core/internal/errors"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/options"
-	"github.com/HappyLadySauce/Knowledge-Core/internal/session"
 	"github.com/HappyLadySauce/Knowledge-Core/internal/testutil"
 	internaluser "github.com/HappyLadySauce/Knowledge-Core/internal/user"
 )
@@ -178,14 +177,13 @@ func newUserHarness(t *testing.T) *userHarness {
 
 	db, jwtOptions := newTestDB(t)
 	redisClient, redisPrefix := testutil.NewCacheClient(t)
-	refreshStore := session.NewStore(db, redisClient, session.Options{KeyPrefix: redisPrefix})
+	authSvc := internalauth.NewService(db, jwtOptions, redisClient, internalauth.ServiceOptions{KeyPrefix: redisPrefix})
 	sc := &svc.ServiceContext{
-		Config:        &config.Config{JWT: jwtOptions},
-		DB:            db,
-		Redis:         redisClient,
-		RefreshTokens: refreshStore,
+		Config: &config.Config{JWT: jwtOptions},
+		DB:     db,
+		Redis:  redisClient,
+		Auth:   authSvc,
 	}
-	authSvc := internalauth.NewService(db, jwtOptions, refreshStore)
 	// Bootstrap admin so loginAdmin can authenticate.
 	// 引导创建 admin 用户，使 loginAdmin 可认证。
 	t.Setenv("KNOWLEDGE_CORE_ADMIN_PASSWORD", "ChangeMe_123456!")
@@ -195,7 +193,7 @@ func newUserHarness(t *testing.T) *userHarness {
 	router := gin.New()
 	group := router.Group("/api/v1")
 	authroute.RegisterRoutes(group, authSvc, sc)
-	RegisterRoutes(group, internaluser.NewService(db, refreshStore), sc)
+	RegisterRoutes(group, internaluser.NewService(db, authSvc), sc)
 	return &userHarness{router: router}
 }
 

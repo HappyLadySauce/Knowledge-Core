@@ -24,16 +24,16 @@ const (
 )
 
 type Service struct {
-	repo          *Repository
-	refreshTokens RefreshTokenRevoker
+	repo     *Repository
+	sessions SessionRevoker
 }
 
-type RefreshTokenRevoker interface {
+type SessionRevoker interface {
 	RevokeUserRefreshTokens(ctx context.Context, userID int64, reason string) error
 }
 
-func NewService(db *sql.DB, refreshTokens RefreshTokenRevoker) UserService {
-	return &Service{repo: NewRepository(db), refreshTokens: refreshTokens}
+func NewService(db *sql.DB, sessions SessionRevoker) UserService {
+	return &Service{repo: NewRepository(db), sessions: sessions}
 }
 
 func (s *Service) GetMe(ctx context.Context, actor User) (User, error) {
@@ -71,7 +71,7 @@ func (s *Service) ChangePassword(ctx context.Context, actor User, cmd ChangePass
 	if err := s.repo.UpdatePasswordHash(ctx, actor.ID, string(hash)); err != nil {
 		return err
 	}
-	return s.refreshTokens.RevokeUserRefreshTokens(ctx, actor.ID, revokeReasonPasswordChanged)
+	return s.sessions.RevokeUserRefreshTokens(ctx, actor.ID, revokeReasonPasswordChanged)
 }
 
 func (s *Service) ListUsers(ctx context.Context, actor User, query ListQuery) (ListResult, error) {
@@ -126,7 +126,7 @@ func (s *Service) UpdateUser(ctx context.Context, actor User, id int64, cmd Admi
 		return User{}, err
 	}
 	if cmd.Status != nil || cmd.Role != nil {
-		if err := s.refreshTokens.RevokeUserRefreshTokens(ctx, id, revokeReasonUserChanged); err != nil {
+		if err := s.sessions.RevokeUserRefreshTokens(ctx, id, revokeReasonUserChanged); err != nil {
 			return User{}, err
 		}
 	}
@@ -146,7 +146,7 @@ func (s *Service) DeleteUser(ctx context.Context, actor User, id int64) error {
 	if err := s.repo.Disable(ctx, id); err != nil {
 		return err
 	}
-	return s.refreshTokens.RevokeUserRefreshTokens(ctx, id, revokeReasonUserDisabled)
+	return s.sessions.RevokeUserRefreshTokens(ctx, id, revokeReasonUserDisabled)
 }
 
 func (s *Service) ResetPassword(ctx context.Context, actor User, id int64, password string) error {
@@ -173,7 +173,7 @@ func (s *Service) ResetPassword(ctx context.Context, actor User, id int64, passw
 	if err := s.repo.UpdatePasswordHash(ctx, id, string(hash)); err != nil {
 		return err
 	}
-	return s.refreshTokens.RevokeUserRefreshTokens(ctx, id, revokeReasonPasswordChanged)
+	return s.sessions.RevokeUserRefreshTokens(ctx, id, revokeReasonPasswordChanged)
 }
 
 func normalizeProfileCommand(cmd UpdateProfileCommand) UpdateProfileCommand {
